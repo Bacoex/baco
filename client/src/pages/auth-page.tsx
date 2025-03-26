@@ -250,18 +250,25 @@ export default function AuthPage() {
                     {/* Sem elementos de fundo */}
                   </div>
                   
-                  {/* Logo com efeito de brilho suave */}
-                  <div className="relative z-10 transform hover:scale-105 transition-all duration-500">
-                    {/* Texto com brilho */}
-                    <h1 className="relative text-8xl uppercase" 
-                        style={{
-                          fontFamily: 'Futura, "Trebuchet MS", Arial, sans-serif',
-                          fontWeight: '600',
-                          letterSpacing: '0.05em'
-                        }}>
-                      {/* Logo com gradiente laranja para amarelo */}
-                      <span className="bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-400 bg-clip-text text-transparent animate-pulse-slow">BACO</span>
-                    </h1>
+                  {/* Logo com traços laterais */}
+                  <div className="relative z-10 flex flex-col items-center">
+                    <div className="flex items-center space-x-4">
+                      {/* Traço esquerdo */}
+                      <div className="w-20 h-[3px] bg-gradient-to-r from-transparent to-orange-500"></div>
+                      
+                      {/* Texto com gradiente fixo */}
+                      <h1 className="text-8xl uppercase" 
+                          style={{
+                            fontFamily: 'Futura, "Trebuchet MS", Arial, sans-serif',
+                            fontWeight: '600',
+                            letterSpacing: '0.05em'
+                          }}>
+                        <span className="bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-400 bg-clip-text text-transparent">BACO</span>
+                      </h1>
+                      
+                      {/* Traço direito */}
+                      <div className="w-20 h-[3px] bg-gradient-to-l from-transparent to-orange-500"></div>
+                    </div>
                   </div>
                 </div>
               </div>
