@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Eneagon } from "@/components/ui/eneagon";
 import { SearchIcon, UserIcon, Settings, LogOut, Calendar } from "lucide-react";
+import { getUserDisplayName } from "@/lib/utils";
 
 /**
  * Componente de cabeçalho da aplicação
@@ -108,7 +109,7 @@ export default function Header() {
                 {user?.profileImage ? (
                   <img 
                     src={user.profileImage} 
-                    alt={user.lastName}
+                    alt={getUserDisplayName(user)}
                     className="h-full w-full object-cover"
                   />
                 ) : (
@@ -120,7 +121,7 @@ export default function Header() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{user?.lastName || "Minha Conta"}</DropdownMenuLabel>
+            <DropdownMenuLabel>{getUserDisplayName(user) || "Minha Conta"}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => showComingSoon("Meu Perfil")}>
               <UserIcon className="mr-2 h-4 w-4" />
