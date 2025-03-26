@@ -50,32 +50,32 @@ export default function Header() {
   return (
     <header className="bg-black shadow-lg fixed top-0 left-0 w-full z-10 border-b border-primary/20">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Logo única com o B conectado */}
+        {/* Logo estilo fonte de rua */}
         <div className="flex items-center mr-6 ml-2">
           <div className="relative">
             <div className="flex items-center">
-              <div className="relative">
-                {/* B com conexões */}
-                <div className="text-3xl font-bold text-primary relative">
-                  <span className="relative">B</span>
-                  {/* Pontos de conexão no B */}
-                  <div className="absolute top-0 left-[10px] w-1 h-1 bg-primary rounded-full"></div>
-                  <div className="absolute top-[6px] left-[18px] w-1 h-1 bg-primary rounded-full"></div>
-                  <div className="absolute top-[13px] left-[18px] w-1 h-1 bg-primary rounded-full"></div>
-                  <div className="absolute top-[20px] left-[10px] w-1 h-1 bg-primary rounded-full"></div>
-                  <div className="absolute bottom-0 left-[10px] w-1 h-1 bg-primary rounded-full"></div>
+              <div 
+                className="text-3xl font-bold text-primary"
+                style={{
+                  fontFamily: "Impact, fantasy",
+                  letterSpacing: "1px",
+                  textShadow: "1px 1px 0px rgba(0,0,0,0.3)",
+                  textTransform: "uppercase",
+                  fontStyle: "italic"
+                }}
+              >
+                {/* Efeito escorrido/spray de tinta */}
+                <div className="relative overflow-visible">
+                  <div className="absolute -bottom-1 left-1 w-6 h-3 bg-primary opacity-30 rounded-b-full transform rotate-12 blur-sm"></div>
+                  <div className="absolute -top-0.5 right-1 w-3 h-1.5 bg-primary opacity-20 rounded-t-full transform -rotate-12 blur-sm"></div>
                   
-                  {/* Linhas de conexão no B */}
-                  <div className="absolute top-0 left-[10px] w-[8px] h-[0.5px] bg-primary transform rotate-12 connection-line"></div>
-                  <div className="absolute top-[6px] left-[10px] w-[8px] h-[0.5px] bg-primary transform connection-line"></div>
-                  <div className="absolute top-[13px] left-[10px] w-[8px] h-[0.5px] bg-primary transform connection-line"></div>
-                  <div className="absolute top-[20px] left-[10px] w-[8px] h-[0.5px] bg-primary transform -rotate-12 connection-line"></div>
+                  {/* Logo pintada */}
+                  <span className="relative inline-block transform hover:scale-105 transition-transform duration-300 bg-gradient-to-b from-primary to-primary/90 bg-clip-text text-transparent">
+                    Baco
+                  </span>
                 </div>
-                <span className="text-3xl font-bold text-primary ml-1">aco</span>
               </div>
             </div>
-            <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-primary rounded-full"></div>
-            <div className="absolute -bottom-2 left-1/4 w-1/2 h-0.5 bg-primary/50 rounded-full"></div>
           </div>
         </div>
         

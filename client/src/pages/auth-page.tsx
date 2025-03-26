@@ -251,29 +251,26 @@ export default function AuthPage() {
           <div className="absolute -top-20 -left-32 w-40 h-40 rounded-[70%_30%_70%_30%] bg-primary opacity-20 animate-slow-morph"></div>
           
           <div className="mx-auto flex flex-col items-center justify-center relative">
-            {/* B personalizado com conexões */}
+            {/* Logo com estilo de fonte de rua tipo pintura */}
             <div className="flex items-center justify-center mb-4">
               <div className="relative">
-                {/* B com pontos e linhas de conexão */}
-                <div className="text-7xl font-bold text-primary relative group">
-                  <div className="flex">
-                    <div className="relative">
-                      {/* Letra B com pontos de conexão */}
-                      <span className="inline-block relative">B</span>
-                      {/* Pontos de conexão */}
-                      <div className="absolute top-[4px] left-[18px] w-[3px] h-[3px] bg-primary rounded-full"></div>
-                      <div className="absolute top-[16px] left-[36px] w-[3px] h-[3px] bg-primary rounded-full"></div>
-                      <div className="absolute top-[34px] left-[36px] w-[3px] h-[3px] bg-primary rounded-full"></div>
-                      <div className="absolute top-[50px] left-[18px] w-[3px] h-[3px] bg-primary rounded-full"></div>
-                      <div className="absolute bottom-[4px] left-[18px] w-[3px] h-[3px] bg-primary rounded-full"></div>
-                      
-                      {/* Linhas de conexão animadas */}
-                      <div className="absolute top-[4px] left-[18px] w-[18px] h-[1px] bg-primary transform rotate-12 connection-line"></div>
-                      <div className="absolute top-[16px] left-[18px] w-[18px] h-[1px] bg-primary connection-line" style={{animationDelay: '0.2s'}}></div>
-                      <div className="absolute top-[34px] left-[18px] w-[18px] h-[1px] bg-primary connection-line" style={{animationDelay: '0.4s'}}></div>
-                      <div className="absolute top-[50px] left-[18px] w-[18px] h-[1px] bg-primary transform -rotate-12 connection-line" style={{animationDelay: '0.6s'}}></div>
-                    </div>
-                    <span className="text-7xl font-bold text-primary ml-1">aco</span>
+                <div className="text-8xl font-bold text-primary relative group" 
+                     style={{
+                       fontFamily: "Impact, fantasy",
+                       letterSpacing: "2px",
+                       textShadow: "2px 2px 0px rgba(0,0,0,0.3)",
+                       textTransform: "uppercase",
+                       fontStyle: "italic"
+                     }}>
+                  <div className="relative overflow-visible">
+                    {/* Efeito escorrido/spray de tinta */}
+                    <div className="absolute -bottom-2 left-2 w-10 h-6 bg-primary opacity-30 rounded-b-full transform rotate-12 blur-sm"></div>
+                    <div className="absolute -top-1 right-2 w-6 h-3 bg-primary opacity-20 rounded-t-full transform -rotate-12 blur-sm"></div>
+                    
+                    {/* Logo pintada */}
+                    <span className="relative inline-block transform hover:scale-105 transition-transform duration-300 bg-gradient-to-b from-primary to-primary/90 bg-clip-text text-transparent py-3">
+                      Baco
+                    </span>
                   </div>
                 </div>
               </div>
