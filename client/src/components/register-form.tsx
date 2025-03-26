@@ -125,9 +125,9 @@ export default function RegisterForm({
   }
 
   return (
-    <Card>
+    <Card className="border-baco-blue bg-black text-white">
       <CardContent className="pt-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Cadastro</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">Cadastro</h2>
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -136,10 +136,11 @@ export default function RegisterForm({
               name="firstName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nome</FormLabel>
+                  <FormLabel className="text-gray-300">Nome</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="Digite seu nome" 
+                      className="border-baco-blue focus-visible:ring-baco-blue bg-black text-white"
                       {...field} 
                     />
                   </FormControl>
@@ -153,10 +154,11 @@ export default function RegisterForm({
               name="lastName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Sobrenome</FormLabel>
+                  <FormLabel className="text-gray-300">Sobrenome</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="Digite seu sobrenome" 
+                      className="border-baco-blue focus-visible:ring-baco-blue bg-black text-white"
                       {...field} 
                     />
                   </FormControl>
@@ -320,7 +322,7 @@ export default function RegisterForm({
             
             <Button 
               type="submit" 
-              className="w-full"
+              className="w-full hover:bg-baco-blue"
               disabled={registerMutation.isPending}
             >
               {registerMutation.isPending ? (
