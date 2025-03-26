@@ -272,15 +272,13 @@ export default function AuthPage() {
                     <div className="absolute top-0 right-[15%] w-[1px] h-full bg-gradient-to-b from-transparent via-baco-blue/20 to-transparent transform -rotate-12"></div>
                   </div>
                   
-                  {/* Logo principal com efeito neón - só amarelo */}
-                  <div className="relative z-10 transform hover:scale-105 transition-all duration-300">
-                    {/* Camada de brilho externo */}
-                    <div className="absolute inset-0 blur-xl bg-yellow-500 opacity-30 animate-pulse filter"></div>
+                  {/* Logo principal com efeito de fumaça - amarelo suave */}
+                  <div className="relative z-10 transform hover:scale-105 transition-all duration-500">
+                    {/* Efeito de fumaça ao redor */}
+                    <div className="absolute inset-0 blur-2xl bg-yellow-600/10 mix-blend-soft-light"></div>
+                    <div className="absolute -inset-4 blur-3xl bg-yellow-500/5 mix-blend-soft-light"></div>
                     
-                    {/* Camada de brilho interno */}
-                    <div className="absolute inset-0 blur-md bg-yellow-400 opacity-40"></div>
-                    
-                    {/* Texto com efeito neon */}
+                    {/* Texto com efeito fumaça */}
                     <h1 className="relative text-8xl uppercase" 
                         style={{
                           fontFamily: 'Futura, "Trebuchet MS", Arial, sans-serif',
@@ -288,12 +286,11 @@ export default function AuthPage() {
                           letterSpacing: '0.05em'
                         }}>
                       {/* Logo em amarelo */}
-                      <span className="absolute -inset-0.5 text-yellow-300 blur-sm animate-pulse">BACO</span>
-                      <span className="relative text-yellow-400">BACO</span>
+                      <span className="text-yellow-500/80 opacity-90">BACO</span>
                     </h1>
                     
-                    {/* Efeito de escaneamento */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-yellow-400/20 to-transparent animate-scan"></div>
+                    {/* Efeito de fumaça se movendo lentamente */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-yellow-600/5 via-yellow-500/10 to-yellow-600/5 mix-blend-soft-light opacity-50 animate-breathe"></div>
                   </div>
                 </div>
               </div>
