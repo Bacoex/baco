@@ -255,21 +255,9 @@ export default function AuthPage() {
             <div className="flex items-center justify-center mb-4">
               <div className="relative">
                 <div className="relative h-40 flex justify-center items-center mb-4">
-                  {/* Efeito de glitch/digital cyberpunk */}
+                  {/* Fundo limpo sem linhas ou grade */}
                   <div className="absolute inset-0 w-full h-full">
-                    {/* Linhas horizontais estilo digital */}
-                    <div className="absolute top-[15%] left-0 w-full h-[1px] bg-primary/30 animate-pulse"></div>
-                    <div className="absolute top-[35%] left-0 w-full h-[1px] bg-baco-blue/30 animate-pulse" style={{animationDelay: '0.5s'}}></div>
-                    <div className="absolute top-[65%] left-0 w-full h-[1px] bg-primary/30 animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                    <div className="absolute top-[85%] left-0 w-full h-[1px] bg-baco-blue/30 animate-pulse" style={{animationDelay: '0.7s'}}></div>
-                    
-                    {/* Círculos decorativos */}
-                    <div className="absolute top-[10%] right-[5%] w-12 h-12 rounded-full border-2 border-primary/30"></div>
-                    <div className="absolute bottom-[10%] left-[5%] w-8 h-8 rounded-full border border-baco-blue/30"></div>
-                    
-                    {/* Linhas diagonais */}
-                    <div className="absolute top-0 left-[10%] w-[1px] h-full bg-gradient-to-b from-transparent via-primary/20 to-transparent transform rotate-12"></div>
-                    <div className="absolute top-0 right-[15%] w-[1px] h-full bg-gradient-to-b from-transparent via-baco-blue/20 to-transparent transform -rotate-12"></div>
+                    {/* Sem elementos de fundo */}
                   </div>
                   
                   {/* Logo principal com efeito de fumaça - amarelo suave */}

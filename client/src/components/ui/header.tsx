@@ -55,15 +55,9 @@ export default function Header() {
           <div className="relative">
             <div className="flex items-center">
               <div className="relative h-10 w-24 flex justify-center items-center">
-                {/* Efeito de glitch/digital cyberpunk */}
+                {/* Fundo limpo sem linhas ou grade */}
                 <div className="absolute inset-0 w-full h-full">
-                  {/* Linhas horizontais estilo digital */}
-                  <div className="absolute top-[15%] left-0 w-full h-[0.5px] bg-primary/20 animate-pulse"></div>
-                  <div className="absolute top-[75%] left-0 w-full h-[0.5px] bg-baco-blue/20 animate-pulse" style={{animationDelay: '0.3s'}}></div>
-                  
-                  {/* Linhas diagonais */}
-                  <div className="absolute top-0 left-[10%] w-[0.5px] h-full bg-gradient-to-b from-transparent via-primary/10 to-transparent transform rotate-12"></div>
-                  <div className="absolute top-0 right-[15%] w-[0.5px] h-full bg-gradient-to-b from-transparent via-baco-blue/10 to-transparent transform -rotate-12"></div>
+                  {/* Sem elementos de fundo */}
                 </div>
                 
                 {/* Logo principal com efeito de fumaça - amarelo suave */}
