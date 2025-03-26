@@ -248,12 +248,11 @@ export default function AuthPage() {
       <div className="max-w-md w-full z-10 relative">
         {/* Logo com formato orgânico */}
         <div className="relative mb-10">
-          <div className="absolute -top-20 -left-20 w-40 h-40 rounded-[70%_30%_70%_30%] bg-gradient-to-r from-primary to-baco-blue opacity-30 animate-slow-morph" 
-               style={{filter: 'blur(30px)'}}></div>
+          <div className="absolute -top-20 -left-32 w-40 h-40 rounded-[70%_30%_70%_30%] bg-primary opacity-20 animate-slow-morph"></div>
           
-          <div className="w-36 h-36 mx-auto border-4 border-white/20 rounded-[60%_40%_50%_50%] overflow-hidden flex items-center justify-center shadow-[0_0_60px_rgba(255,153,0,0.6)] backdrop-blur-sm animate-slow-morph">
+          <div className="w-36 h-36 mx-auto border-4 border-white/20 rounded-[60%_40%_50%_50%] overflow-hidden flex items-center justify-center backdrop-blur-sm animate-slow-morph">
             <div className="relative z-20 transform rotate-3 hover:rotate-0 transition-transform duration-500">
-              <h1 className="text-5xl font-bold bg-gradient-to-br from-yellow-300 via-primary to-baco-blue bg-clip-text text-transparent animate-text-shimmer">Baco</h1>
+              <h1 className="text-5xl font-bold text-primary">Baco</h1>
             </div>
           </div>
           
@@ -266,7 +265,7 @@ export default function AuthPage() {
             <span className="inline-block px-1 animate-float" style={{animationDelay: '0.6s'}}>À</span>
           </p>
           <p className="text-center mt-1">
-            <span className="bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent inline-block text-2xl font-bold tracking-widest animate-float" 
+            <span className="text-primary inline-block text-2xl font-bold tracking-widest animate-float" 
                   style={{animationDelay: '0.75s', letterSpacing: '0.15em', fontFamily: 'serif'}}>
               ✧ E X P E R I Ê N C I A ✧
             </span>
