@@ -305,6 +305,46 @@ function RecoveryForm({
 }
 
 /**
+ * Componente que exibe os requisitos de senha
+ */
+function PasswordRequirements() {
+  return (
+    <div className="text-xs text-gray-500 mt-1 space-y-1">
+      <p>A senha deve conter pelo menos:</p>
+      <ul className="list-disc pl-4">
+        <li>8 caracteres</li>
+        <li>1 letra maiúscula</li>
+        <li>1 letra minúscula</li>
+        <li>1 número</li>
+        <li>1 caractere especial (ex: !@#$%&*)</li>
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * Componente que exibe os requisitos de CPF
+ */
+function CPFRequirements() {
+  return (
+    <div className="text-xs text-gray-500 mt-1">
+      Digite apenas os números do CPF (11 dígitos). O sistema verificará se o CPF é válido.
+    </div>
+  );
+}
+
+/**
+ * Componente que exibe os requisitos de RG
+ */
+function RGRequirements() {
+  return (
+    <div className="text-xs text-gray-500 mt-1">
+      Digite seu RG com pelo menos 5 caracteres. O sistema verificará se o formato é válido.
+    </div>
+  );
+}
+
+/**
  * Componente de formulário de cadastro
  */
 function RegisterForm({
