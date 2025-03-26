@@ -123,7 +123,8 @@ export class MemStorage implements IStorage {
       { name: "Reunião", slug: "meeting", color: "#3b82f6" },
       { name: "Churrasco", slug: "barbecue", color: "#f59e0b" },
       { name: "Festa", slug: "party", color: "#ec4899" },
-      { name: "Show", slug: "concert", color: "#10b981" }
+      { name: "Show", slug: "concert", color: "#10b981" },
+      { name: "LGBT+", slug: "lgbt", color: "pride" }
     ];
     
     categories.forEach(category => {
