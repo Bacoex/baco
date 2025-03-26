@@ -54,9 +54,9 @@ export function Header() {
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link href="/favorites" className="flex items-center px-4 py-2">
+              <Link href="/my-events" className="flex items-center px-4 py-2">
                 <Star className="mr-2 h-4 w-4" />
-                Favoritos
+                Meus Eventos
               </Link>
             </NavigationMenuItem>
           </NavigationMenuList>

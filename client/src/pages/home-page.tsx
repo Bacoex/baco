@@ -53,13 +53,13 @@ export default function HomePage() {
       <main className="flex-grow px-4 pb-20 pt-28 relative z-10">
         <div className="container mx-auto">
           {/* Título da seção */}
-          <div className="text-center py-6">
-            <h2 className="text-3xl font-bold mb-2 inline-block text-white">
+          <div className="text-center py-4">
+            <h2 className="text-xl font-semibold mb-2 inline-block text-white">
               {selectedCategory 
                 ? `Eventos de ${categoriesQuery.data?.find(c => c.slug === selectedCategory)?.name || selectedCategory}` 
                 : "Eventos em destaque"}
             </h2>
-            <div className="mx-auto w-32 h-0.5 bg-primary rounded-full"></div>
+            <div className="mx-auto w-24 h-0.5 bg-primary rounded-full"></div>
           </div>
           
           {/* Grade de eventos */}

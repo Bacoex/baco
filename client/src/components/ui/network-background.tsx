@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useEffect, useRef } from 'react';
 
 /**
  * Componente de rede com pontos se conectando
@@ -6,93 +6,121 @@ import { useRef, useEffect } from "react";
  */
 export default function NetworkBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    
-    // Redimensionar o canvas para ocupar toda a tela
-    const handleResize = () => {
+
+    // Configuração do canvas para acompanhar o tamanho da tela
+    const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     };
-    
-    window.addEventListener('resize', handleResize);
-    handleResize();
-    
-    // Definir pontos na rede
-    const pointCount = 60;
-    const points: { x: number; y: number; dx: number; dy: number; radius: number; }[] = [];
-    
-    for (let i = 0; i < pointCount; i++) {
-      points.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        dx: (Math.random() - 0.5) * 0.5,
-        dy: (Math.random() - 0.5) * 0.5,
-        radius: Math.random() * 1.5 + 0.5,
-      });
-    }
-    
-    // Função para desenhar a rede
-    const drawNetwork = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Desenhar pontos
-      for (let i = 0; i < pointCount; i++) {
-        const point = points[i];
-        
-        // Atualizar posição
-        point.x += point.dx;
-        point.y += point.dy;
-        
-        // Rebater nas bordas
-        if (point.x < 0 || point.x > canvas.width) point.dx *= -1;
-        if (point.y < 0 || point.y > canvas.height) point.dy *= -1;
-        
-        // Desenhar ponto
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, point.radius, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.fill();
-        
-        // Desenhar linhas conectando pontos próximos
-        for (let j = i + 1; j < pointCount; j++) {
-          const otherPoint = points[j];
-          const distance = Math.sqrt(
-            Math.pow(point.x - otherPoint.x, 2) + Math.pow(point.y - otherPoint.y, 2)
-          );
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Configuração dos nós
+    const nodes: {
+      x: number;
+      y: number;
+      radius: number;
+      vx: number;
+      vy: number;
+      color: string;
+    }[] = [];
+
+    // Cria nós com posições aleatórias
+    const createNodes = () => {
+      const nodeCount = Math.min(Math.floor(window.innerWidth / 50), 15); // Limitado a 15 para performance
+      nodes.length = 0;
+
+      for (let i = 0; i < nodeCount; i++) {
+        nodes.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 2 + 1,
+          vx: Math.random() * 0.2 - 0.1,
+          vy: Math.random() * 0.2 - 0.1,
+          color: `rgba(255, 153, 0, ${Math.random() * 0.5 + 0.2})` // Laranja com opacidade variável
+        });
+      }
+    };
+
+    createNodes();
+
+    // Desenha as conexões entre os nós
+    const drawLines = () => {
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
           
-          if (distance < 150) {
+          if (distance < 200) {
             ctx.beginPath();
-            ctx.moveTo(point.x, point.y);
-            ctx.lineTo(otherPoint.x, otherPoint.y);
-            ctx.strokeStyle = `rgba(255, 255, 255, ${0.05 - distance / 3000})`;
-            ctx.lineWidth = 0.3;
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            
+            // Gradiente suave com opacidade baseada na distância
+            const opacity = 1 - distance / 200;
+            ctx.strokeStyle = `rgba(255, 153, 0, ${opacity * 0.15})`;
+            ctx.lineWidth = 0.5;
             ctx.stroke();
           }
         }
       }
-      
-      requestAnimationFrame(drawNetwork);
     };
-    
-    const animationId = requestAnimationFrame(drawNetwork);
-    
-    // Limpar evento e animação ao desmontar
+
+    // Desenha os nós
+    const drawNodes = () => {
+      for (const node of nodes) {
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+        ctx.fillStyle = node.color;
+        ctx.fill();
+      }
+    };
+
+    // Atualiza as posições dos nós
+    const updateNodes = () => {
+      for (const node of nodes) {
+        node.x += node.vx;
+        node.y += node.vy;
+
+        // Se o nó sair da tela, reverte sua direção
+        if (node.x < 0 || node.x > canvas.width) node.vx = -node.vx;
+        if (node.y < 0 || node.y > canvas.height) node.vy = -node.vy;
+      }
+    };
+
+    // Loop de animação
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      drawLines();
+      drawNodes();
+      updateNodes();
+      
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    let animationFrameId = requestAnimationFrame(animate);
+
+    // Limpeza ao desmontar
     return () => {
-      window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationId);
+      window.removeEventListener('resize', resizeCanvas);
+      cancelAnimationFrame(animationFrameId);
     };
   }, []);
-  
+
   return (
-    <canvas 
-      ref={canvasRef} 
-      className="fixed inset-0 w-full h-full z-0 bg-transparent pointer-events-none"
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 w-full h-full z-0 bg-black"
     />
   );
 }

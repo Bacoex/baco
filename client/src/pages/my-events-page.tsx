@@ -34,7 +34,7 @@ import {
 import { Header } from "@/components/ui/header";
 import { Link } from "wouter";
 import CreateEventModal from "@/components/ui/create-event-modal";
-import NetworkBackground from "@/components/ui/network-background";
+import NetworkBackground from "../components/ui/network-background";
 
 // Tipos para os eventos e participantes
 interface EventParticipant {
@@ -615,16 +615,16 @@ export default function MyEventsPage() {
       
       <main className="flex-grow px-4 pb-20 pt-28 relative z-10">
         <div className="container mx-auto max-w-6xl">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-white">Meus Eventos</h1>
-            <Button onClick={() => setIsCreateModalOpen(true)} className="bg-primary hover:bg-primary/90">
-              <Plus className="h-4 w-4 mr-2" />
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-xl font-semibold text-white">Meus Eventos</h1>
+            <Button onClick={() => setIsCreateModalOpen(true)} className="bg-primary hover:bg-primary/90" size="sm">
+              <Plus className="h-4 w-4 mr-1" />
               Criar Evento
             </Button>
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-3 mb-8">
+            <TabsList className="grid grid-cols-3 mb-6 h-10 text-sm">
               <TabsTrigger value="created">Criados por mim</TabsTrigger>
               <TabsTrigger value="participating">Participando</TabsTrigger>
               <TabsTrigger value="following">Seguindo</TabsTrigger>
