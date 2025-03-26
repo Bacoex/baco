@@ -178,13 +178,19 @@ export default function AuthPage() {
             </div>
           </div>
           
-          <p className="text-white mt-4 text-center text-xl font-light tracking-wide">
-            <span className="inline-block animate-float">Onde </span>
-            <span className="inline-block animate-float" style={{animationDelay: '0.15s'}}>você </span>
-            <span className="inline-block animate-float" style={{animationDelay: '0.3s'}}>se </span>
-            <span className="inline-block animate-float" style={{animationDelay: '0.45s'}}>conecta </span>
-            <span className="inline-block animate-float" style={{animationDelay: '0.6s'}}>à </span>
-            <span className="bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent inline-block animate-float" style={{animationDelay: '0.75s'}}>experiência</span>
+          <p className="text-white mt-5 text-center tracking-widest uppercase text-xs font-light" 
+             style={{letterSpacing: '0.35em', fontFamily: 'serif'}}>
+            <span className="inline-block px-1 animate-float">O N D E</span>
+            <span className="inline-block px-1 animate-float" style={{animationDelay: '0.15s'}}>V O C Ê</span>
+            <span className="inline-block px-1 animate-float" style={{animationDelay: '0.3s'}}>S E</span>
+            <span className="inline-block px-1 animate-float" style={{animationDelay: '0.45s'}}>C O N E C T A</span>
+            <span className="inline-block px-1 animate-float" style={{animationDelay: '0.6s'}}>À</span>
+          </p>
+          <p className="text-center mt-1">
+            <span className="bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent inline-block text-2xl font-bold tracking-widest animate-float" 
+                  style={{animationDelay: '0.75s', letterSpacing: '0.15em', fontFamily: 'serif'}}>
+              ✧ E X P E R I Ê N C I A ✧
+            </span>
           </p>
         </div>
 
