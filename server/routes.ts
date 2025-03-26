@@ -15,6 +15,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configura autenticação e suas rotas (/api/login, /api/register, etc.)
   setupAuth(app);
   
+  // API para debug - lista todos os usuários (remover em produção)
+  app.get("/api/debug/users", async (req, res) => {
+    const users = Array.from(storage.usersMap.values()).map(user => {
+      // Retorna uma versão segura sem o hash completo da senha
+      const { password, ...safeUser } = user;
+      return {
+        ...safeUser,
+        passwordLength: password.length,
+        passwordStartsWith: password.substring(0, 20) + "..."
+      };
+    });
+    res.json(users);
+  });
+
+  // API para debug - Verifica a autenticação de um usuário
+  app.post("/api/debug/verify-password", async (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ message: "CPF e senha são obrigatórios" });
+    }
+
+    const user = await storage.getUserByUsername(username);
+    if (!user) {
+      return res.status(404).json({ message: "Usuário não encontrado" });
+    }
+
+    // Verifica a senha usando a mesma função do auth.ts
+    const crypto = require('crypto');
+    const scryptAsync = require('util').promisify(crypto.scrypt);
+    
+    try {
+      const [hashed, salt] = user.password.split(".");
+      const hashedBuf = Buffer.from(hashed, "hex");
+      const suppliedBuf = await scryptAsync(password, salt, 64);
+      
+      const isMatch = crypto.timingSafeEqual(hashedBuf, suppliedBuf);
+      
+      return res.json({
+        isMatch,
+        passwordProvided: password,
+        providedSalt: salt,
+        hashFromPassword: (await scryptAsync(password, salt, 64)).toString('hex'),
+        storedHash: hashed,
+        doHashesMatch: (await scryptAsync(password, salt, 64)).toString('hex') === hashed
+      });
+    } catch (error) {
+      return res.status(500).json({ message: "Erro ao verificar senha", error: (error as Error).message });
+    }
+  });
+  
   // Middleware para verificar autenticação nas rotas protegidas
   const ensureAuthenticated = (req: any, res: any, next: any) => {
     if (req.isAuthenticated()) {

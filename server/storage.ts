@@ -47,7 +47,8 @@ export interface IStorage {
  * Mantém todos os dados em estruturas Map para simular um banco de dados
  */
 export class MemStorage implements IStorage {
-  private usersMap: Map<number, User>;
+  // Mapas acessíveis publicamente para API de debug (remover em produção)
+  public usersMap: Map<number, User>;
   private categoriesMap: Map<number, EventCategory>;
   private eventsMap: Map<number, Event>;
   private participantsMap: Map<number, EventParticipant>;
