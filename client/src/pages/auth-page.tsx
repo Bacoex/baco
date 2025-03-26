@@ -18,7 +18,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Info } from "lucide-react";
 import RegisterForm from "@/components/register-form";
-import SmokeLogo from "@/components/ui/smoke-logo";
 import {
   Dialog,
   DialogContent,
@@ -251,13 +250,25 @@ export default function AuthPage() {
                     {/* Sem elementos de fundo */}
                   </div>
                   
-                  {/* Componente de logo com fumaça realista */}
-                  <div className="relative z-10 w-80 h-48 flex items-center justify-center">
-                    <SmokeLogo 
-                      text="BACO" 
-                      color="#FF9900" 
-                      className="scale-150"
-                    />
+                  {/* Logo com efeito de brilho suave */}
+                  <div className="relative z-10 transform hover:scale-105 transition-all duration-500">
+                    {/* Efeito de brilho ao redor */}
+                    <div className="absolute inset-0 blur-2xl bg-orange-600/10 mix-blend-overlay"></div>
+                    <div className="absolute -inset-4 blur-3xl bg-orange-500/5 mix-blend-overlay"></div>
+                    
+                    {/* Texto com brilho */}
+                    <h1 className="relative text-8xl uppercase" 
+                        style={{
+                          fontFamily: 'Futura, "Trebuchet MS", Arial, sans-serif',
+                          fontWeight: '600',
+                          letterSpacing: '0.05em'
+                        }}>
+                      {/* Logo com gradiente laranja para amarelo */}
+                      <span className="bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-400 bg-clip-text text-transparent animate-pulse-slow">BACO</span>
+                    </h1>
+                    
+                    {/* Efeito de brilho pulsante */}
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-orange-500/5 via-yellow-400/15 to-orange-300/5 mix-blend-overlay opacity-70 animate-breathe"></div>
                   </div>
                 </div>
               </div>
