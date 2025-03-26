@@ -36,6 +36,7 @@ export interface IStorage {
   getParticipants(eventId: number): Promise<EventParticipant[]>;
   getParticipation(eventId: number, userId: number): Promise<EventParticipant | undefined>;
   createParticipation(participation: InsertEventParticipant): Promise<EventParticipant>;
+  removeParticipation(id: number): Promise<void>;
   updateParticipationStatus(id: number, status: string): Promise<EventParticipant>;
   
   // Sessões
@@ -236,6 +237,13 @@ export class MemStorage implements IStorage {
     };
     this.participantsMap.set(id, newParticipation);
     return newParticipation;
+  }
+  
+  async removeParticipation(id: number): Promise<void> {
+    if (!this.participantsMap.has(id)) {
+      throw new Error("Participação não encontrada");
+    }
+    this.participantsMap.delete(id);
   }
   
   async updateParticipationStatus(id: number, status: string): Promise<EventParticipant> {

@@ -111,12 +111,50 @@ export default function ViewEventModal({ event, isOpen, onClose }: ViewEventModa
   };
   
   // Função para lidar com a ação de participar
-  const handleParticipate = () => {
-    // Implementação futura: participar do evento
-    toast({
-      title: "Participar",
-      description: "Funcionalidade de participação será implementada em breve!",
-    });
+  const handleParticipate = async () => {
+    try {
+      const response = await fetch(`/api/events/${event.id}/participate`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao participar do evento');
+      }
+      
+      // Adicionar o novo participante à lista de participantes
+      const participationData = await response.json();
+      
+      // Atualizar o estado do componente para refletir a participação
+      const updatedEvent = {
+        ...event,
+        participants: [...(event.participants || []), participationData]
+      };
+      
+      // Fecha o modal para forçar uma atualização
+      onClose();
+      
+      toast({
+        title: "Sucesso!",
+        description: event.eventType === 'private_application' 
+          ? "Sua candidatura foi enviada com sucesso!" 
+          : "Você está participando deste evento!",
+      });
+      
+      // Recarrega a lista de eventos para atualizar a interface
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao participar do evento",
+        variant: "destructive"
+      });
+    }
   };
   
   // Verifica se o usuário atual é o criador do evento
@@ -249,7 +287,39 @@ export default function ViewEventModal({ event, isOpen, onClose }: ViewEventModa
               )}
               
               {isParticipant && (
-                <Button variant="destructive">
+                <Button variant="destructive" onClick={async () => {
+                  try {
+                    const response = await fetch(`/api/events/${event.id}/cancel-participation`, {
+                      method: 'DELETE',
+                      credentials: 'include'
+                    });
+                    
+                    if (!response.ok) {
+                      const errorData = await response.json();
+                      throw new Error(errorData.message || 'Erro ao cancelar participação');
+                    }
+                    
+                    // Fecha o modal para forçar uma atualização
+                    onClose();
+                    
+                    toast({
+                      title: "Participação cancelada",
+                      description: "Você não está mais participando deste evento.",
+                    });
+                    
+                    // Recarrega a lista de eventos para atualizar a interface
+                    setTimeout(() => {
+                      window.location.reload();
+                    }, 1500);
+                    
+                  } catch (error) {
+                    toast({
+                      title: "Erro",
+                      description: error instanceof Error ? error.message : "Erro ao cancelar participação",
+                      variant: "destructive"
+                    });
+                  }
+                }}>
                   Cancelar Participação
                 </Button>
               )}

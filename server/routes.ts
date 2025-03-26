@@ -236,18 +236,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const participationData = insertEventParticipantSchema.parse({
         eventId,
         userId,
-        status: "pending"
+        status: event.eventType === 'private_application' ? "pending" : "confirmed"
       });
       
       const participation = await storage.createParticipation(participationData);
       
-      res.status(201).json(participation);
+      // Obtém o usuário para incluir na resposta
+      const user = await storage.getUser(userId);
+      
+      res.status(201).json({
+        ...participation,
+        user: user ? {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          profileImage: user.profileImage
+        } : null
+      });
     } catch (err) {
       if (err instanceof ZodError) {
         const validationError = fromZodError(err);
         return res.status(400).json({ message: validationError.message });
       }
       res.status(500).json({ message: "Erro ao participar do evento" });
+    }
+  });
+  
+  // Cancela participação em um evento
+  app.delete("/api/events/:id/cancel-participation", ensureAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      
+      // Verifica se existe a participação
+      const participation = await storage.getParticipation(eventId, userId);
+      if (!participation) {
+        return res.status(404).json({ message: "Você não está participando deste evento" });
+      }
+      
+      // Remove a participação
+      await storage.removeParticipation(participation.id);
+      
+      res.status(200).json({ message: "Participação cancelada com sucesso" });
+    } catch (err) {
+      res.status(500).json({ message: "Erro ao cancelar participação" });
     }
   });
   
