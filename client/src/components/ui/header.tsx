@@ -4,25 +4,20 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { LogOut, Menu, Search, UserCircle, Plus, Calendar, Star } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Calendar, LogOut, Menu, Plus, Search, Star, MapPin } from "lucide-react";
 import { useState } from "react";
 
 export function Header() {
   const { user, logoutMutation } = useAuth();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [, navigate] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setLocation(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
@@ -31,8 +26,9 @@ export function Header() {
       onSuccess: () => {
         toast({
           title: "Logout realizado com sucesso",
+          description: "Você foi desconectado da sua conta",
         });
-        navigate("/auth");
+        setLocation("/auth");
       },
     });
   };
@@ -71,15 +67,17 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-4">
-          <form onSubmit={handleSearch} className="relative w-full max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Buscar eventos..."
-              className="pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+          <form onSubmit={handleSearch} className="hidden md:block">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Buscar eventos..."
+                className="w-[200px] pl-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
           </form>
 
           {user ? (
@@ -89,24 +87,21 @@ export function Header() {
                   <Menu className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem asChild>
                   <Link href="/profile" className="flex items-center">
-                    <UserCircle className="mr-2 h-4 w-4" />
-                    Meu Perfil
+                    <MapPin className="mr-2 h-4 w-4" />
+                    Perfil
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-red-500 focus:text-red-500"
-                  onClick={handleLogout}
-                >
+                <DropdownMenuItem onClick={handleLogout} className="flex items-center text-red-500">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sair
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild>
+            <Button asChild variant="default">
               <Link href="/auth">Entrar</Link>
             </Button>
           )}
