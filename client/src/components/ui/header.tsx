@@ -108,7 +108,7 @@ export default function Header() {
                 {user?.profileImage ? (
                   <img 
                     src={user.profileImage} 
-                    alt={`${user.firstName} ${user.lastName}`}
+                    alt={user.lastName}
                     className="h-full w-full object-cover"
                   />
                 ) : (
@@ -120,7 +120,7 @@ export default function Header() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+            <DropdownMenuLabel>{user?.lastName || "Minha Conta"}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => showComingSoon("Meu Perfil")}>
               <UserIcon className="mr-2 h-4 w-4" />

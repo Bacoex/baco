@@ -94,7 +94,8 @@ export class MemStorage implements IStorage {
     const kevinUser: User = {
       id: 1,
       username: "46318916881",
-      password: "4cf0e3cdecae9d4f1d0c68a2fa14a0cff6fd1dc0f9d8c6bb9364e2557a3a57bf.bda364ca93251f9e9cd40c2a6dd75387", // senha: Teste@123
+      // Hash gerada para a senha "Teste@123" usando a função hashPassword (senha real: "Teste@123")
+      password: "a7be5e3c01fb44b3d39de9fc4a59bd93babdcbc66aecb48825d7c2dac5e5437e9e4faca2d9a10a9a95ab0e7c8cd765e56c964a80526f798b64e43520da51b193.5c2dd1ad7cbbf78e1fd0f4d5727c2e66",
       firstName: "Kevin",
       lastName: "Barbosa",
       email: "kevin@example.com",
