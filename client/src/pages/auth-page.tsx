@@ -255,25 +255,9 @@ export default function AuthPage() {
             <div className="flex items-center justify-center mb-4">
               <div className="relative">
                 <div className="relative h-40 flex justify-center items-center mb-4">
-                  {/* Elementos sutis de conexão humana */}
+                  {/* Fundo completamente limpo */}
                   <div className="absolute inset-0 w-full h-full overflow-hidden">
-                    {/* Silhuetas de pessoas conectadas */}
-                    <div className="absolute top-[10%] right-[5%] w-28 h-28 opacity-5">
-                      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                        <g fill="white">
-                          <circle cx="35" cy="25" r="10" />
-                          <circle cx="65" cy="25" r="10" />
-                          <path d="M50 60 Q 35 50 20 60 Q 35 80 50 70 Q 65 80 80 60 Q 65 50 50 60" />
-                          <line x1="35" y1="35" x2="35" y2="50" stroke="white" strokeWidth="5" />
-                          <line x1="65" y1="35" x2="65" y2="50" stroke="white" strokeWidth="5" />
-                        </g>
-                      </svg>
-                    </div>
-                    <div className="absolute bottom-[15%] left-[5%] w-20 h-20 opacity-5">
-                      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                        <path fill="white" d="M30,30 C50,10 70,30 70,30 C70,30 90,50 70,70 C50,90 30,70 30,70 C30,70 10,50 30,30 Z" />
-                      </svg>
-                    </div>
+                    {/* Sem elementos de fundo */}
                   </div>
                   
                   {/* Logo principal com efeito de fumaça - amarelo suave */}
