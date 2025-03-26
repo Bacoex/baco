@@ -25,7 +25,7 @@ type AuthContextType = {
 /**
  * Cria o contexto de autenticação
  */
-export const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | null>(null);
 
 /**
  * Provedor de autenticação

@@ -50,7 +50,7 @@ export default function HomePage() {
         <div className="container mx-auto">
           {/* Título da seção */}
           <div className="text-center py-6">
-            <h2 className="text-3xl font-bold mb-2 inline-block bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent">
+            <h2 className="text-3xl font-bold mb-2 inline-block text-primary">
               {selectedCategory 
                 ? `Eventos de ${categoriesQuery.data?.find(c => c.slug === selectedCategory)?.name || selectedCategory}` 
                 : "Eventos em destaque"}

@@ -60,11 +60,11 @@ export default function Header() {
                   {/* Sem elementos de fundo */}
                 </div>
                 
-                {/* Logo principal com efeito de fumaça - amarelo suave */}
+                {/* Logo principal com efeito de fumaça - laranja */}
                 <div className="relative z-10 transform hover:scale-105 transition-all duration-500">
                   {/* Efeito de fumaça ao redor */}
-                  <div className="absolute inset-0 blur-2xl bg-yellow-600/10 mix-blend-soft-light"></div>
-                  <div className="absolute -inset-2 blur-3xl bg-yellow-500/5 mix-blend-soft-light"></div>
+                  <div className="absolute inset-0 blur-2xl bg-primary/10 mix-blend-soft-light"></div>
+                  <div className="absolute -inset-2 blur-3xl bg-primary/5 mix-blend-soft-light"></div>
                   
                   {/* Texto com efeito fumaça */}
                   <h1 className="relative text-xl uppercase" 
@@ -73,8 +73,8 @@ export default function Header() {
                         fontWeight: '600',
                         letterSpacing: '0.05em'
                       }}>
-                    {/* Logo em amarelo */}
-                    <span className="text-yellow-500/80 opacity-90">BACO</span>
+                    {/* Logo em laranja */}
+                    <span className="text-primary opacity-90">BACO</span>
                   </h1>
                   
                   {/* Efeito de fumaça se movendo lentamente */}
