@@ -54,27 +54,46 @@ export default function Header() {
         <div className="flex items-center mr-6 ml-2">
           <div className="relative">
             <div className="flex items-center">
-              <div className="relative overflow-visible text-center">
-                {/* Efeito de grafite com contorno e 3D */}
-                <div className="relative">
-                  {/* Sombra 3D */}
-                  <span className="absolute text-3xl font-black text-black/20 tracking-tighter -bottom-1 left-1">
-                    BACO
-                  </span>
+              <div className="relative h-10 w-24 flex justify-center items-center">
+                {/* Efeito de glitch/digital cyberpunk */}
+                <div className="absolute inset-0 w-full h-full">
+                  {/* Linhas horizontais estilo digital */}
+                  <div className="absolute top-[15%] left-0 w-full h-[0.5px] bg-primary/20 animate-pulse"></div>
+                  <div className="absolute top-[75%] left-0 w-full h-[0.5px] bg-baco-blue/20 animate-pulse" style={{animationDelay: '0.3s'}}></div>
                   
-                  {/* Contorno */}
-                  <span className="absolute text-3xl font-black text-white/70 tracking-tighter">
-                    BACO
-                  </span>
+                  {/* Linhas diagonais */}
+                  <div className="absolute top-0 left-[10%] w-[0.5px] h-full bg-gradient-to-b from-transparent via-primary/10 to-transparent transform rotate-12"></div>
+                  <div className="absolute top-0 right-[15%] w-[0.5px] h-full bg-gradient-to-b from-transparent via-baco-blue/10 to-transparent transform -rotate-12"></div>
+                </div>
+                
+                {/* Logo principal com efeito neón */}
+                <div className="relative z-10 transform hover:scale-105 transition-all duration-300">
+                  {/* Camada de brilho externo */}
+                  <div className="absolute inset-0 blur-md bg-gradient-to-br from-primary to-baco-blue opacity-20 animate-pulse filter"></div>
                   
-                  {/* Preenchimento primário */}
-                  <span className="relative text-3xl font-black tracking-tighter bg-gradient-to-br from-primary via-primary to-baco-blue bg-clip-text text-transparent">
-                    BACO
-                  </span>
+                  {/* Texto com efeito neon */}
+                  <h1 className="relative text-xl font-black tracking-tighter uppercase">
+                    {/* Letras fragmentadas para efeito glitch */}
+                    <span className="relative inline-block">
+                      <span className="absolute -inset-0.5 text-primary blur-sm animate-pulse">B</span>
+                      <span className="relative text-white mix-blend-overlay">B</span>
+                    </span>
+                    <span className="relative inline-block">
+                      <span className="absolute -inset-0.5 text-baco-blue blur-sm animate-pulse" style={{animationDelay: '0.1s'}}>A</span>
+                      <span className="relative text-white mix-blend-overlay">A</span>
+                    </span>
+                    <span className="relative inline-block">
+                      <span className="absolute -inset-0.5 text-primary blur-sm animate-pulse" style={{animationDelay: '0.2s'}}>C</span>
+                      <span className="relative text-white mix-blend-overlay">C</span>
+                    </span>
+                    <span className="relative inline-block">
+                      <span className="absolute -inset-0.5 text-baco-blue blur-sm animate-pulse" style={{animationDelay: '0.3s'}}>O</span>
+                      <span className="relative text-white mix-blend-overlay">O</span>
+                    </span>
+                  </h1>
                   
-                  {/* Alguns salpicos de tinta */}
-                  <div className="absolute top-1/3 right-0 w-0.5 h-0.5 bg-primary rounded-full"></div>
-                  <div className="absolute bottom-1/3 left-1/4 w-1 h-1 bg-primary/70 rounded-full"></div>
+                  {/* Efeito de escaneamento */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent animate-scan"></div>
                 </div>
               </div>
             </div>

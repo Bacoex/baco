@@ -254,30 +254,56 @@ export default function AuthPage() {
             {/* Logo com estilo de fonte de rua tipo pintura */}
             <div className="flex items-center justify-center mb-4">
               <div className="relative">
-                <div className="relative overflow-visible text-center">
-                  {/* Efeito de grafite com contorno e 3D */}
-                  <div className="relative">
-                    {/* Sombra 3D */}
-                    <span className="absolute text-8xl font-black text-black/20 tracking-tighter -bottom-2 left-2">
-                      BACO
-                    </span>
+                <div className="relative h-40 flex justify-center items-center mb-4">
+                  {/* Efeito de glitch/digital cyberpunk */}
+                  <div className="absolute inset-0 w-full h-full">
+                    {/* Linhas horizontais estilo digital */}
+                    <div className="absolute top-[15%] left-0 w-full h-[1px] bg-primary/30 animate-pulse"></div>
+                    <div className="absolute top-[35%] left-0 w-full h-[1px] bg-baco-blue/30 animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                    <div className="absolute top-[65%] left-0 w-full h-[1px] bg-primary/30 animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                    <div className="absolute top-[85%] left-0 w-full h-[1px] bg-baco-blue/30 animate-pulse" style={{animationDelay: '0.7s'}}></div>
                     
-                    {/* Contorno */}
-                    <span className="absolute text-8xl font-black text-white tracking-tighter">
-                      BACO
-                    </span>
+                    {/* Círculos decorativos */}
+                    <div className="absolute top-[10%] right-[5%] w-12 h-12 rounded-full border-2 border-primary/30"></div>
+                    <div className="absolute bottom-[10%] left-[5%] w-8 h-8 rounded-full border border-baco-blue/30"></div>
                     
-                    {/* Preenchimento primário */}
-                    <span className="relative text-8xl font-black tracking-tighter bg-gradient-to-br from-primary via-primary to-baco-blue bg-clip-text text-transparent">
-                      BACO
-                    </span>
+                    {/* Linhas diagonais */}
+                    <div className="absolute top-0 left-[10%] w-[1px] h-full bg-gradient-to-b from-transparent via-primary/20 to-transparent transform rotate-12"></div>
+                    <div className="absolute top-0 right-[15%] w-[1px] h-full bg-gradient-to-b from-transparent via-baco-blue/20 to-transparent transform -rotate-12"></div>
+                  </div>
+                  
+                  {/* Logo principal com efeito neón */}
+                  <div className="relative z-10 transform hover:scale-105 transition-all duration-300">
+                    {/* Camada de brilho externo */}
+                    <div className="absolute inset-0 blur-xl bg-gradient-to-br from-primary to-baco-blue opacity-30 animate-pulse filter"></div>
                     
-                    {/* Pontos e salpicos de tinta */}
-                    <div className="absolute top-1/4 right-1/4 w-1 h-1 bg-primary rounded-full"></div>
-                    <div className="absolute top-1/3 left-1/4 w-2 h-2 bg-primary/70 rounded-full"></div>
-                    <div className="absolute bottom-1/4 right-1/3 w-1.5 h-1.5 bg-primary/60 rounded-full"></div>
-                    <div className="absolute -top-2 right-1/2 w-1 h-1 bg-primary/80 rounded-full"></div>
-                    <div className="absolute bottom-0 left-1/3 w-1 h-1 bg-primary/70 rounded-full"></div>
+                    {/* Camada de brilho interno */}
+                    <div className="absolute inset-0 blur-md bg-gradient-to-br from-primary to-baco-blue opacity-60"></div>
+                    
+                    {/* Texto com efeito neon */}
+                    <h1 className="relative text-8xl font-black tracking-tighter uppercase">
+                      {/* Letras fragmentadas para efeito glitch */}
+                      <span className="relative inline-block">
+                        {/* Sombra de destaque */}
+                        <span className="absolute -inset-0.5 text-primary blur-sm animate-pulse">B</span>
+                        <span className="relative text-white mix-blend-overlay">B</span>
+                      </span>
+                      <span className="relative inline-block">
+                        <span className="absolute -inset-0.5 text-baco-blue blur-sm animate-pulse" style={{animationDelay: '0.1s'}}>A</span>
+                        <span className="relative text-white mix-blend-overlay">A</span>
+                      </span>
+                      <span className="relative inline-block">
+                        <span className="absolute -inset-0.5 text-primary blur-sm animate-pulse" style={{animationDelay: '0.2s'}}>C</span>
+                        <span className="relative text-white mix-blend-overlay">C</span>
+                      </span>
+                      <span className="relative inline-block">
+                        <span className="absolute -inset-0.5 text-baco-blue blur-sm animate-pulse" style={{animationDelay: '0.3s'}}>O</span>
+                        <span className="relative text-white mix-blend-overlay">O</span>
+                      </span>
+                    </h1>
+                    
+                    {/* Efeito de escaneamento */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent animate-scan"></div>
                   </div>
                 </div>
               </div>
