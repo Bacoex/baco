@@ -83,7 +83,7 @@ export function Header() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button variant="ghost" size="icon">
                   <Menu className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
