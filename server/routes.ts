@@ -5,6 +5,8 @@ import { setupAuth } from "./auth";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { insertEventSchema, insertEventParticipantSchema } from "@shared/schema";
+import { scrypt, timingSafeEqual } from "crypto";
+import { promisify } from "util";
 
 /**
  * Registra todas as rotas da API
@@ -42,23 +44,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     // Verifica a senha usando a mesma função do auth.ts
-    const crypto = require('crypto');
-    const scryptAsync = require('util').promisify(crypto.scrypt);
+    const scryptAsync = promisify(scrypt);
     
     try {
       const [hashed, salt] = user.password.split(".");
       const hashedBuf = Buffer.from(hashed, "hex");
-      const suppliedBuf = await scryptAsync(password, salt, 64);
+      const suppliedBuf = await scryptAsync(password, salt, 64) as Buffer;
       
-      const isMatch = crypto.timingSafeEqual(hashedBuf, suppliedBuf);
+      const isMatch = timingSafeEqual(hashedBuf, suppliedBuf);
       
       return res.json({
         isMatch,
         passwordProvided: password,
         providedSalt: salt,
-        hashFromPassword: (await scryptAsync(password, salt, 64)).toString('hex'),
+        hashFromPassword: (await scryptAsync(password, salt, 64) as Buffer).toString('hex'),
         storedHash: hashed,
-        doHashesMatch: (await scryptAsync(password, salt, 64)).toString('hex') === hashed
+        doHashesMatch: (await scryptAsync(password, salt, 64) as Buffer).toString('hex') === hashed
       });
     } catch (error) {
       return res.status(500).json({ message: "Erro ao verificar senha", error: (error as Error).message });
