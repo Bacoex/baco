@@ -16,13 +16,92 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Info } from "lucide-react";
 import RegisterForm from "@/components/register-form";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 /**
  * Tipos de formulários de autenticação disponíveis
  */
 type AuthFormType = "login" | "register" | "recovery";
+
+/**
+ * Componente para exibir informações sobre o aplicativo e seu criador
+ */
+function AboutDialog() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon" className="absolute bottom-4 right-4 z-20 text-white/40 hover:text-white/80 hover:bg-black/30 backdrop-blur-sm">
+          <Info size={16} />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="bg-black/80 backdrop-blur-md border-white/10 text-white max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-center tracking-widest uppercase text-xl font-light" style={{letterSpacing: '0.25em', fontFamily: 'serif'}}>
+            ✧ S O B R E ✧
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-4 relative">
+          {/* Elementos de fundo similares à tela principal */}
+          <div className="absolute -top-10 -left-10 w-32 h-32 rounded-full opacity-20 animate-slow-spin" style={{animationDuration: '120s'}}>
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="aboutGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#FF9900" />
+                  <stop offset="100%" stopColor="#0066ff" />
+                </linearGradient>
+              </defs>
+              <circle cx="50" cy="50" r="45" fill="none" stroke="url(#aboutGradient)" strokeWidth="0.8" />
+            </svg>
+          </div>
+          
+          <p className="text-sm tracking-wide font-light leading-relaxed text-white/80">
+            O Baco é mais que um aplicativo; é um portal para conexões reais e experiências autênticas. 
+            Inspirado na celebração, na união e no compartilhar momentos que transcendem o ordinário, 
+            o Baco busca reviver o ato humano de se reunir, criar laços e experimentar a essência de 
+            conhecer novas pessoas.
+          </p>
+          
+          <p className="text-sm tracking-wide font-light leading-relaxed text-white/80">
+            Com uma abordagem universalista, o Baco acolhe a diversidade e promove encontros que 
+            celebram o que nos torna humanos: a capacidade de se conectar, de aprender uns com os 
+            outros e de perceber que todos somos parte de algo maior.
+          </p>
+          
+          <div className="pt-4 border-t border-white/10">
+            <p className="text-center text-xs text-white/70 uppercase tracking-widest" style={{letterSpacing: '0.15em'}}>C R I A D O R</p>
+            <p className="text-center mt-2 font-light bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent">
+              Kevin Matheus Barbosa
+            </p>
+            <p className="text-center text-xs text-white/60 mt-1">
+              nascido em 1999, originário de Bauru-SP, Brasil
+            </p>
+          </div>
+          
+          <p className="text-center text-xs text-white/50 mt-2">
+            ✧ O N D E &nbsp; V O C Ê &nbsp; S E &nbsp; C O N E C T A &nbsp; À &nbsp; E X P E R I Ê N C I A ✧
+          </p>
+        </div>
+        
+        <DialogClose asChild>
+          <Button variant="ghost" className="text-white/70 hover:text-white mt-2 mx-auto block">
+            Voltar
+          </Button>
+        </DialogClose>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 /**
  * Esquema para o formulário de recuperação de senha
@@ -216,6 +295,9 @@ export default function AuthPage() {
           />
         )}
       </div>
+      
+      {/* Botão Sobre */}
+      <AboutDialog />
     </div>
   );
 }
