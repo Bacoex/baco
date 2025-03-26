@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
