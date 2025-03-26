@@ -25,22 +25,32 @@ export default function Header() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [, setLocation] = useLocation();
-  
-  // Função para lidar com a pesquisa
+
+  // Função para lidar com a pesquisa - UPDATED
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Implementação futura: API de pesquisa
-    toast({
-      title: "Pesquisa",
-      description: `Você pesquisou por: ${searchQuery}`,
-    });
+    // Simulação de pesquisa - Substitua por chamada à API real
+    console.log("Pesquisando:", searchQuery);
+    if (searchQuery.trim() !== "") {
+      toast({
+        title: "Resultados da Pesquisa",
+        description: `Pesquisando por: ${searchQuery}`,
+      });
+      //Aqui você redirecionaria para uma página de resultados ou atualizará os resultados na própria página.
+      setLocation(`/search?q=${encodeURIComponent(searchQuery)}`);
+    } else {
+      toast({
+        title: "Pesquisa",
+        description: "Por favor, insira um termo de pesquisa.",
+      });
+    }
   };
-  
+
   // Função para lidar com o logout
   const handleLogout = () => {
     logoutMutation.mutate();
   };
-  
+
   // Função para mostrar uma mensagem para funcionalidades em desenvolvimento
   const showComingSoon = (feature: string) => {
     toast({
@@ -48,7 +58,7 @@ export default function Header() {
       description: `A funcionalidade "${feature}" estará disponível em breve!`,
     });
   };
-  
+
   return (
     <header className="bg-black shadow-lg fixed top-0 left-0 w-full z-10 border-b border-primary/20">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -75,7 +85,7 @@ export default function Header() {
             </div>
           </div>
         </button>
-        
+
         {/* Barra de pesquisa */}
         <div className="flex-1 max-w-md mx-4">
           <form onSubmit={handleSearch}>
@@ -91,7 +101,7 @@ export default function Header() {
             </div>
           </form>
         </div>
-        
+
         {/* Botão de filtros */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -118,7 +128,7 @@ export default function Header() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        
+
         {/* Perfil do usuário */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
