@@ -69,7 +69,16 @@ export const users = pgTable("users", {
   phone: text("phone").notNull(),
   rg: text("rg").notNull(),
   zodiacSign: text("zodiac_sign").notNull(),
+  // Campos adicionais para perfil
   profileImage: text("profile_image"),
+  biography: text("biography"),
+  instagramUsername: text("instagram_username"),
+  city: text("city"),
+  state: text("state"),
+  interests: text("interests"), // Armazenado como JSON
+  // Campos para controle
+  isActive: boolean("is_active").notNull().default(true),
+  lastLogin: timestamp("last_login"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -92,12 +101,24 @@ export const events = pgTable("events", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   date: date("date").notNull(),
-  time: text("time").notNull(),
+  timeStart: text("time_start").notNull(),
+  timeEnd: text("time_end"),
   location: text("location").notNull(),
-  price: doublePrecision("price").notNull().default(0),
-  image: text("image"),
+  coordinates: text("coordinates"), // Para armazenar coordenadas do mapa
+  coverImage: text("cover_image"),
   categoryId: integer("category_id").notNull(),
   creatorId: integer("creator_id").notNull(),
+  // Tipo de evento: 'public', 'private_ticket', 'private_application'
+  eventType: text("event_type").notNull().default('public'),
+  // Informações adicionais para eventos públicos
+  importantInfo: text("important_info"),
+  // Informações para eventos com venda de ingressos
+  ticketPrice: doublePrecision("ticket_price").default(0),
+  additionalTickets: text("additional_tickets"), // JSON com diferentes tipos de ingressos
+  paymentMethods: text("payment_methods"), // JSON com métodos de pagamento
+  // Informações de controle
+  capacity: integer("capacity"),
+  isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -109,7 +130,25 @@ export const eventParticipants = pgTable("event_participants", {
   eventId: integer("event_id").notNull(),
   userId: integer("user_id").notNull(),
   status: text("status").notNull().default("pending"), // pending, approved, rejected
+  // Para eventos de candidatura
+  applicationReason: text("application_reason"),
+  reviewedBy: integer("reviewed_by"),
+  reviewedAt: timestamp("reviewed_at"),
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+/**
+ * Esquema da tabela de mensagens de chat
+ * Para comunicação entre participantes de um evento
+ */
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").notNull(),
+  senderId: integer("sender_id").notNull(),
+  content: text("content").notNull(),
+  attachmentUrl: text("attachment_url"),
+  sentAt: timestamp("sent_at").defaultNow(),
+  readBy: text("read_by"), // Array de IDs como JSON
 });
 
 /**
