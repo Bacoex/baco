@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -10,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, LogOut, Menu, Search, UserCircle } from "lucide-react";
+import { LogOut, Menu, Search, UserCircle } from "lucide-react";
 
 export function Header() {
   const { user, logoutMutation } = useAuth();
@@ -38,23 +39,16 @@ export function Header() {
           </Button>
         </Link>
 
-        <div className="flex-1 max-w-md mx-4">
+        <div className="flex-1 max-w-xl mx-4">
           <form onSubmit={handleSearch} className="relative">
             <Input
               type="search"
               placeholder="Buscar eventos..."
-              className="w-full bg-background/50"
+              className="w-full pl-10"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <Button
-              type="submit"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 h-full"
-            >
-              <Search className="h-4 w-4" />
-            </Button>
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           </form>
         </div>
 
@@ -87,3 +81,5 @@ export function Header() {
     </header>
   );
 }
+
+export default Header;
