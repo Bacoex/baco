@@ -55,9 +55,19 @@ export default function Header() {
           <div className="relative">
             <div className="flex items-center">
               <div className="relative h-10 w-24 flex justify-center items-center">
-                {/* Fundo limpo sem linhas ou grade */}
-                <div className="absolute inset-0 w-full h-full">
-                  {/* Sem elementos de fundo */}
+                {/* Elementos sutis de conexão humana */}
+                <div className="absolute inset-0 w-full h-full overflow-hidden">
+                  {/* Ícone de pessoas se conectando */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 opacity-3">
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                      <g fill="white">
+                        <circle cx="30" cy="30" r="8" />
+                        <circle cx="70" cy="30" r="8" />
+                        <path d="M30,40 L30,60 Q30,70 50,70 Q70,70 70,60 L70,40" stroke="white" strokeWidth="3" fill="none" />
+                        <line x1="40" y1="50" x2="60" y2="50" stroke="white" strokeWidth="3" />
+                      </g>
+                    </svg>
+                  </div>
                 </div>
                 
                 {/* Logo principal com efeito de fumaça - amarelo suave */}

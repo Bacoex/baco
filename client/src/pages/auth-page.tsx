@@ -255,9 +255,25 @@ export default function AuthPage() {
             <div className="flex items-center justify-center mb-4">
               <div className="relative">
                 <div className="relative h-40 flex justify-center items-center mb-4">
-                  {/* Fundo limpo sem linhas ou grade */}
-                  <div className="absolute inset-0 w-full h-full">
-                    {/* Sem elementos de fundo */}
+                  {/* Elementos sutis de conexão humana */}
+                  <div className="absolute inset-0 w-full h-full overflow-hidden">
+                    {/* Silhuetas de pessoas conectadas */}
+                    <div className="absolute top-[10%] right-[5%] w-28 h-28 opacity-5">
+                      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <g fill="white">
+                          <circle cx="35" cy="25" r="10" />
+                          <circle cx="65" cy="25" r="10" />
+                          <path d="M50 60 Q 35 50 20 60 Q 35 80 50 70 Q 65 80 80 60 Q 65 50 50 60" />
+                          <line x1="35" y1="35" x2="35" y2="50" stroke="white" strokeWidth="5" />
+                          <line x1="65" y1="35" x2="65" y2="50" stroke="white" strokeWidth="5" />
+                        </g>
+                      </svg>
+                    </div>
+                    <div className="absolute bottom-[15%] left-[5%] w-20 h-20 opacity-5">
+                      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="white" d="M30,30 C50,10 70,30 70,30 C70,30 90,50 70,70 C50,90 30,70 30,70 C30,70 10,50 30,30 Z" />
+                      </svg>
+                    </div>
                   </div>
                   
                   {/* Logo principal com efeito de fumaça - amarelo suave */}
@@ -358,13 +374,13 @@ function LoginForm({
 
   return (
     <div className="relative">
-      {/* Efeito de brilho atrás do card */}
-      <div className="absolute -inset-1 bg-gradient-to-r from-primary via-primary to-baco-blue opacity-40 blur-md rounded-[30px_10px_30px_10px]"></div>
+      {/* Efeito de brilho atrás do card (mais sutil) */}
+      <div className="absolute -inset-1 bg-gradient-to-r from-primary via-primary to-baco-blue opacity-20 blur-md rounded-[30px_10px_30px_10px]"></div>
       
       <div className="relative backdrop-blur-sm bg-black/60 border border-white/10 p-6 rounded-[30px_10px_30px_10px] text-white overflow-hidden shadow-[0_10px_40px_-15px_rgba(0,0,0,0.3)]">
-        {/* Decoração de círculos */}
-        <div className="absolute -top-8 -right-8 w-16 h-16 bg-primary/20 rounded-full blur-md"></div>
-        <div className="absolute -bottom-8 -left-8 w-16 h-16 bg-baco-blue/20 rounded-full blur-md"></div>
+        {/* Decoração de círculos (mais sutil) */}
+        <div className="absolute -top-8 -right-8 w-16 h-16 bg-primary/10 rounded-full blur-md"></div>
+        <div className="absolute -bottom-8 -left-8 w-16 h-16 bg-baco-blue/10 rounded-full blur-md"></div>
         
         <h2 className="text-2xl font-bold text-white mb-8 relative">
           Login
@@ -474,13 +490,13 @@ function RecoveryForm({
 
   return (
     <div className="relative">
-      {/* Efeito de brilho atrás do card */}
-      <div className="absolute -inset-1 bg-gradient-to-r from-primary via-baco-blue to-primary opacity-40 blur-md rounded-[10px_30px_10px_30px]"></div>
+      {/* Efeito de brilho atrás do card (mais sutil) */}
+      <div className="absolute -inset-1 bg-gradient-to-r from-primary via-baco-blue to-primary opacity-20 blur-md rounded-[10px_30px_10px_30px]"></div>
       
       <div className="relative backdrop-blur-sm bg-black/60 border border-white/10 p-6 rounded-[10px_30px_10px_30px] text-white overflow-hidden shadow-[0_10px_40px_-15px_rgba(0,0,0,0.3)]">
-        {/* Decoração de círculos */}
-        <div className="absolute -top-8 -left-8 w-16 h-16 bg-primary/20 rounded-full blur-md"></div>
-        <div className="absolute -bottom-8 -right-8 w-16 h-16 bg-baco-blue/20 rounded-full blur-md"></div>
+        {/* Decoração de círculos (mais sutil) */}
+        <div className="absolute -top-8 -left-8 w-16 h-16 bg-primary/10 rounded-full blur-md"></div>
+        <div className="absolute -bottom-8 -right-8 w-16 h-16 bg-baco-blue/10 rounded-full blur-md"></div>
         
         <h2 className="text-2xl font-bold text-white mb-8 relative">
           Recuperar Senha
