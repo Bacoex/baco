@@ -238,7 +238,21 @@ export default function AuthPage() {
       <div className="max-w-md w-full z-10 relative">
         {/* Logo com B conectado */}
         <div className="relative mb-10">
-          <div className="absolute -top-20 -left-32 w-40 h-40 rounded-[70%_30%_70%_30%] bg-primary opacity-20 animate-slow-morph"></div>
+          {/* Silhueta de pessoas se abraçando à esquerda */}
+          <div className="absolute -top-20 -left-32 w-28 h-28 opacity-10">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <path d="M35,35 C32,30 35,25 40,25 C45,25 48,30 45,35 C48,38 48,45 45,50 L50,60 L55,50 C52,45 52,38 55,35 C52,30 55,25 60,25 C65,25 68,30 65,35 C70,40 70,50 65,55 C60,60 55,65 50,70 C45,65 40,60 35,55 C30,50 30,40 35,35 Z" 
+                    fill="#FF9900" opacity="0.5" />
+            </svg>
+          </div>
+          
+          {/* Silhueta de pessoas se abraçando à direita */}
+          <div className="absolute -top-16 -right-28 w-24 h-24 opacity-10 rotate-12">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <path d="M30,40 C25,35 30,25 35,25 C40,25 45,30 43,35 C48,40 48,45 45,50 L50,65 L55,50 C52,45 52,40 57,35 C55,30 60,25 65,25 C70,25 75,35 70,40 C75,45 75,55 70,60 C65,65 55,75 50,80 C45,75 35,65 30,60 C25,55 25,45 30,40 Z" 
+                    fill="#0066ff" opacity="0.5" />
+            </svg>
+          </div>
           
           <div className="mx-auto flex flex-col items-center justify-center relative">
             {/* Logo com estilo de fonte de rua tipo pintura */}
