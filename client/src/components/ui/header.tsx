@@ -66,34 +66,25 @@ export default function Header() {
                   <div className="absolute top-0 right-[15%] w-[0.5px] h-full bg-gradient-to-b from-transparent via-baco-blue/10 to-transparent transform -rotate-12"></div>
                 </div>
                 
-                {/* Logo principal com efeito neón */}
+                {/* Logo principal com efeito neón - só amarelo */}
                 <div className="relative z-10 transform hover:scale-105 transition-all duration-300">
                   {/* Camada de brilho externo */}
-                  <div className="absolute inset-0 blur-md bg-gradient-to-br from-primary to-baco-blue opacity-20 animate-pulse filter"></div>
+                  <div className="absolute inset-0 blur-md bg-yellow-500 opacity-30 animate-pulse filter"></div>
                   
                   {/* Texto com efeito neon */}
-                  <h1 className="relative text-xl font-black tracking-tighter uppercase">
-                    {/* Letras fragmentadas para efeito glitch */}
-                    <span className="relative inline-block">
-                      <span className="absolute -inset-0.5 text-primary blur-sm animate-pulse">B</span>
-                      <span className="relative text-white mix-blend-overlay">B</span>
-                    </span>
-                    <span className="relative inline-block">
-                      <span className="absolute -inset-0.5 text-baco-blue blur-sm animate-pulse" style={{animationDelay: '0.1s'}}>A</span>
-                      <span className="relative text-white mix-blend-overlay">A</span>
-                    </span>
-                    <span className="relative inline-block">
-                      <span className="absolute -inset-0.5 text-primary blur-sm animate-pulse" style={{animationDelay: '0.2s'}}>C</span>
-                      <span className="relative text-white mix-blend-overlay">C</span>
-                    </span>
-                    <span className="relative inline-block">
-                      <span className="absolute -inset-0.5 text-baco-blue blur-sm animate-pulse" style={{animationDelay: '0.3s'}}>O</span>
-                      <span className="relative text-white mix-blend-overlay">O</span>
-                    </span>
+                  <h1 className="relative text-xl uppercase" 
+                      style={{
+                        fontFamily: 'Futura, "Trebuchet MS", Arial, sans-serif',
+                        fontWeight: '600',
+                        letterSpacing: '0.05em'
+                      }}>
+                    {/* Logo em amarelo */}
+                    <span className="absolute -inset-0.5 text-yellow-300 blur-sm animate-pulse">BACO</span>
+                    <span className="relative text-yellow-400">BACO</span>
                   </h1>
                   
                   {/* Efeito de escaneamento */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent animate-scan"></div>
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-yellow-400/20 to-transparent animate-scan"></div>
                 </div>
               </div>
             </div>
