@@ -63,7 +63,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
   const [eventType, setEventType] = useState<EventType>('public');
   const [additionalTickets, setAdditionalTickets] = useState<AdditionalTicket[]>([]);
   const [showMapSelector, setShowMapSelector] = useState(false);
-  
+
   // Inicializa o formulário com o esquema de validação
   const form = useForm<EventFormValues>({
     resolver: zodResolver(insertEventSchema),
@@ -83,51 +83,53 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
       capacity: 0,
     },
   });
-  
+
   // Observa mudanças no tipo de evento
   const watchEventType = form.watch("eventType");
-  
+
   // Efeito para atualizar o tipo de evento interno quando o formulário muda
   useEffect(() => {
     if (watchEventType) {
       setEventType(watchEventType as EventType);
     }
   }, [watchEventType]);
-  
+
   // Mutação para criar um novo evento
   const createEventMutation = useMutation({
     mutationFn: async (data: EventFormValues) => {
       // Preparar os dados adicionais conforme o tipo de evento
       let eventData = { ...data };
-      
+
       // Se for evento com ingressos, processa os ingressos adicionais
       if (data.eventType === 'private_ticket' && additionalTickets.length > 0) {
         eventData.additionalTickets = JSON.stringify(additionalTickets);
       }
-      
+
       const res = await apiRequest("POST", "/api/events", eventData);
-      return await res.json();
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Erro ao criar evento');
+      }
+      return res.json();
     },
     onSuccess: () => {
       toast({
-        title: "Evento criado com sucesso!",
-        description: "Seu evento foi publicado e já está disponível para todos.",
+        title: "Sucesso!",
+        description: "Evento criado com sucesso",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
-      form.reset();
-      setImagePreview(null);
-      setAdditionalTickets([]);
+      queryClient.invalidateQueries(["/api/events"]);
       onClose();
+      form.reset();
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao criar evento",
+        title: "Erro",
         description: error.message,
         variant: "destructive",
       });
     },
   });
-  
+
   // Função para lidar com o envio do formulário
   function onSubmit(data: EventFormValues) {
     // Converte tipos numéricos
@@ -137,10 +139,10 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
       ticketPrice: data.eventType === 'private_ticket' ? Number(data.ticketPrice) : 0,
       capacity: data.capacity ? Number(data.capacity) : null,
     };
-    
+
     createEventMutation.mutate(eventData);
   }
-  
+
   // Função para simular o upload de imagem (sem backend real neste momento)
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -152,24 +154,24 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
       form.setValue("coverImage", previewUrl);
     }
   };
-  
+
   // Função para adicionar um novo tipo de ingresso
   const addAdditionalTicket = () => {
     setAdditionalTickets([...additionalTickets, { name: "", price: 0 }]);
   };
-  
+
   // Função para atualizar um ingresso adicional
   const updateAdditionalTicket = (index: number, field: keyof AdditionalTicket, value: string | number) => {
     const updatedTickets = [...additionalTickets];
     updatedTickets[index] = { ...updatedTickets[index], [field]: value };
     setAdditionalTickets(updatedTickets);
   };
-  
+
   // Função para remover um ingresso adicional
   const removeAdditionalTicket = (index: number) => {
     setAdditionalTickets(additionalTickets.filter((_, i) => i !== index));
   };
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
@@ -190,7 +192,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
             Preencha os detalhes do seu evento para publicá-lo na plataforma.
           </DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Tipo de evento */}
@@ -216,7 +218,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                           </div>
                         </label>
                       </div>
-                      
+
                       <div className="flex items-center space-x-2 px-4 py-2 border rounded-md hover:bg-gray-50 cursor-pointer">
                         <RadioGroupItem value="private_ticket" id="event-ticket" />
                         <label htmlFor="event-ticket" className="cursor-pointer flex items-center">
@@ -227,7 +229,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                           </div>
                         </label>
                       </div>
-                      
+
                       <div className="flex items-center space-x-2 px-4 py-2 border rounded-md hover:bg-gray-50 cursor-pointer">
                         <RadioGroupItem value="private_application" id="event-application" />
                         <label htmlFor="event-application" className="cursor-pointer flex items-center">
@@ -244,9 +246,9 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                 </FormItem>
               )}
             />
-            
+
             <Separator className="my-4" />
-            
+
             {/* Nome do evento */}
             <FormField
               control={form.control}
@@ -261,7 +263,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                 </FormItem>
               )}
             />
-            
+
             {/* Categoria */}
             <FormField
               control={form.control}
@@ -290,7 +292,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                 </FormItem>
               )}
             />
-            
+
             {/* Data e hora */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormField
@@ -306,7 +308,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="timeStart"
@@ -320,7 +322,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="timeEnd"
@@ -336,7 +338,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                 )}
               />
             </div>
-            
+
             {/* Local */}
             <FormField
               control={form.control}
@@ -362,7 +364,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                 </FormItem>
               )}
             />
-            
+
             {showMapSelector && (
               <div className="border rounded-md p-4 bg-gray-50">
                 <p className="text-sm text-gray-500 mb-4">
@@ -379,7 +381,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                 </Button>
               </div>
             )}
-            
+
             {/* Capacidade */}
             <FormField
               control={form.control}
@@ -406,7 +408,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                 </FormItem>
               )}
             />
-            
+
             {/* Campos específicos para cada tipo de evento */}
             {eventType === 'public' && (
               <FormField
@@ -434,7 +436,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                 )}
               />
             )}
-            
+
             {eventType === 'private_ticket' && (
               <>
                 <FormField
@@ -460,7 +462,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                     </FormItem>
                   )}
                 />
-                
+
                 {/* Ingressos adicionais */}
                 <div>
                   <div className="flex justify-between items-center mb-2">
@@ -474,7 +476,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                       Adicionar
                     </Button>
                   </div>
-                  
+
                   {additionalTickets.length > 0 ? (
                     <div className="space-y-3">
                       {additionalTickets.map((ticket, index) => (
@@ -518,7 +520,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                 </div>
               </>
             )}
-            
+
             {eventType === 'private_application' && (
               <div className="bg-orange-50 p-4 rounded-md border border-orange-200">
                 <h4 className="text-sm font-medium flex items-center mb-2">
@@ -534,7 +536,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                 </p>
               </div>
             )}
-            
+
             {/* Imagem do evento */}
             <div>
               <FormLabel>Imagem de Capa</FormLabel>
@@ -586,7 +588,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                 </div>
               </div>
             </div>
-            
+
             {/* Descrição */}
             <FormField
               control={form.control}
@@ -609,7 +611,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                 </FormItem>
               )}
             />
-            
+
             {/* Botão de criar */}
             <Button 
               type="submit" 
