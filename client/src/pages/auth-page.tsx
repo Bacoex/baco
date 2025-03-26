@@ -254,23 +254,30 @@ export default function AuthPage() {
             {/* Logo com estilo de fonte de rua tipo pintura */}
             <div className="flex items-center justify-center mb-4">
               <div className="relative">
-                <div className="text-8xl font-bold text-primary relative group" 
-                     style={{
-                       fontFamily: "Impact, fantasy",
-                       letterSpacing: "2px",
-                       textShadow: "2px 2px 0px rgba(0,0,0,0.3)",
-                       textTransform: "uppercase",
-                       fontStyle: "italic"
-                     }}>
-                  <div className="relative overflow-visible">
-                    {/* Efeito escorrido/spray de tinta */}
-                    <div className="absolute -bottom-2 left-2 w-10 h-6 bg-primary opacity-30 rounded-b-full transform rotate-12 blur-sm"></div>
-                    <div className="absolute -top-1 right-2 w-6 h-3 bg-primary opacity-20 rounded-t-full transform -rotate-12 blur-sm"></div>
-                    
-                    {/* Logo pintada */}
-                    <span className="relative inline-block transform hover:scale-105 transition-transform duration-300 bg-gradient-to-b from-primary to-primary/90 bg-clip-text text-transparent py-3">
-                      Baco
+                <div className="relative overflow-visible text-center">
+                  {/* Efeito de grafite com contorno e 3D */}
+                  <div className="relative">
+                    {/* Sombra 3D */}
+                    <span className="absolute text-8xl font-black text-black/20 tracking-tighter -bottom-2 left-2">
+                      BACO
                     </span>
+                    
+                    {/* Contorno */}
+                    <span className="absolute text-8xl font-black text-white tracking-tighter">
+                      BACO
+                    </span>
+                    
+                    {/* Preenchimento primário */}
+                    <span className="relative text-8xl font-black tracking-tighter bg-gradient-to-br from-primary via-primary to-baco-blue bg-clip-text text-transparent">
+                      BACO
+                    </span>
+                    
+                    {/* Pontos e salpicos de tinta */}
+                    <div className="absolute top-1/4 right-1/4 w-1 h-1 bg-primary rounded-full"></div>
+                    <div className="absolute top-1/3 left-1/4 w-2 h-2 bg-primary/70 rounded-full"></div>
+                    <div className="absolute bottom-1/4 right-1/3 w-1.5 h-1.5 bg-primary/60 rounded-full"></div>
+                    <div className="absolute -top-2 right-1/2 w-1 h-1 bg-primary/80 rounded-full"></div>
+                    <div className="absolute bottom-0 left-1/3 w-1 h-1 bg-primary/70 rounded-full"></div>
                   </div>
                 </div>
               </div>

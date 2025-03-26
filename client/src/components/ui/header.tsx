@@ -54,25 +54,27 @@ export default function Header() {
         <div className="flex items-center mr-6 ml-2">
           <div className="relative">
             <div className="flex items-center">
-              <div 
-                className="text-3xl font-bold text-primary"
-                style={{
-                  fontFamily: "Impact, fantasy",
-                  letterSpacing: "1px",
-                  textShadow: "1px 1px 0px rgba(0,0,0,0.3)",
-                  textTransform: "uppercase",
-                  fontStyle: "italic"
-                }}
-              >
-                {/* Efeito escorrido/spray de tinta */}
-                <div className="relative overflow-visible">
-                  <div className="absolute -bottom-1 left-1 w-6 h-3 bg-primary opacity-30 rounded-b-full transform rotate-12 blur-sm"></div>
-                  <div className="absolute -top-0.5 right-1 w-3 h-1.5 bg-primary opacity-20 rounded-t-full transform -rotate-12 blur-sm"></div>
-                  
-                  {/* Logo pintada */}
-                  <span className="relative inline-block transform hover:scale-105 transition-transform duration-300 bg-gradient-to-b from-primary to-primary/90 bg-clip-text text-transparent">
-                    Baco
+              <div className="relative overflow-visible text-center">
+                {/* Efeito de grafite com contorno e 3D */}
+                <div className="relative">
+                  {/* Sombra 3D */}
+                  <span className="absolute text-3xl font-black text-black/20 tracking-tighter -bottom-1 left-1">
+                    BACO
                   </span>
+                  
+                  {/* Contorno */}
+                  <span className="absolute text-3xl font-black text-white/70 tracking-tighter">
+                    BACO
+                  </span>
+                  
+                  {/* Preenchimento primário */}
+                  <span className="relative text-3xl font-black tracking-tighter bg-gradient-to-br from-primary via-primary to-baco-blue bg-clip-text text-transparent">
+                    BACO
+                  </span>
+                  
+                  {/* Alguns salpicos de tinta */}
+                  <div className="absolute top-1/3 right-0 w-0.5 h-0.5 bg-primary rounded-full"></div>
+                  <div className="absolute bottom-1/3 left-1/4 w-1 h-1 bg-primary/70 rounded-full"></div>
                 </div>
               </div>
             </div>
