@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Info } from "lucide-react";
+import { Loader2, Info, Fingerprint, Save } from "lucide-react";
 import RegisterForm from "@/components/register-form";
 import {
   Dialog,
@@ -27,6 +27,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 /**
  * Componente de rede com pontos se conectando
@@ -331,6 +332,10 @@ function LoginForm({
   onShowRegister: () => void;
 }) {
   const { loginMutation } = useAuth();
+  const [rememberPassword, setRememberPassword] = useState(false);
+  
+  // Estado para controlar se a solicitação biométrica está sendo processada
+  const [biometricAuthPending, setBiometricAuthPending] = useState(false);
   
   // Inicializa o formulário com o esquema de validação do login
   const form = useForm<z.infer<typeof loginUserSchema>>({
@@ -340,11 +345,72 @@ function LoginForm({
       password: "",
     },
   });
+  
+  // Recuperar usuário/senha do localStorage se existir
+  useEffect(() => {
+    const savedUser = localStorage.getItem('baco_saved_user');
+    if (savedUser) {
+      try {
+        const userData = JSON.parse(savedUser);
+        form.setValue('username', userData.username);
+        form.setValue('password', userData.password);
+        setRememberPassword(true);
+      } catch (e) {
+        console.error('Erro ao recuperar dados salvos:', e);
+        localStorage.removeItem('baco_saved_user');
+      }
+    }
+  }, [form]);
 
   // Função para lidar com o envio do formulário
   function onSubmit(values: z.infer<typeof loginUserSchema>) {
+    // Salvar credenciais se "Salvar senha" estiver marcado
+    if (rememberPassword) {
+      localStorage.setItem('baco_saved_user', JSON.stringify(values));
+    } else {
+      // Remove do localStorage se o usuário desmarcou a opção
+      localStorage.removeItem('baco_saved_user');
+    }
+    
     loginMutation.mutate(values);
   }
+  
+  // Função para autenticação biométrica
+  const handleBiometricAuth = async () => {
+    // Verificar se há dados salvos antes de tentar autenticação biométrica
+    const savedUser = localStorage.getItem('baco_saved_user');
+    if (!savedUser) {
+      // Avisar que precisa fazer login normal primeiro
+      alert('Por favor, faça login normalmente ao menos uma vez e selecione "Salvar senha" para usar a autenticação biométrica.');
+      return;
+    }
+    
+    try {
+      setBiometricAuthPending(true);
+      
+      // Simulação da API de biometria do sistema (Web Authentication API ou similar)
+      // Em um app real, aqui seria integrado com as APIs nativas de cada plataforma
+      setTimeout(() => {
+        try {
+          const userData = JSON.parse(savedUser);
+          form.setValue('username', userData.username);
+          form.setValue('password', userData.password);
+          
+          // Automaticamente submeter o formulário
+          form.handleSubmit(onSubmit)();
+        } catch (e) {
+          alert('Erro ao processar autenticação. Por favor, faça login normalmente.');
+        } finally {
+          setBiometricAuthPending(false);
+        }
+      }, 1500); // Simula o tempo que levaria para verificar a biometria
+      
+    } catch (error) {
+      console.error("Erro na autenticação biométrica:", error);
+      alert("Não foi possível realizar a autenticação biométrica. Por favor, utilize seu CPF e senha.");
+      setBiometricAuthPending(false);
+    }
+  };
 
   return (
     <div className="relative">
@@ -360,6 +426,24 @@ function LoginForm({
           Login
           <span className="absolute -bottom-2 left-0 w-12 h-1 bg-gradient-to-r from-primary to-baco-blue rounded-full"></span>
         </h2>
+        
+        {/* Botão de autenticação biométrica */}
+        <div className="absolute top-6 right-6">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="rounded-full w-12 h-12 bg-black/30 hover:bg-primary/20 text-white"
+            onClick={handleBiometricAuth}
+            disabled={biometricAuthPending || loginMutation.isPending}
+          >
+            {biometricAuthPending ? (
+              <Loader2 className="h-6 w-6 animate-spin" />
+            ) : (
+              <Fingerprint className="h-6 w-6" />
+            )}
+          </Button>
+        </div>
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -400,10 +484,31 @@ function LoginForm({
               )}
             />
             
+            {/* Checkbox para salvar senha */}
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="rememberPassword" 
+                checked={rememberPassword}
+                onCheckedChange={(checked) => {
+                  if (typeof checked === 'boolean') {
+                    setRememberPassword(checked);
+                  }
+                }}
+                className="data-[state=checked]:bg-primary border-white/30"
+              />
+              <label
+                htmlFor="rememberPassword"
+                className="text-sm font-medium text-white/70 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center"
+              >
+                <Save className="h-3.5 w-3.5 mr-1.5 text-primary" />
+                Salvar senha
+              </label>
+            </div>
+            
             <Button 
               type="submit" 
               className="w-full bg-gradient-to-r from-primary to-baco-blue hover:from-baco-blue hover:to-primary text-white rounded-full transition-all duration-500 shadow-[0_5px_15px_rgba(255,153,0,0.3)]"
-              disabled={loginMutation.isPending}
+              disabled={loginMutation.isPending || biometricAuthPending}
             >
               {loginMutation.isPending ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
