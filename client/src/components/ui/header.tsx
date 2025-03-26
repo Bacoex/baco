@@ -47,11 +47,14 @@ export default function Header() {
   };
   
   return (
-    <header className="bg-black shadow-md fixed top-0 left-0 w-full z-10">
+    <header className="bg-black shadow-lg fixed top-0 left-0 w-full z-10 border-b border-primary/20">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
-          <h1 className="text-2xl font-bold text-primary bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent">Baco</h1>
+          <div className="relative">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-300 via-primary to-baco-blue bg-clip-text text-transparent animate-text-shimmer">Baco</h1>
+            <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-primary to-baco-blue rounded-full"></div>
+          </div>
         </div>
         
         {/* Barra de pesquisa */}

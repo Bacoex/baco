@@ -76,39 +76,40 @@ export default function EventCard({ event }: EventProps) {
   const imageSrc = event.image || "https://via.placeholder.com/500x250?text=Evento";
   
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition duration-200">
+    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-primary/10 hover:border-primary/30 group transform hover:scale-[1.02]">
       <div className="relative h-48">
         <img 
           src={imageSrc}
           alt={event.name} 
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-50 group-hover:opacity-80 transition-all duration-300"></div>
         <div 
-          className="absolute top-2 right-2 text-white text-xs font-bold px-2 py-1 rounded"
+          className="absolute top-3 right-3 text-white text-xs font-bold px-3 py-1 rounded-full"
           style={{ backgroundColor: event.category.color }}
         >
           {event.category.name}
         </div>
+        <div className="absolute bottom-3 left-3 right-3">
+          <h3 className="text-lg font-bold text-white mb-1 drop-shadow-md line-clamp-2">{event.name}</h3>
+        </div>
       </div>
       <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-1">{event.name}</h3>
-        
         <div className="flex items-center mb-2">
-          <MapPinIcon className="text-gray-500 h-4 w-4 mr-1" />
-          <p className="text-gray-600 text-sm">{event.location}</p>
+          <MapPinIcon className="text-primary h-4 w-4 mr-1" />
+          <p className="text-gray-700 text-sm line-clamp-1">{event.location}</p>
         </div>
         
         <div className="flex items-center mb-3">
-          <CalendarIcon className="text-gray-500 h-4 w-4 mr-1" />
-          <p className="text-gray-600 text-sm">{formatDate(event.date)}, {event.time}</p>
+          <CalendarIcon className="text-primary h-4 w-4 mr-1" />
+          <p className="text-gray-700 text-sm">{formatDate(event.date)}, {event.time}</p>
         </div>
         
-        <div className="flex justify-between items-center">
-          <span className="text-primary font-medium">{formatPrice(event.price)}</span>
+        <div className="flex justify-between items-center mt-4">
+          <span className="bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent font-semibold text-lg">{formatPrice(event.price)}</span>
           <Button 
             size="sm" 
-            className="rounded-full"
-            variant="secondary"
+            className="rounded-full bg-gradient-to-r from-primary to-baco-blue hover:from-baco-blue hover:to-primary text-white transition-all duration-300"
             onClick={() => participateMutation.mutate()}
             disabled={participateMutation.isPending}
           >

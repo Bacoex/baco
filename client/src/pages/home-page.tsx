@@ -46,7 +46,7 @@ export default function HomePage() {
       <Header />
       
       {/* Filtro de categorias */}
-      <div className="pt-32">
+      <div className="pt-32 bg-gradient-to-b from-black to-black/90 pb-3 border-b border-primary/20">
         {categoriesQuery.isLoading ? (
           <div className="flex justify-center p-4">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -65,14 +65,17 @@ export default function HomePage() {
       </div>
       
       {/* Conteúdo principal com eventos */}
-      <main className="flex-grow px-4 pb-20">
+      <main className="flex-grow px-4 pb-20 bg-gradient-to-b from-black/90 to-gray-50">
         <div className="container mx-auto">
           {/* Título da seção */}
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">
-            {selectedCategory 
-              ? `Eventos de ${categoriesQuery.data?.find(c => c.slug === selectedCategory)?.name || selectedCategory}` 
-              : "Eventos em destaque"}
-          </h2>
+          <div className="text-center py-6">
+            <h2 className="text-3xl font-bold mb-2 inline-block bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent">
+              {selectedCategory 
+                ? `Eventos de ${categoriesQuery.data?.find(c => c.slug === selectedCategory)?.name || selectedCategory}` 
+                : "Eventos em destaque"}
+            </h2>
+            <div className="mx-auto w-32 h-0.5 bg-gradient-to-r from-primary to-baco-blue rounded-full"></div>
+          </div>
           
           {/* Grade de eventos */}
           {eventsQuery.isLoading ? (
