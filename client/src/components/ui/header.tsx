@@ -1,11 +1,10 @@
-
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Calendar, LogOut, Menu, Plus, Search, Star, MapPin } from "lucide-react";
+import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu";
+import { Search, Plus, Calendar, Star } from "lucide-react";
 import { useState } from "react";
 
 export function Header() {
@@ -35,71 +34,55 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center space-x-2">
-            <img src="/baco-logo.png" alt="Baco" className="h-8 w-auto" />
-            <span className="text-xl font-bold">Baco</span>
-          </Link>
+      <div className="container flex h-14 items-center">
+        <Link href="/" className="mr-6 flex items-center space-x-2">
+          <img src="/baco-logo.png" alt="Baco" className="h-6" />
+        </Link>
 
-          {user && (
-            <nav className="hidden md:flex items-center space-x-4">
-              <Link href="/events/created">
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Meus Eventos
-                </Button>
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <Link href="/events/new" className="flex items-center px-4 py-2">
+                <Plus className="mr-2 h-4 w-4" />
+                Criar Evento
               </Link>
-              <Link href="/events/participating">
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <Star className="h-4 w-4" />
-                  Participando
-                </Button>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <Link href="/events" className="flex items-center px-4 py-2">
+                <Calendar className="mr-2 h-4 w-4" />
+                Eventos
               </Link>
-              <Link href="/events/create">
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Criar Evento
-                </Button>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <Link href="/favorites" className="flex items-center px-4 py-2">
+                <Star className="mr-2 h-4 w-4" />
+                Favoritos
               </Link>
-            </nav>
-          )}
-        </div>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
 
-        <div className="flex items-center gap-4">
-          <form onSubmit={handleSearch} className="hidden md:block">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Buscar eventos..."
-                className="w-[200px] pl-9"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+        <div className="ml-auto flex items-center gap-4">
+          <form onSubmit={handleSearch} className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Buscar eventos..."
+              className="w-[200px] pl-9"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </form>
 
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem asChild>
-                  <Link href="/profile" className="flex items-center">
-                    <MapPin className="mr-2 h-4 w-4" />
-                    Perfil
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout} className="flex items-center text-red-500">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sair
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-2">
+              <Link href="/profile">
+                <Button variant="outline">Perfil</Button>
+              </Link>
+              <Button variant="ghost" onClick={handleLogout}>
+                Sair
+              </Button>
+            </div>
           ) : (
             <Button asChild variant="default">
               <Link href="/auth">Entrar</Link>
