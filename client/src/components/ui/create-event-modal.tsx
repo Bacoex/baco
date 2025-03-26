@@ -113,8 +113,8 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-lg">
-        <div className="absolute right-4 top-4">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="absolute right-4 top-4 z-10">
           <Button 
             variant="ghost" 
             size="icon" 
@@ -126,7 +126,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
           </Button>
         </div>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent">Criar Evento</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-primary">Criar Evento</DialogTitle>
           <DialogDescription>
             Preencha os detalhes do seu evento para publicá-lo na plataforma.
           </DialogDescription>
