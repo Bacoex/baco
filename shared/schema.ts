@@ -225,6 +225,33 @@ export const insertEventParticipantSchema = createInsertSchema(eventParticipants
   createdAt: true
 });
 
+/**
+ * Esquema de validação para mensagens de chat
+ */
+export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
+  id: true,
+  sentAt: true,
+  readBy: true
+});
+
+/**
+ * Esquema de validação para atualizar perfil de usuário
+ */
+export const updateUserProfileSchema = z.object({
+  firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  lastName: z.string().min(2, "Sobrenome deve ter pelo menos 2 caracteres"),
+  email: z.string().email("Email inválido"),
+  phone: z.string().min(10, "Telefone inválido"),
+  birthDate: z.string(),
+  zodiacSign: z.string(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  biography: z.string().optional(),
+  instagramUsername: z.string().optional(),
+  threadsUsername: z.string().optional(),
+  interests: z.string().optional(),
+});
+
 // Tipos exportados para uso na aplicação
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type LoginUser = z.infer<typeof loginUserSchema>;
@@ -235,3 +262,6 @@ export type InsertEventCategory = z.infer<typeof insertEventCategorySchema>;
 export type EventCategory = typeof eventCategories.$inferSelect;
 export type InsertEventParticipant = z.infer<typeof insertEventParticipantSchema>;
 export type EventParticipant = typeof eventParticipants.$inferSelect;
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type UpdateUserProfile = z.infer<typeof updateUserProfileSchema>;
