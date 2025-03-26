@@ -49,12 +49,12 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-black px-4">
       <div className="max-w-md w-full space-y-8">
         {/* Logo e cabeçalho */}
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-primary mb-2">Baco</h1>
-          <p className="text-gray-600">Sua plataforma de eventos</p>
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent">Baco</h1>
+          <p className="text-gray-400">Sua plataforma de eventos</p>
         </div>
 
         {/* Formulário de login */}
@@ -110,9 +110,9 @@ function LoginForm({
   }
 
   return (
-    <Card>
+    <Card className="border-baco-blue bg-black text-white">
       <CardContent className="pt-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Login</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">Login</h2>
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -121,10 +121,11 @@ function LoginForm({
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>CPF</FormLabel>
+                  <FormLabel className="text-gray-300">CPF</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="Digite seu CPF" 
+                      className="border-baco-blue focus-visible:ring-baco-blue bg-black text-white"
                       {...field} 
                     />
                   </FormControl>
@@ -138,11 +139,12 @@ function LoginForm({
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Senha</FormLabel>
+                  <FormLabel className="text-gray-300">Senha</FormLabel>
                   <FormControl>
                     <Input 
                       type="password" 
                       placeholder="Digite sua senha" 
+                      className="border-baco-blue focus-visible:ring-baco-blue bg-black text-white"
                       {...field} 
                     />
                   </FormControl>
@@ -153,7 +155,7 @@ function LoginForm({
             
             <Button 
               type="submit" 
-              className="w-full"
+              className="w-full hover:bg-baco-blue"
               disabled={loginMutation.isPending}
             >
               {loginMutation.isPending ? (
@@ -168,16 +170,16 @@ function LoginForm({
           <Button 
             variant="link" 
             onClick={onShowRecovery}
-            className="text-primary hover:text-primary-600 text-sm font-medium"
+            className="text-primary hover:text-baco-blue text-sm font-medium"
           >
             Esqueci minha senha
           </Button>
           <div className="mt-4">
-            <span className="text-gray-600 text-sm">Não tem uma conta?</span> 
+            <span className="text-gray-400 text-sm">Não tem uma conta?</span> 
             <Button 
               variant="link" 
               onClick={onShowRegister}
-              className="text-primary hover:text-primary-600 text-sm font-medium ml-1"
+              className="text-primary hover:text-baco-blue text-sm font-medium ml-1"
             >
               Cadastre-se
             </Button>
@@ -214,9 +216,9 @@ function RecoveryForm({
   }
 
   return (
-    <Card>
+    <Card className="border-baco-blue bg-black text-white">
       <CardContent className="pt-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Recuperar Senha</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">Recuperar Senha</h2>
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -225,10 +227,11 @@ function RecoveryForm({
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>CPF</FormLabel>
+                  <FormLabel className="text-gray-300">CPF</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="Digite seu CPF" 
+                      className="border-baco-blue focus-visible:ring-baco-blue bg-black text-white"
                       {...field} 
                     />
                   </FormControl>
@@ -242,11 +245,12 @@ function RecoveryForm({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>E-mail</FormLabel>
+                  <FormLabel className="text-gray-300">E-mail</FormLabel>
                   <FormControl>
                     <Input 
                       type="email" 
                       placeholder="Digite seu e-mail" 
+                      className="border-baco-blue focus-visible:ring-baco-blue bg-black text-white"
                       {...field} 
                     />
                   </FormControl>
@@ -255,7 +259,7 @@ function RecoveryForm({
               )}
             />
             
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full hover:bg-baco-blue">
               Recuperar Senha
             </Button>
           </form>
@@ -265,7 +269,7 @@ function RecoveryForm({
           <Button 
             variant="link" 
             onClick={onBackToLogin}
-            className="text-primary hover:text-primary-600 text-sm font-medium"
+            className="text-primary hover:text-baco-blue text-sm font-medium"
           >
             Voltar para o login
           </Button>
