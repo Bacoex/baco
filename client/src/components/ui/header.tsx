@@ -78,7 +78,7 @@ export default function Header() {
                   </h1>
                   
                   {/* Efeito de fumaça se movendo lentamente */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-yellow-600/5 via-yellow-500/10 to-yellow-600/5 mix-blend-soft-light opacity-50 animate-breathe"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-primary/10 to-primary/5 mix-blend-soft-light opacity-50 animate-breathe"></div>
                 </div>
               </div>
             </div>

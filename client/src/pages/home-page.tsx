@@ -55,7 +55,7 @@ export default function HomePage() {
                 ? `Eventos de ${categoriesQuery.data?.find(c => c.slug === selectedCategory)?.name || selectedCategory}` 
                 : "Eventos em destaque"}
             </h2>
-            <div className="mx-auto w-32 h-0.5 bg-gradient-to-r from-primary to-baco-blue rounded-full"></div>
+            <div className="mx-auto w-32 h-0.5 bg-primary rounded-full"></div>
           </div>
           
           {/* Grade de eventos */}
@@ -91,7 +91,7 @@ export default function HomePage() {
       <div className="fixed bottom-8 right-8">
         <button 
           onClick={openCreateModal}
-          className="bg-gradient-to-r from-primary to-baco-blue hover:from-baco-blue hover:to-primary text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300"
+          className="bg-black hover:bg-black/80 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300"
           aria-label="Criar novo evento"
         >
           <PlusIcon className="h-6 w-6" />
