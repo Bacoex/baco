@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { getUserDisplayName } from "@/lib/utils";
+import { getUserDisplayName, cn } from "@/lib/utils";
 
 /**
  * Interface do evento com todos os dados necessários para exibição
@@ -175,8 +175,16 @@ export default function ViewEventModal({ event, isOpen, onClose }: ViewEventModa
               </Badge>
               <Badge 
                 variant="outline" 
-                className="border-none" 
-                style={{ backgroundColor: `${event.category?.color}20`, color: event.category?.color }}
+                className={cn("border-none", event.category?.slug === "lgbt" ? "pride-badge" : "")}
+                style={
+                  event.category?.slug === "lgbt" && event.category?.color === "pride"
+                  ? { 
+                      background: "linear-gradient(90deg, rgba(255,0,0,0.7) 0%, rgba(255,154,0,0.7) 17%, rgba(208,222,33,0.7) 33%, rgba(79,220,74,0.7) 50%, rgba(63,218,216,0.7) 66%, rgba(47,201,226,0.7) 83%, rgba(28,127,238,0.7) 100%)",
+                      color: "#fff",
+                      textShadow: "0px 0px 2px rgba(0,0,0,0.6)"
+                    }
+                  : { backgroundColor: `${event.category?.color}20`, color: event.category?.color }
+                }
               >
                 {event.category?.name}
               </Badge>

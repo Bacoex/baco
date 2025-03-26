@@ -272,4 +272,33 @@
   .hover\:text-baco-blue:hover {
     color: var(--baco-blue);
   }
+  
+  /* Estilos para categoria LGBT com gradiente do pride */
+  .pride-gradient {
+    background: linear-gradient(90deg, 
+      rgba(255,0,0,0.7) 0%, 
+      rgba(255,154,0,0.7) 17%, 
+      rgba(208,222,33,0.7) 33%, 
+      rgba(79,220,74,0.7) 50%, 
+      rgba(63,218,216,0.7) 66%, 
+      rgba(47,201,226,0.7) 83%, 
+      rgba(28,127,238,0.7) 100%);
+    color: white !important;
+    text-shadow: 0px 0px 2px rgba(0,0,0,0.6);
+    border: none !important;
+  }
+
+  .pride-badge {
+    background: linear-gradient(90deg, 
+      rgba(255,0,0,0.7) 0%, 
+      rgba(255,154,0,0.7) 17%, 
+      rgba(208,222,33,0.7) 33%, 
+      rgba(79,220,74,0.7) 50%, 
+      rgba(63,218,216,0.7) 66%, 
+      rgba(47,201,226,0.7) 83%, 
+      rgba(28,127,238,0.7) 100%);
+    color: white !important;
+    text-shadow: 0px 0px 2px rgba(0,0,0,0.6);
+    border: none !important;
+  }
 }

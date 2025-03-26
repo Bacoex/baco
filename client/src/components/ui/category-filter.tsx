@@ -9,6 +9,7 @@ interface Category {
   id: number;
   name: string;
   slug: string;
+  color?: string;
 }
 
 /**
@@ -53,8 +54,19 @@ export default function CategoryFilter({
               onClick={() => onSelectCategory(category.slug)}
               className={cn(
                 "rounded-full",
-                selectedCategory === category.slug ? "bg-primary-100 text-primary-800 hover:bg-primary-200" : ""
+                selectedCategory === category.slug ? "bg-primary-100 text-primary-800 hover:bg-primary-200" : "",
+                category.slug === "lgbt" ? "pride-gradient" : ""
               )}
+              style={(category.slug === "lgbt" && category.color === "pride") 
+                ? { 
+                    background: "linear-gradient(90deg, rgba(255,0,0,0.7) 0%, rgba(255,154,0,0.7) 17%, rgba(208,222,33,0.7) 33%, rgba(79,220,74,0.7) 50%, rgba(63,218,216,0.7) 66%, rgba(47,201,226,0.7) 83%, rgba(28,127,238,0.7) 100%)",
+                    color: "#fff", 
+                    textShadow: "0px 0px 2px rgba(0,0,0,0.6)" 
+                  }
+                : (category.color && category.color !== "pride" && selectedCategory === category.slug)
+                  ? { backgroundColor: `${category.color}20`, color: category.color }
+                  : {}
+              }
             >
               {category.name}
             </Button>
