@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --baco-orange: hsl(30, 100%, 50%); /* VRSoftware Orange */
+  --baco-blue: hsl(214, 100%, 34%); /* HP Blue */
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -9,5 +14,26 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+  }
+  
+  /* Estilizações personalizadas com as cores da aplicação */
+  .text-baco-blue {
+    color: var(--baco-blue);
+  }
+  
+  .bg-baco-blue {
+    background-color: var(--baco-blue);
+  }
+  
+  .border-baco-blue {
+    border-color: var(--baco-blue);
+  }
+  
+  .hover\:bg-baco-blue:hover {
+    background-color: var(--baco-blue);
+  }
+  
+  .hover\:text-baco-blue:hover {
+    color: var(--baco-blue);
   }
 }

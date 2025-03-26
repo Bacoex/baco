@@ -47,11 +47,11 @@ export default function Header() {
   };
   
   return (
-    <header className="bg-white shadow-md fixed top-0 left-0 w-full z-10">
+    <header className="bg-black shadow-md fixed top-0 left-0 w-full z-10">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
-          <h1 className="text-2xl font-bold text-primary">Baco</h1>
+          <h1 className="text-2xl font-bold text-primary bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent">Baco</h1>
         </div>
         
         {/* Barra de pesquisa */}
@@ -61,7 +61,7 @@ export default function Header() {
               <Input 
                 type="text" 
                 placeholder="Pesquisar eventos..." 
-                className="pl-10"
+                className="pl-10 border-baco-blue focus-visible:ring-baco-blue"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -82,8 +82,8 @@ export default function Header() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="h-full w-full bg-primary-100 flex items-center justify-center">
-                    <UserIcon className="h-5 w-5 text-primary" />
+                  <div className="h-full w-full bg-black flex items-center justify-center">
+                    <UserIcon className="h-5 w-5 text-baco-blue" />
                   </div>
                 )}
               </Eneagon>

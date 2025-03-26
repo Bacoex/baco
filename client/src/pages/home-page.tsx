@@ -6,6 +6,7 @@ import CategoryFilter from "@/components/ui/category-filter";
 import CreateEventModal from "@/components/ui/create-event-modal";
 import { Button } from "@/components/ui/button";
 import { PlusIcon, Loader2 } from "lucide-react";
+import { EventCategory, Event } from "@shared/schema";
 
 /**
  * Componente da página inicial
@@ -106,7 +107,7 @@ export default function HomePage() {
       <div className="fixed bottom-8 left-8">
         <button 
           onClick={openCreateModal}
-          className="bg-primary text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-primary-700 transition-all duration-300 animate-float"
+          className="bg-primary text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-baco-blue transition-all duration-300 animate-float"
           aria-label="Criar novo evento"
         >
           <PlusIcon className="h-6 w-6" />
