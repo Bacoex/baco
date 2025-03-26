@@ -305,13 +305,15 @@ export default function ProfilePage() {
               <div className="flex justify-center mb-4">
                 <div className="relative">
                   <Eneagon className="w-32 h-32 mb-2">
-                    {imagePreview ? (
-                      <AvatarImage src={imagePreview} alt={getUserDisplayName(user)} />
-                    ) : (
-                      <AvatarFallback className="text-2xl font-bold bg-primary text-primary-foreground">
-                        {getUserDisplayName(user).charAt(0)}
-                      </AvatarFallback>
-                    )}
+                    <Avatar>
+                      {imagePreview ? (
+                        <AvatarImage src={imagePreview} alt={getUserDisplayName(user)} />
+                      ) : (
+                        <AvatarFallback className="text-2xl font-bold bg-primary text-primary-foreground">
+                          {getUserDisplayName(user).charAt(0)}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
                   </Eneagon>
                   <label 
                     htmlFor="profile-image" 

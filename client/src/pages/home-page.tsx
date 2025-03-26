@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import Header from "@/components/ui/header";
+import { Header } from "@/components/ui/header";
 import EventCard from "@/components/ui/event-card";
 import CategoryFilter from "@/components/ui/category-filter";
 import CreateEventModal from "@/components/ui/create-event-modal";

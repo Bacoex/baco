@@ -31,7 +31,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import Header from "@/components/ui/header";
+import { Header } from "@/components/ui/header";
 import { Link } from "wouter";
 import CreateEventModal from "@/components/ui/create-event-modal";
 import NetworkBackground from "@/components/ui/network-background";
