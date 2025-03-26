@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Info } from "lucide-react";
 import RegisterForm from "@/components/register-form";
+import SmokeLogo from "@/components/ui/smoke-logo";
 import {
   Dialog,
   DialogContent,
@@ -250,38 +251,13 @@ export default function AuthPage() {
                     {/* Sem elementos de fundo */}
                   </div>
                   
-                  {/* Logo principal com efeito de fumaça em tons de laranja */}
-                  <div className="relative z-10 overflow-hidden">
-                    {/* Camada de fumaça de fundo */}
-                    <div className="absolute -inset-8 blur-3xl bg-gradient-to-tr from-orange-600/20 via-yellow-500/20 to-orange-500/20 mix-blend-screen opacity-60"></div>
-                    
-                    {/* Partículas de fumaça */}
-                    <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-                      <div className="smoke-particle w-5 h-5 rounded-full bg-orange-500/20 absolute top-1/2 left-1/4" style={{"--particle-delay": "0.1s", "--particle-direction": "30px"} as React.CSSProperties}></div>
-                      <div className="smoke-particle w-4 h-4 rounded-full bg-yellow-500/20 absolute top-1/2 left-1/3" style={{"--particle-delay": "0.5s", "--particle-direction": "-20px"} as React.CSSProperties}></div>
-                      <div className="smoke-particle w-6 h-6 rounded-full bg-orange-400/20 absolute top-1/2 right-1/3" style={{"--particle-delay": "0.3s", "--particle-direction": "15px"} as React.CSSProperties}></div>
-                      <div className="smoke-particle w-3 h-3 rounded-full bg-yellow-600/20 absolute top-1/2 right-1/4" style={{"--particle-delay": "0.7s", "--particle-direction": "-25px"} as React.CSSProperties}></div>
-                    </div>
-                    
-                    {/* Contêiner do texto com animação de fumaça */}
-                    <div className="relative">
-                      {/* Texto com efeito fumaça */}
-                      <h1 className="relative text-8xl uppercase animate-smoke" 
-                          style={{
-                            fontFamily: 'Futura, "Trebuchet MS", Arial, sans-serif',
-                            fontWeight: '600',
-                            letterSpacing: '0.05em'
-                          }}>
-                        {/* Logo com gradiente laranja para amarelo */}
-                        <span className="bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-400 bg-clip-text text-transparent">BACO</span>
-                      </h1>
-                      
-                      {/* Sombra de brilho para realçar o texto */}
-                      <div className="absolute inset-0 filter blur-md bg-gradient-to-r from-orange-600/30 via-yellow-500/30 to-orange-400/30 opacity-70 -z-10"></div>
-                    </div>
-                    
-                    {/* Efeito de fumaça se movendo lentamente ao redor */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/10 via-yellow-400/15 to-orange-300/10 mix-blend-overlay opacity-70 animate-breathe"></div>
+                  {/* Componente de logo com fumaça realista */}
+                  <div className="relative z-10 w-80 h-48 flex items-center justify-center">
+                    <SmokeLogo 
+                      text="BACO" 
+                      color="#FF9900" 
+                      className="scale-150"
+                    />
                   </div>
                 </div>
               </div>
