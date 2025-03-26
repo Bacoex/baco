@@ -299,10 +299,10 @@ export default function AuthPage() {
             <p className="text-white mt-5 text-center tracking-widest uppercase text-xs font-light" 
                style={{letterSpacing: '0.35em', fontFamily: 'serif'}}>
               <span className="inline-block px-1 animate-float">O N D E</span>
-              <span className="inline-block px-1 animate-float" style={{animationDelay: '0.15s'}}>V O C Ê</span>
-              <span className="inline-block px-1 animate-float" style={{animationDelay: '0.3s'}}>S E</span>
-              <span className="inline-block px-1 animate-float" style={{animationDelay: '0.45s'}}>C O N E C T A</span>
-              <span className="inline-block px-1 animate-float" style={{animationDelay: '0.6s'}}>À</span>
+              <span className="inline-block px-2 animate-float" style={{animationDelay: '0.15s'}}>V O C Ê</span>
+              <span className="inline-block px-2 animate-float" style={{animationDelay: '0.3s'}}>S E</span>
+              <span className="inline-block px-2 animate-float" style={{animationDelay: '0.45s'}}>C O N E C T A</span>
+              <span className="inline-block px-2 animate-float" style={{animationDelay: '0.6s'}}>À</span>
             </p>
             <p className="text-center mt-1">
               <span className="text-primary inline-block text-2xl font-bold tracking-widest animate-float" 
