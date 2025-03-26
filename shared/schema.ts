@@ -73,6 +73,7 @@ export const users = pgTable("users", {
   profileImage: text("profile_image"),
   biography: text("biography"),
   instagramUsername: text("instagram_username"),
+  threadsUsername: text("threads_username"),
   city: text("city"),
   state: text("state"),
   interests: text("interests"), // Armazenado como JSON

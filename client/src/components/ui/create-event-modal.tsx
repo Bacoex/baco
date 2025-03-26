@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertEventSchema } from "@shared/schema";
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, X } from "lucide-react";
+import { Loader2, MapPin, X, Info, Ticket, Users } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -19,7 +19,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Separator } from "@/components/ui/separator";
 
 /**
  * Props para o componente de modal de criação de evento
@@ -39,6 +43,16 @@ interface CreateEventModalProps {
  */
 type EventFormValues = z.infer<typeof insertEventSchema>;
 
+// Tipos de eventos disponíveis
+type EventType = 'public' | 'private_ticket' | 'private_application';
+
+// Interface para ticket adicional
+interface AdditionalTicket {
+  name: string;
+  price: number;
+  description?: string;
+}
+
 /**
  * Componente de modal para criação de eventos
  */
@@ -46,6 +60,9 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [eventType, setEventType] = useState<EventType>('public');
+  const [additionalTickets, setAdditionalTickets] = useState<AdditionalTicket[]>([]);
+  const [showMapSelector, setShowMapSelector] = useState(false);
   
   // Inicializa o formulário com o esquema de validação
   const form = useForm<EventFormValues>({
@@ -54,18 +71,41 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
       name: "",
       description: "",
       date: "",
-      time: "",
+      timeStart: "",
+      timeEnd: "",
       location: "",
-      price: 0,
-      image: "",
+      coordinates: "",
+      coverImage: "",
       categoryId: 0,
+      eventType: "public",
+      importantInfo: "",
+      ticketPrice: 0,
+      capacity: 0,
     },
   });
+  
+  // Observa mudanças no tipo de evento
+  const watchEventType = form.watch("eventType");
+  
+  // Efeito para atualizar o tipo de evento interno quando o formulário muda
+  useEffect(() => {
+    if (watchEventType) {
+      setEventType(watchEventType as EventType);
+    }
+  }, [watchEventType]);
   
   // Mutação para criar um novo evento
   const createEventMutation = useMutation({
     mutationFn: async (data: EventFormValues) => {
-      const res = await apiRequest("POST", "/api/events", data);
+      // Preparar os dados adicionais conforme o tipo de evento
+      let eventData = { ...data };
+      
+      // Se for evento com ingressos, processa os ingressos adicionais
+      if (data.eventType === 'private_ticket' && additionalTickets.length > 0) {
+        eventData.additionalTickets = JSON.stringify(additionalTickets);
+      }
+      
+      const res = await apiRequest("POST", "/api/events", eventData);
       return await res.json();
     },
     onSuccess: () => {
@@ -76,6 +116,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       form.reset();
       setImagePreview(null);
+      setAdditionalTickets([]);
       onClose();
     },
     onError: (error: Error) => {
@@ -89,11 +130,12 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
   
   // Função para lidar com o envio do formulário
   function onSubmit(data: EventFormValues) {
-    // Converte o preço para número
+    // Converte tipos numéricos
     const eventData = {
       ...data,
       categoryId: Number(data.categoryId),
-      price: Number(data.price),
+      ticketPrice: data.eventType === 'private_ticket' ? Number(data.ticketPrice) : 0,
+      capacity: data.capacity ? Number(data.capacity) : null,
     };
     
     createEventMutation.mutate(eventData);
@@ -107,8 +149,25 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
       // e obteria a URL, mas para fins de demonstração, usamos URL.createObjectURL
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
-      form.setValue("image", previewUrl);
+      form.setValue("coverImage", previewUrl);
     }
+  };
+  
+  // Função para adicionar um novo tipo de ingresso
+  const addAdditionalTicket = () => {
+    setAdditionalTickets([...additionalTickets, { name: "", price: 0 }]);
+  };
+  
+  // Função para atualizar um ingresso adicional
+  const updateAdditionalTicket = (index: number, field: keyof AdditionalTicket, value: string | number) => {
+    const updatedTickets = [...additionalTickets];
+    updatedTickets[index] = { ...updatedTickets[index], [field]: value };
+    setAdditionalTickets(updatedTickets);
+  };
+  
+  // Função para remover um ingresso adicional
+  const removeAdditionalTicket = (index: number) => {
+    setAdditionalTickets(additionalTickets.filter((_, i) => i !== index));
   };
   
   return (
@@ -134,6 +193,60 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Tipo de evento */}
+            <FormField
+              control={form.control}
+              name="eventType"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>Tipo de Evento</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2 px-4 py-2 border rounded-md hover:bg-gray-50 cursor-pointer">
+                        <RadioGroupItem value="public" id="event-public" />
+                        <label htmlFor="event-public" className="cursor-pointer flex items-center">
+                          <Info className="h-4 w-4 mr-2 text-blue-500" />
+                          <div>
+                            <div className="font-medium">Evento Público</div>
+                            <div className="text-sm text-gray-500">Aberto para todos, sem restrições.</div>
+                          </div>
+                        </label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 px-4 py-2 border rounded-md hover:bg-gray-50 cursor-pointer">
+                        <RadioGroupItem value="private_ticket" id="event-ticket" />
+                        <label htmlFor="event-ticket" className="cursor-pointer flex items-center">
+                          <Ticket className="h-4 w-4 mr-2 text-green-500" />
+                          <div>
+                            <div className="font-medium">Evento com Ingressos</div>
+                            <div className="text-sm text-gray-500">Acesso mediante compra de ingresso.</div>
+                          </div>
+                        </label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 px-4 py-2 border rounded-md hover:bg-gray-50 cursor-pointer">
+                        <RadioGroupItem value="private_application" id="event-application" />
+                        <label htmlFor="event-application" className="cursor-pointer flex items-center">
+                          <Users className="h-4 w-4 mr-2 text-orange-500" />
+                          <div>
+                            <div className="font-medium">Evento com Candidatura</div>
+                            <div className="text-sm text-gray-500">Participantes precisam se candidatar e ser aprovados.</div>
+                          </div>
+                        </label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <Separator className="my-4" />
+            
             {/* Nome do evento */}
             <FormField
               control={form.control}
@@ -179,7 +292,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
             />
             
             {/* Data e hora */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="date"
@@ -196,10 +309,25 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
               
               <FormField
                 control={form.control}
-                name="time"
+                name="timeStart"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Hora</FormLabel>
+                    <FormLabel>Horário de Início</FormLabel>
+                    <FormControl>
+                      <Input type="time" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="timeEnd"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Horário de Término</FormLabel>
+                    <FormDescription className="text-xs">Opcional</FormDescription>
                     <FormControl>
                       <Input type="time" {...field} />
                     </FormControl>
@@ -216,29 +344,59 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Local</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Digite o local do evento" {...field} />
-                  </FormControl>
+                  <div className="flex items-center space-x-2">
+                    <FormControl className="flex-grow">
+                      <Input placeholder="Digite o local do evento" {...field} />
+                    </FormControl>
+                    <Button 
+                      type="button" 
+                      size="icon" 
+                      variant="outline"
+                      onClick={() => setShowMapSelector(!showMapSelector)}
+                      title="Selecionar no mapa"
+                    >
+                      <MapPin className="h-4 w-4" />
+                    </Button>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            {/* Preço */}
+            {showMapSelector && (
+              <div className="border rounded-md p-4 bg-gray-50">
+                <p className="text-sm text-gray-500 mb-4">
+                  Aqui seria integrada a API do Google Maps para seleção de localização.
+                  No momento, insira o endereço manualmente.
+                </p>
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => setShowMapSelector(false)}
+                >
+                  Fechar mapa
+                </Button>
+              </div>
+            )}
+            
+            {/* Capacidade */}
             <FormField
               control={form.control}
-              name="price"
+              name="capacity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Preço (R$)</FormLabel>
+                  <FormLabel>Capacidade</FormLabel>
+                  <FormDescription className="text-xs">
+                    Número máximo de participantes (deixe em branco para ilimitado)
+                  </FormDescription>
                   <FormControl>
                     <Input 
                       type="number" 
-                      placeholder="0.00" 
-                      min="0" 
-                      step="0.01"
+                      placeholder="Ilimitado" 
+                      min="1"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : '')}
                     />
                   </FormControl>
                   <FormMessage />
@@ -246,9 +404,133 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
               )}
             />
             
+            {/* Campos específicos para cada tipo de evento */}
+            {eventType === 'public' && (
+              <FormField
+                control={form.control}
+                name="importantInfo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Informações Importantes</FormLabel>
+                    <FormDescription className="text-xs">
+                      Inclua aqui alertas ou informações essenciais sobre o evento
+                    </FormDescription>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Ex: Traga documento com foto, não é permitido animais, etc." 
+                        rows={2}
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            
+            {eventType === 'private_ticket' && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="ticketPrice"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preço do Ingresso (R$)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="0.00" 
+                          min="0" 
+                          step="0.01"
+                          {...field}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Ingressos adicionais */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <FormLabel>Tipos de Ingressos Adicionais</FormLabel>
+                    <Button 
+                      type="button" 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={addAdditionalTicket}
+                    >
+                      Adicionar
+                    </Button>
+                  </div>
+                  
+                  {additionalTickets.length > 0 ? (
+                    <div className="space-y-3">
+                      {additionalTickets.map((ticket, index) => (
+                        <div key={index} className="flex items-end gap-2 p-3 border rounded-md">
+                          <div className="flex-grow">
+                            <FormLabel className="text-xs">Nome</FormLabel>
+                            <Input 
+                              placeholder="Ex: VIP, Meia-entrada" 
+                              value={ticket.name}
+                              onChange={(e) => updateAdditionalTicket(index, 'name', e.target.value)}
+                            />
+                          </div>
+                          <div className="w-1/4">
+                            <FormLabel className="text-xs">Preço (R$)</FormLabel>
+                            <Input 
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="0.00"
+                              value={ticket.price}
+                              onChange={(e) => updateAdditionalTicket(index, 'price', parseFloat(e.target.value) || 0)}
+                            />
+                          </div>
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => removeAdditionalTicket(index)}
+                            className="h-8 w-8 text-gray-400 hover:text-red-500"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 italic border border-dashed rounded-md p-3 text-center">
+                      Nenhum tipo de ingresso adicional cadastrado
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
+            
+            {eventType === 'private_application' && (
+              <div className="bg-orange-50 p-4 rounded-md border border-orange-200">
+                <h4 className="text-sm font-medium flex items-center mb-2">
+                  <Users className="h-4 w-4 mr-2 text-orange-500" />
+                  Evento com Candidatura
+                </h4>
+                <p className="text-sm text-gray-600 mb-3">
+                  As pessoas interessadas precisarão se candidatar para participar do seu evento.
+                  Você poderá aprovar ou rejeitar cada solicitação.
+                </p>
+                <p className="text-xs text-gray-500">
+                  Depois de aprovados, os participantes poderão conversar entre si em um chat exclusivo.
+                </p>
+              </div>
+            )}
+            
             {/* Imagem do evento */}
             <div>
-              <FormLabel>Imagem do Evento</FormLabel>
+              <FormLabel>Imagem de Capa</FormLabel>
+              <FormDescription className="text-xs">
+                Imagem horizontal que será exibida como capa do evento (recomendado: 1200x630px)
+              </FormDescription>
               <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-300 rounded-md">
                 <div className="space-y-1 text-center">
                   {imagePreview ? (
@@ -256,13 +538,13 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                       <img 
                         src={imagePreview} 
                         alt="Preview" 
-                        className="h-32 object-cover rounded-md"
+                        className="h-32 w-full object-cover rounded-md"
                       />
                       <button
                         type="button"
                         onClick={() => {
                           setImagePreview(null);
-                          form.setValue("image", "");
+                          form.setValue("coverImage", "");
                         }}
                         className="absolute top-1 right-1 bg-white rounded-full p-1"
                       >
