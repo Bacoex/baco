@@ -246,42 +246,54 @@ export default function AuthPage() {
       </div>
       
       <div className="max-w-md w-full z-10 relative">
-        {/* Logo com tema de conexão humana */}
+        {/* Logo com B conectado */}
         <div className="relative mb-10">
           <div className="absolute -top-20 -left-32 w-40 h-40 rounded-[70%_30%_70%_30%] bg-primary opacity-20 animate-slow-morph"></div>
           
-          <div className="w-40 h-40 mx-auto border-4 border-white/20 rounded-[60%_40%_50%_50%] overflow-hidden flex items-center justify-center backdrop-blur-sm animate-slow-morph relative">
-            {/* Elementos de conexão humana */}
-            <div className="absolute left-1/4 top-1/3 w-8 h-8 rounded-full border-2 border-primary/70 connection-node" style={{animationDelay: '0s'}}></div>
-            <div className="absolute right-1/4 top-1/3 w-8 h-8 rounded-full border-2 border-primary/70 connection-node" style={{animationDelay: '0.7s'}}></div>
-            <div className="absolute left-1/3 bottom-1/3 w-8 h-8 rounded-full border-2 border-primary/70 connection-node" style={{animationDelay: '1.4s'}}></div>
-            <div className="absolute right-1/3 bottom-1/3 w-8 h-8 rounded-full border-2 border-primary/70 connection-node" style={{animationDelay: '2.1s'}}></div>
-            
-            {/* Linhas de conexão */}
-            <div className="absolute left-[40%] top-[40%] w-8 h-0.5 bg-primary transform rotate-45 connection-line" style={{animationDelay: '0.3s'}}></div>
-            <div className="absolute left-[40%] top-[60%] w-8 h-0.5 bg-primary transform -rotate-45 connection-line" style={{animationDelay: '1.0s'}}></div>
-            <div className="absolute right-[40%] top-[40%] w-8 h-0.5 bg-primary transform -rotate-45 connection-line" style={{animationDelay: '1.7s'}}></div>
-            <div className="absolute right-[40%] top-[60%] w-8 h-0.5 bg-primary transform rotate-45 connection-line" style={{animationDelay: '2.4s'}}></div>
-            
-            <div className="relative z-20 transform hover:scale-105 transition-transform duration-500">
-              <h1 className="text-5xl font-bold text-primary">Baco</h1>
+          <div className="mx-auto flex flex-col items-center justify-center relative">
+            {/* B personalizado com conexões */}
+            <div className="flex items-center justify-center mb-4">
+              <div className="relative">
+                {/* B com pontos e linhas de conexão */}
+                <div className="text-7xl font-bold text-primary relative group">
+                  <div className="flex">
+                    <div className="relative">
+                      {/* Letra B com pontos de conexão */}
+                      <span className="inline-block relative">B</span>
+                      {/* Pontos de conexão */}
+                      <div className="absolute top-[4px] left-[18px] w-[3px] h-[3px] bg-primary rounded-full"></div>
+                      <div className="absolute top-[16px] left-[36px] w-[3px] h-[3px] bg-primary rounded-full"></div>
+                      <div className="absolute top-[34px] left-[36px] w-[3px] h-[3px] bg-primary rounded-full"></div>
+                      <div className="absolute top-[50px] left-[18px] w-[3px] h-[3px] bg-primary rounded-full"></div>
+                      <div className="absolute bottom-[4px] left-[18px] w-[3px] h-[3px] bg-primary rounded-full"></div>
+                      
+                      {/* Linhas de conexão animadas */}
+                      <div className="absolute top-[4px] left-[18px] w-[18px] h-[1px] bg-primary transform rotate-12 connection-line"></div>
+                      <div className="absolute top-[16px] left-[18px] w-[18px] h-[1px] bg-primary connection-line" style={{animationDelay: '0.2s'}}></div>
+                      <div className="absolute top-[34px] left-[18px] w-[18px] h-[1px] bg-primary connection-line" style={{animationDelay: '0.4s'}}></div>
+                      <div className="absolute top-[50px] left-[18px] w-[18px] h-[1px] bg-primary transform -rotate-12 connection-line" style={{animationDelay: '0.6s'}}></div>
+                    </div>
+                    <span className="text-7xl font-bold text-primary ml-1">aco</span>
+                  </div>
+                </div>
+              </div>
             </div>
+            
+            <p className="text-white mt-5 text-center tracking-widest uppercase text-xs font-light" 
+               style={{letterSpacing: '0.35em', fontFamily: 'serif'}}>
+              <span className="inline-block px-1 animate-float">O N D E</span>
+              <span className="inline-block px-1 animate-float" style={{animationDelay: '0.15s'}}>V O C Ê</span>
+              <span className="inline-block px-1 animate-float" style={{animationDelay: '0.3s'}}>S E</span>
+              <span className="inline-block px-1 animate-float" style={{animationDelay: '0.45s'}}>C O N E C T A</span>
+              <span className="inline-block px-1 animate-float" style={{animationDelay: '0.6s'}}>À</span>
+            </p>
+            <p className="text-center mt-1">
+              <span className="text-primary inline-block text-2xl font-bold tracking-widest animate-float" 
+                    style={{animationDelay: '0.75s', letterSpacing: '0.15em', fontFamily: 'serif'}}>
+                ✧ E X P E R I Ê N C I A ✧
+              </span>
+            </p>
           </div>
-          
-          <p className="text-white mt-5 text-center tracking-widest uppercase text-xs font-light" 
-             style={{letterSpacing: '0.35em', fontFamily: 'serif'}}>
-            <span className="inline-block px-1 animate-float">O N D E</span>
-            <span className="inline-block px-1 animate-float" style={{animationDelay: '0.15s'}}>V O C Ê</span>
-            <span className="inline-block px-1 animate-float" style={{animationDelay: '0.3s'}}>S E</span>
-            <span className="inline-block px-1 animate-float" style={{animationDelay: '0.45s'}}>C O N E C T A</span>
-            <span className="inline-block px-1 animate-float" style={{animationDelay: '0.6s'}}>À</span>
-          </p>
-          <p className="text-center mt-1">
-            <span className="text-primary inline-block text-2xl font-bold tracking-widest animate-float" 
-                  style={{animationDelay: '0.75s', letterSpacing: '0.15em', fontFamily: 'serif'}}>
-              ✧ E X P E R I Ê N C I A ✧
-            </span>
-          </p>
         </div>
 
         {/* Formulário de login */}

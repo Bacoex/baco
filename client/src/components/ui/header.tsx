@@ -50,20 +50,29 @@ export default function Header() {
   return (
     <header className="bg-black shadow-lg fixed top-0 left-0 w-full z-10 border-b border-primary/20">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Logo inspirada em "conexão humana" */}
+        {/* Logo única com o B conectado */}
         <div className="flex items-center mr-6 ml-2">
           <div className="relative">
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center">
               <div className="relative">
-                {/* Símbolo representando pessoas conectadas */}
-                <div className="absolute -left-5 top-1 w-4 h-4 rounded-full border-2 border-primary connection-node" style={{animationDelay: "0s"}}></div>
-                <div className="absolute -left-2 -top-2 w-4 h-4 rounded-full border-2 border-primary connection-node" style={{animationDelay: "0.5s"}}></div>
-                <div className="absolute left-1 top-1 w-4 h-4 rounded-full border-2 border-primary connection-node" style={{animationDelay: "1s"}}></div>
-                {/* Linhas de conexão */}
-                <div className="absolute -left-2 top-0 w-4 h-0.5 bg-primary transform rotate-45 connection-line" style={{animationDelay: "0.3s"}}></div>
-                <div className="absolute left-0 top-0 w-4 h-0.5 bg-primary transform -rotate-45 connection-line" style={{animationDelay: "0.8s"}}></div>
+                {/* B com conexões */}
+                <div className="text-3xl font-bold text-primary relative">
+                  <span className="relative">B</span>
+                  {/* Pontos de conexão no B */}
+                  <div className="absolute top-0 left-[10px] w-1 h-1 bg-primary rounded-full"></div>
+                  <div className="absolute top-[6px] left-[18px] w-1 h-1 bg-primary rounded-full"></div>
+                  <div className="absolute top-[13px] left-[18px] w-1 h-1 bg-primary rounded-full"></div>
+                  <div className="absolute top-[20px] left-[10px] w-1 h-1 bg-primary rounded-full"></div>
+                  <div className="absolute bottom-0 left-[10px] w-1 h-1 bg-primary rounded-full"></div>
+                  
+                  {/* Linhas de conexão no B */}
+                  <div className="absolute top-0 left-[10px] w-[8px] h-[0.5px] bg-primary transform rotate-12 connection-line"></div>
+                  <div className="absolute top-[6px] left-[10px] w-[8px] h-[0.5px] bg-primary transform connection-line"></div>
+                  <div className="absolute top-[13px] left-[10px] w-[8px] h-[0.5px] bg-primary transform connection-line"></div>
+                  <div className="absolute top-[20px] left-[10px] w-[8px] h-[0.5px] bg-primary transform -rotate-12 connection-line"></div>
+                </div>
+                <span className="text-3xl font-bold text-primary ml-1">aco</span>
               </div>
-              <h1 className="text-3xl font-bold text-primary ml-4">Baco</h1>
             </div>
             <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-primary rounded-full"></div>
             <div className="absolute -bottom-2 left-1/4 w-1/2 h-0.5 bg-primary/50 rounded-full"></div>
