@@ -7,6 +7,42 @@
   --baco-blue: hsl(214, 100%, 34%); /* HP Blue */
 }
 
+/* Animações para a logo com tema de conexão humana */
+@keyframes pulse-connection {
+  0% {
+    opacity: 0.4;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0.4;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes glow-connection {
+  0% {
+    box-shadow: 0 0 5px var(--baco-orange);
+  }
+  50% {
+    box-shadow: 0 0 15px var(--baco-orange), 0 0 30px var(--baco-blue);
+  }
+  100% {
+    box-shadow: 0 0 5px var(--baco-orange);
+  }
+}
+
+.connection-node {
+  animation: pulse-connection 3s infinite;
+}
+
+.connection-line {
+  animation: glow-connection 3s infinite;
+}
+
 @layer base {
   * {
     @apply border-border;

@@ -246,12 +246,24 @@ export default function AuthPage() {
       </div>
       
       <div className="max-w-md w-full z-10 relative">
-        {/* Logo com formato orgânico */}
+        {/* Logo com tema de conexão humana */}
         <div className="relative mb-10">
           <div className="absolute -top-20 -left-32 w-40 h-40 rounded-[70%_30%_70%_30%] bg-primary opacity-20 animate-slow-morph"></div>
           
-          <div className="w-36 h-36 mx-auto border-4 border-white/20 rounded-[60%_40%_50%_50%] overflow-hidden flex items-center justify-center backdrop-blur-sm animate-slow-morph">
-            <div className="relative z-20 transform rotate-3 hover:rotate-0 transition-transform duration-500">
+          <div className="w-40 h-40 mx-auto border-4 border-white/20 rounded-[60%_40%_50%_50%] overflow-hidden flex items-center justify-center backdrop-blur-sm animate-slow-morph relative">
+            {/* Elementos de conexão humana */}
+            <div className="absolute left-1/4 top-1/3 w-8 h-8 rounded-full border-2 border-primary/70 connection-node" style={{animationDelay: '0s'}}></div>
+            <div className="absolute right-1/4 top-1/3 w-8 h-8 rounded-full border-2 border-primary/70 connection-node" style={{animationDelay: '0.7s'}}></div>
+            <div className="absolute left-1/3 bottom-1/3 w-8 h-8 rounded-full border-2 border-primary/70 connection-node" style={{animationDelay: '1.4s'}}></div>
+            <div className="absolute right-1/3 bottom-1/3 w-8 h-8 rounded-full border-2 border-primary/70 connection-node" style={{animationDelay: '2.1s'}}></div>
+            
+            {/* Linhas de conexão */}
+            <div className="absolute left-[40%] top-[40%] w-8 h-0.5 bg-primary transform rotate-45 connection-line" style={{animationDelay: '0.3s'}}></div>
+            <div className="absolute left-[40%] top-[60%] w-8 h-0.5 bg-primary transform -rotate-45 connection-line" style={{animationDelay: '1.0s'}}></div>
+            <div className="absolute right-[40%] top-[40%] w-8 h-0.5 bg-primary transform -rotate-45 connection-line" style={{animationDelay: '1.7s'}}></div>
+            <div className="absolute right-[40%] top-[60%] w-8 h-0.5 bg-primary transform rotate-45 connection-line" style={{animationDelay: '2.4s'}}></div>
+            
+            <div className="relative z-20 transform hover:scale-105 transition-transform duration-500">
               <h1 className="text-5xl font-bold text-primary">Baco</h1>
             </div>
           </div>
