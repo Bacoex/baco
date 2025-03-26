@@ -25,6 +25,12 @@ interface EventProps {
       color: string;
       slug: string;
     };
+    creator: {
+      id: number;
+      firstName: string;
+      lastName: string;
+      profileImage: string | null;
+    };
   };
 }
 

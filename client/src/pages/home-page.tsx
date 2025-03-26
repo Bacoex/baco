@@ -21,13 +21,15 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
   // Busca todas as categorias
-  const categoriesQuery = useQuery({
+  const categoriesQuery = useQuery<EventCategory[]>({
     queryKey: ["/api/categories"],
+    initialData: [],
   });
   
   // Busca todos os eventos com possível filtro de categoria
-  const eventsQuery = useQuery({
+  const eventsQuery = useQuery<Event[]>({
     queryKey: ["/api/events", selectedCategory && `?category=${selectedCategory}`],
+    initialData: [],
   });
   
   // Função para abrir o modal de criação de evento

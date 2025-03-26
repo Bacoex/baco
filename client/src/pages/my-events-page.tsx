@@ -453,8 +453,9 @@ export default function MyEventsPage() {
   });
   
   // Buscar categorias (para o modal de criação)
-  const categoriesQuery = useQuery({
+  const categoriesQuery = useQuery<EventCategory[]>({
     queryKey: ["/api/categories"],
+    initialData: [],
   });
   
   // Mutação para remover evento
