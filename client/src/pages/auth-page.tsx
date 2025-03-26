@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -27,6 +27,103 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
+
+/**
+ * Componente de rede com pontos se conectando
+ * Cria um efeito visual de nós conectados em uma rede
+ */
+function NetworkBackground() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    // Redimensionar o canvas para ocupar toda a tela
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    
+    // Definir pontos na rede
+    const pointCount = 60;
+    const points: { x: number; y: number; dx: number; dy: number; radius: number; }[] = [];
+    
+    for (let i = 0; i < pointCount; i++) {
+      points.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        dx: (Math.random() - 0.5) * 0.5,
+        dy: (Math.random() - 0.5) * 0.5,
+        radius: Math.random() * 1.5 + 0.5,
+      });
+    }
+    
+    // Função para desenhar a rede
+    const drawNetwork = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Desenhar pontos
+      for (let i = 0; i < pointCount; i++) {
+        const point = points[i];
+        
+        // Atualizar posição
+        point.x += point.dx;
+        point.y += point.dy;
+        
+        // Rebater nas bordas
+        if (point.x < 0 || point.x > canvas.width) point.dx *= -1;
+        if (point.y < 0 || point.y > canvas.height) point.dy *= -1;
+        
+        // Desenhar ponto
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, point.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.fill();
+        
+        // Desenhar linhas conectando pontos próximos
+        for (let j = i + 1; j < pointCount; j++) {
+          const otherPoint = points[j];
+          const distance = Math.sqrt(
+            Math.pow(point.x - otherPoint.x, 2) + Math.pow(point.y - otherPoint.y, 2)
+          );
+          
+          if (distance < 150) {
+            ctx.beginPath();
+            ctx.moveTo(point.x, point.y);
+            ctx.lineTo(otherPoint.x, otherPoint.y);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 - distance / 1500})`;
+            ctx.lineWidth = 0.3;
+            ctx.stroke();
+          }
+        }
+      }
+      
+      requestAnimationFrame(drawNetwork);
+    };
+    
+    const animationId = requestAnimationFrame(drawNetwork);
+    
+    // Limpar evento e animação ao desmontar
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationId);
+    };
+  }, []);
+  
+  return (
+    <canvas 
+      ref={canvasRef} 
+      className="absolute inset-0 w-full h-full z-0 bg-transparent pointer-events-none"
+    />
+  );
+}
 
 /**
  * Tipos de formulários de autenticação disponíveis
@@ -129,120 +226,13 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
-      {/* Fundo representando a matriz espiritual/cósmica */}
+      {/* Fundo com pontos se conectando em rede */}
       <div className="absolute inset-0 bg-black z-0">
         {/* Gradiente de fundo profundo */}
         <div className="absolute inset-0 bg-gradient-to-br from-black via-[#0A0A14] to-[#070711] opacity-90"></div>
         
-        {/* Elementos geométricos sagrados e matriz cósmica */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-          {/* Grade de matriz sutilmente brilhante */}
-          <div className="absolute inset-0 opacity-10" 
-               style={{
-                 backgroundImage: 'linear-gradient(#FF9900 0.5px, transparent 0.5px), linear-gradient(90deg, #FF9900 0.5px, transparent 0.5px)',
-                 backgroundSize: '40px 40px',
-               }}>
-          </div>
-          
-          {/* Flor da Vida - Geometria Sagrada */}
-          <div className="absolute top-[10%] left-[10%] w-[25rem] h-[25rem] opacity-10 animate-slow-spin" 
-               style={{ animationDuration: '120s' }}>
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="flowerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#FF9900" />
-                  <stop offset="100%" stopColor="#0066ff" />
-                </linearGradient>
-              </defs>
-              <circle cx="50" cy="50" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
-              <circle cx="66" cy="50" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
-              <circle cx="58" cy="66" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
-              <circle cx="42" cy="66" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
-              <circle cx="34" cy="50" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
-              <circle cx="42" cy="34" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
-              <circle cx="58" cy="34" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
-              <circle cx="50" cy="18" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
-              <circle cx="50" cy="82" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
-              <circle cx="26" cy="34" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
-              <circle cx="26" cy="66" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
-              <circle cx="74" cy="66" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
-              <circle cx="74" cy="34" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
-            </svg>
-          </div>
-          
-          {/* Árvore da Vida - Cabala */}
-          <div className="absolute top-[20%] right-[10%] w-[15rem] h-[15rem] opacity-15 animate-pulse-slow">
-            <svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="treeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#0066ff" />
-                  <stop offset="100%" stopColor="#FF9900" />
-                </linearGradient>
-              </defs>
-              <circle cx="50" cy="10" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
-              <circle cx="30" cy="30" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
-              <circle cx="70" cy="30" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
-              <circle cx="50" cy="50" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
-              <circle cx="20" cy="70" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
-              <circle cx="80" cy="70" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
-              <circle cx="35" cy="90" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
-              <circle cx="65" cy="90" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
-              <circle cx="50" cy="110" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
-              <circle cx="50" cy="140" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
-              <line x1="50" y1="18" x2="50" y2="42" stroke="url(#treeGradient)" strokeWidth="0.5" />
-              <line x1="38" y1="30" x2="62" y2="30" stroke="url(#treeGradient)" strokeWidth="0.5" />
-              <line x1="30" y1="38" x2="50" y2="50" stroke="url(#treeGradient)" strokeWidth="0.5" />
-              <line x1="70" y1="38" x2="50" y2="50" stroke="url(#treeGradient)" strokeWidth="0.5" />
-              <line x1="50" y1="58" x2="50" y2="102" stroke="url(#treeGradient)" strokeWidth="0.5" />
-              <line x1="20" y1="78" x2="35" y2="90" stroke="url(#treeGradient)" strokeWidth="0.5" />
-              <line x1="80" y1="78" x2="65" y2="90" stroke="url(#treeGradient)" strokeWidth="0.5" />
-              <line x1="35" y1="98" x2="50" y2="110" stroke="url(#treeGradient)" strokeWidth="0.5" />
-              <line x1="65" y1="98" x2="50" y2="110" stroke="url(#treeGradient)" strokeWidth="0.5" />
-              <line x1="50" y1="118" x2="50" y2="132" stroke="url(#treeGradient)" strokeWidth="0.5" />
-            </svg>
-          </div>
-
-          {/* Merkaba - Tetraedro Estelar */}
-          <div className="absolute bottom-[15%] left-[15%] w-[12rem] h-[12rem] opacity-20 animate-slow-spin" 
-               style={{ animationDuration: '80s' }}>
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-              <polygon points="50,15 15,65 85,65" fill="none" stroke="#FF9900" strokeWidth="0.8" opacity="0.8" />
-              <polygon points="50,85 15,35 85,35" fill="none" stroke="#0066ff" strokeWidth="0.8" opacity="0.8" />
-            </svg>
-          </div>
-          
-          {/* Espiral Áurea - Sequência de Fibonacci */}
-          <div className="absolute bottom-[20%] right-[15%] w-[14rem] h-[14rem] opacity-25 animate-slow-spin" 
-               style={{ animationDuration: '-100s' }}>
-            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-              <path d="M95,50 A45,45 0 0,0 50,5 A45,45 0 0,0 5,50 A45,45 0 0,0 50,95 A45,45 0 0,0 95,50 Z" 
-                    fill="none" stroke="#FF9900" strokeWidth="0.5" opacity="0.6" />
-              <path d="M81,50 A31,31 0 0,0 50,19 A31,31 0 0,0 19,50 A31,31 0 0,0 50,81 A31,31 0 0,0 81,50 Z" 
-                    fill="none" stroke="#0066ff" strokeWidth="0.5" opacity="0.6" />
-              <path d="M69,50 A19,19 0 0,0 50,31 A19,19 0 0,0 31,50 A19,19 0 0,0 50,69 A19,19 0 0,0 69,50 Z" 
-                    fill="none" stroke="#FF9900" strokeWidth="0.5" opacity="0.6" />
-              <path d="M62,50 A12,12 0 0,0 50,38 A12,12 0 0,0 38,50 A12,12 0 0,0 50,62 A12,12 0 0,0 62,50 Z" 
-                    fill="none" stroke="#0066ff" strokeWidth="0.5" opacity="0.6" />
-              <path d="M57,50 A7,7 0 0,0 50,43 A7,7 0 0,0 43,50 A7,7 0 0,0 50,57 A7,7 0 0,0 57,50 Z" 
-                    fill="none" stroke="#FF9900" strokeWidth="0.5" opacity="0.6" />
-            </svg>
-          </div>
-          
-          {/* Ponto de Luz brilhante simulando consciência */}
-          <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-white rounded-full animate-pulse-bright"></div>
-          
-          {/* Linhas conectando os pontos - representando a rede da matriz */}
-          <div className="absolute inset-0 w-full h-full">
-            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-              <line x1="10%" y1="20%" x2="90%" y2="20%" stroke="#0066ff" strokeWidth="0.3" opacity="0.1" />
-              <line x1="20%" y1="10%" x2="20%" y2="90%" stroke="#FF9900" strokeWidth="0.3" opacity="0.1" />
-              <line x1="10%" y1="80%" x2="90%" y2="80%" stroke="#0066ff" strokeWidth="0.3" opacity="0.1" />
-              <line x1="80%" y1="10%" x2="80%" y2="90%" stroke="#FF9900" strokeWidth="0.3" opacity="0.1" />
-              <line x1="10%" y1="10%" x2="90%" y2="90%" stroke="#0066ff" strokeWidth="0.3" opacity="0.1" />
-              <line x1="90%" y1="10%" x2="10%" y2="90%" stroke="#FF9900" strokeWidth="0.3" opacity="0.1" />
-            </svg>
-          </div>
-        </div>
+        {/* Componente de rede com pontos se conectando */}
+        <NetworkBackground />
       </div>
       
       <div className="max-w-md w-full z-10 relative">
