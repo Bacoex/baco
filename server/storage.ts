@@ -68,7 +68,7 @@ export class MemStorage implements IStorage {
     this.participantsMap = new Map();
     
     // Define os contadores iniciais
-    this.userIdCounter = 1;
+    this.userIdCounter = 2; // Iniciando em 2 para preservar o usuário com ID 1
     this.categoryIdCounter = 1;
     this.eventIdCounter = 1;
     this.participantIdCounter = 1;
@@ -78,8 +78,36 @@ export class MemStorage implements IStorage {
       checkPeriod: 86400000 // Limpa sessões expiradas a cada 24h
     });
     
+    // Cria o usuário fixo com ID 1 (Kevin)
+    this._createPermanentUser();
+    
     // Pré-cadastra categorias de eventos comuns
     this._createInitialCategories();
+  }
+  
+  /**
+   * Cria um usuário permanente com ID 1
+   * Este usuário (Kevin) será mantido entre reinicializações
+   */
+  private _createPermanentUser() {
+    // Dados do usuário com ID 1 (Kevin)
+    const kevinUser: User = {
+      id: 1,
+      username: "46318916881",
+      password: "4cf0e3cdecae9d4f1d0c68a2fa14a0cff6fd1dc0f9d8c6bb9364e2557a3a57bf.bda364ca93251f9e9cd40c2a6dd75387", // senha: Teste@123
+      firstName: "Kevin",
+      lastName: "Barbosa",
+      email: "kevin@example.com",
+      phone: "14999999999",
+      birthDate: "1999-01-01",
+      rg: "123456789",
+      zodiacSign: "Capricórnio",
+      createdAt: new Date("2023-01-01"),
+      profileImage: null
+    };
+    
+    // Adiciona o usuário permanente ao mapa
+    this.usersMap.set(1, kevinUser);
   }
   
   /**
