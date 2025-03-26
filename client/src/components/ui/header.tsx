@@ -2,7 +2,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,73 +10,76 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Menu, Search, UserCircle } from "lucide-react";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
+import { LogOut, Menu, Search, UserCircle, Plus, Calendar, Star } from "lucide-react";
+import { useState } from "react";
 
 export function Header() {
   const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [, setLocation] = useLocation();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim() !== "") {
-      setLocation(`/search?q=${encodeURIComponent(searchQuery)}`);
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
   const handleLogout = () => {
-    logoutMutation.mutate();
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        toast({
+          title: "Logout realizado com sucesso",
+        });
+        navigate("/auth");
+      },
+    });
   };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
-        <Link href="/" className="mr-6 flex items-center space-x-2">
-          <img src="/baco-logo.png" alt="Baco" className="h-8 w-auto" />
-        </Link>
+      <div className="container flex h-16 items-center justify-between">
+        <div className="flex items-center gap-6">
+          <Link href="/" className="flex items-center space-x-2">
+            <img src="/baco-logo.png" alt="Baco" className="h-8 w-auto" />
+            <span className="text-xl font-bold">Baco</span>
+          </Link>
 
-        <NavigationMenu className="hidden md:flex">
-          <NavigationMenuList>
-            <NavigationMenuItem>
-              <NavigationMenuTrigger>Meus Eventos</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <div className="grid gap-3 p-4 md:w-[400px] lg:w-[500px]">
-                  <NavigationMenuLink asChild>
-                    <Link href="/events/created" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                      Eventos Criados
-                    </Link>
-                  </NavigationMenuLink>
-                  <NavigationMenuLink asChild>
-                    <Link href="/events/participating" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
-                      Eventos Participando
-                    </Link>
-                  </NavigationMenuLink>
-                </div>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
+          {user && (
+            <nav className="hidden md:flex items-center space-x-4">
+              <Link href="/events/created">
+                <Button variant="ghost" className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Meus Eventos
+                </Button>
+              </Link>
+              <Link href="/events/participating">
+                <Button variant="ghost" className="flex items-center gap-2">
+                  <Star className="h-4 w-4" />
+                  Participando
+                </Button>
+              </Link>
+              <Link href="/events/create">
+                <Button variant="ghost" className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Criar Evento
+                </Button>
+              </Link>
+            </nav>
+          )}
+        </div>
 
-        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <form onSubmit={handleSearch} className="w-full md:w-[300px] lg:w-[400px]">
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar eventos..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+        <div className="flex items-center gap-4">
+          <form onSubmit={handleSearch} className="relative w-full max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Buscar eventos..."
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </form>
 
           {user ? (
@@ -87,21 +89,24 @@ export function Header() {
                   <Menu className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem asChild>
                   <Link href="/profile" className="flex items-center">
                     <UserCircle className="mr-2 h-4 w-4" />
-                    Perfil
+                    Meu Perfil
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout} className="flex items-center text-red-500">
+                <DropdownMenuItem
+                  className="text-red-500 focus:text-red-500"
+                  onClick={handleLogout}
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Sair
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild variant="default">
+            <Button asChild>
               <Link href="/auth">Entrar</Link>
             </Button>
           )}
@@ -110,5 +115,3 @@ export function Header() {
     </header>
   );
 }
-
-export default Header;
