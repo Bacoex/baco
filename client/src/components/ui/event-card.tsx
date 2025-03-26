@@ -152,6 +152,18 @@ export default function EventCard({ event }: EventProps) {
         </div>
         <div className="absolute bottom-3 left-3 right-3">
           <h3 className="text-lg font-bold text-white mb-1 drop-shadow-md line-clamp-2">{event.name}</h3>
+          <div className="flex items-center">
+            <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-300 mr-2">
+              <img 
+                src={event.creator.profileImage || undefined} 
+                alt={event.creator.firstName}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <span className="text-sm text-white drop-shadow-md">
+              {event.creator.firstName} {event.creator.lastName}
+            </span>
+          </div>
         </div>
       </div>
       <div className="p-4">
