@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +24,7 @@ export default function Header() {
   const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const [, setLocation] = useLocation();
   
   // Função para lidar com a pesquisa
   const handleSearch = (e: React.FormEvent) => {
@@ -50,40 +52,29 @@ export default function Header() {
   return (
     <header className="bg-black shadow-lg fixed top-0 left-0 w-full z-10 border-b border-primary/20">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Logo estilo fonte de rua */}
-        <div className="flex items-center mr-6 ml-2">
+        {/* Logo BACO com link para página inicial */}
+        <button 
+          onClick={() => setLocation("/")}
+          className="flex items-center mr-6 ml-2 cursor-pointer focus:outline-none"
+        >
           <div className="relative">
             <div className="flex items-center">
-              <div className="relative h-10 w-24 flex justify-center items-center">
-                {/* Fundo completamente limpo */}
-                <div className="absolute inset-0 w-full h-full overflow-hidden">
-                  {/* Sem elementos de fundo */}
-                </div>
-                
-                {/* Logo principal com efeito de fumaça - laranja */}
-                <div className="relative z-10 transform hover:scale-105 transition-all duration-500">
-                  {/* Efeito de fumaça ao redor */}
-                  <div className="absolute inset-0 blur-2xl bg-primary/10 mix-blend-soft-light"></div>
-                  <div className="absolute -inset-2 blur-3xl bg-primary/5 mix-blend-soft-light"></div>
-                  
-                  {/* Texto com efeito fumaça */}
-                  <h1 className="relative text-xl uppercase" 
-                      style={{
-                        fontFamily: 'Futura, "Trebuchet MS", Arial, sans-serif',
-                        fontWeight: '600',
-                        letterSpacing: '0.05em'
-                      }}>
-                    {/* Logo em laranja */}
-                    <span className="text-primary opacity-90">BACO</span>
-                  </h1>
-                  
-                  {/* Efeito de fumaça se movendo lentamente */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-primary/10 to-primary/5 mix-blend-soft-light opacity-50 animate-breathe"></div>
-                </div>
+              {/* Logo principal com texto simples */}
+              <div className="flex items-center">
+                <div className="w-6 h-[2px] bg-gradient-to-r from-transparent to-orange-500"></div>
+                <h1 className="mx-2 text-xl uppercase" 
+                    style={{
+                      fontFamily: 'Futura, "Trebuchet MS", Arial, sans-serif',
+                      fontWeight: '600',
+                      letterSpacing: '0.05em'
+                    }}>
+                  <span className="bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-400 bg-clip-text text-transparent">BACO</span>
+                </h1>
+                <div className="w-6 h-[2px] bg-gradient-to-l from-transparent to-orange-500"></div>
               </div>
             </div>
           </div>
-        </div>
+        </button>
         
         {/* Barra de pesquisa */}
         <div className="flex-1 max-w-md mx-4">
@@ -150,15 +141,15 @@ export default function Header() {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>{getUserDisplayName(user) || "Minha Conta"}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => showComingSoon("Meu Perfil")}>
+            <DropdownMenuItem onClick={() => setLocation("/profile")}>
               <UserIcon className="mr-2 h-4 w-4" />
               <span>Meu Perfil</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => showComingSoon("Configurações")}>
+            <DropdownMenuItem onClick={() => setLocation("/profile?tab=settings")}>
               <Settings className="mr-2 h-4 w-4" />
               <span>Configurações</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => showComingSoon("Meus Eventos")}>
+            <DropdownMenuItem onClick={() => setLocation("/my-events")}>
               <Calendar className="mr-2 h-4 w-4" />
               <span>Meus Eventos</span>
             </DropdownMenuItem>

@@ -8,10 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Phone, Instagram, MessageSquare, Lock, ExternalLink, Camera, X } from "lucide-react";
+import { Loader2, Mail, Phone, Instagram, MessageSquare, Lock, ExternalLink, Camera, X, Check } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { UpdateUserProfile, User } from "@shared/schema";
+import { updateUserProfileSchema, User } from "@shared/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -53,8 +53,8 @@ export default function ProfilePage() {
   const [emailValidationSent, setEmailValidationSent] = useState(false);
 
   // Form para edição do perfil
-  const profileForm = useForm<z.infer<typeof UpdateUserProfile>>({
-    resolver: zodResolver(UpdateUserProfile),
+  const profileForm = useForm<z.infer<typeof updateUserProfileSchema>>({
+    resolver: zodResolver(updateUserProfileSchema),
     defaultValues: {
       firstName: user?.firstName || "",
       lastName: user?.lastName || "",
@@ -150,7 +150,7 @@ export default function ProfilePage() {
 
   // Mutação para atualizar perfil
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof UpdateUserProfile>) => {
+    mutationFn: async (data: z.infer<typeof updateUserProfileSchema>) => {
       const res = await apiRequest("PATCH", "/api/user/profile", data);
       return res.json();
     },
@@ -269,7 +269,7 @@ export default function ProfilePage() {
   };
 
   // Submit do formulário de perfil
-  const onSubmitProfile = (data: z.infer<typeof UpdateUserProfile>) => {
+  const onSubmitProfile = (data: z.infer<typeof updateUserProfileSchema>) => {
     updateProfileMutation.mutate(data);
     
     // Se houve alteração na imagem, enviar separadamente
