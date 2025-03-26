@@ -92,10 +92,10 @@ export default function HomePage() {
       </main>
       
       {/* Botão flutuante para criar evento */}
-      <div className="fixed bottom-8 right-8">
+      <div className="fixed bottom-8 right-8 z-20">
         <button 
           onClick={openCreateModal}
-          className="bg-black hover:bg-black/80 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300"
+          className="bg-orange-500 hover:bg-orange-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all duration-300 transform hover:scale-105"
           aria-label="Criar novo evento"
         >
           <PlusIcon className="h-6 w-6" />
