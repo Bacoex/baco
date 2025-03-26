@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Eneagon } from "@/components/ui/eneagon";
-import { SearchIcon, UserIcon, Settings, LogOut, Calendar } from "lucide-react";
+import { SearchIcon, UserIcon, Settings, LogOut, Calendar, Filter } from "lucide-react";
 import { getUserDisplayName } from "@/lib/utils";
 
 /**
@@ -95,25 +95,25 @@ export default function Header() {
         {/* Botão de filtros */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="mr-2 border-primary/40 text-primary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            <Button variant="ghost" size="icon" className="mr-2 text-primary hover:text-white hover:bg-black/40">
+              <Filter size={20} />
               <span className="sr-only">Filtros</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-56 border-primary/20 bg-black/90 backdrop-blur-md text-white">
             <DropdownMenuLabel>Filtrar eventos por</DropdownMenuLabel>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="bg-primary/20" />
             {/* TODO: Adicionar itens de filtro quando implementados */}
-            <DropdownMenuItem onClick={() => showComingSoon("Filtros")}>
+            <DropdownMenuItem onClick={() => showComingSoon("Filtros")} className="text-white hover:bg-primary/20 cursor-pointer">
               Todas categorias
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => showComingSoon("Filtros")}>
+            <DropdownMenuItem onClick={() => showComingSoon("Filtros")} className="text-white hover:bg-primary/20 cursor-pointer">
               Eventos gratuitos
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => showComingSoon("Filtros")}>
+            <DropdownMenuItem onClick={() => showComingSoon("Filtros")} className="text-white hover:bg-primary/20 cursor-pointer">
               Eventos próximos
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => showComingSoon("Filtros")}>
+            <DropdownMenuItem onClick={() => showComingSoon("Filtros")} className="text-white hover:bg-primary/20 cursor-pointer">
               Eventos desta semana
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -122,8 +122,11 @@ export default function Header() {
         {/* Perfil do usuário */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
-              <Eneagon>
+            <Button 
+              variant="ghost" 
+              className="relative h-10 w-10 rounded-full p-0 overflow-hidden border-2 border-transparent hover:border-primary/30 transition-all duration-200"
+            >
+              <Eneagon className="h-full w-full overflow-hidden">
                 {user?.profileImage ? (
                   <img 
                     src={user.profileImage} 
@@ -131,32 +134,43 @@ export default function Header() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="h-full w-full bg-black flex items-center justify-center">
-                    <UserIcon className="h-5 w-5 text-baco-blue" />
+                  <div className="h-full w-full bg-gradient-to-br from-black to-gray-900 flex items-center justify-center">
+                    <UserIcon className="h-5 w-5 text-primary" />
                   </div>
                 )}
               </Eneagon>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{getUserDisplayName(user) || "Minha Conta"}</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setLocation("/profile")}>
-              <UserIcon className="mr-2 h-4 w-4" />
+          <DropdownMenuContent align="end" className="border-primary/20 bg-black/90 backdrop-blur-md text-white">
+            <DropdownMenuLabel className="font-bold">
+              {getUserDisplayName(user) || "Minha Conta"}
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-primary/20" />
+            <DropdownMenuItem 
+              onClick={() => setLocation("/profile")}
+              className="text-white hover:bg-primary/20 cursor-pointer focus:bg-primary/20"
+            >
+              <UserIcon className="mr-2 h-4 w-4 text-primary" />
               <span>Meu Perfil</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setLocation("/profile?tab=settings")}>
-              <Settings className="mr-2 h-4 w-4" />
+            <DropdownMenuItem 
+              onClick={() => setLocation("/profile?tab=settings")}
+              className="text-white hover:bg-primary/20 cursor-pointer focus:bg-primary/20"
+            >
+              <Settings className="mr-2 h-4 w-4 text-primary" />
               <span>Configurações</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setLocation("/my-events")}>
-              <Calendar className="mr-2 h-4 w-4" />
+            <DropdownMenuItem 
+              onClick={() => setLocation("/my-events")}
+              className="text-white hover:bg-primary/20 cursor-pointer focus:bg-primary/20"
+            >
+              <Calendar className="mr-2 h-4 w-4 text-primary" />
               <span>Meus Eventos</span>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="bg-primary/20" />
             <DropdownMenuItem 
               onClick={handleLogout}
-              className="text-red-500 focus:text-red-500"
+              className="text-red-500 hover:bg-red-500/10 focus:bg-red-500/10 cursor-pointer"
             >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Sair</span>
