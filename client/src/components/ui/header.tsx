@@ -50,9 +50,9 @@ export default function Header() {
     <header className="bg-black shadow-lg fixed top-0 left-0 w-full z-10 border-b border-primary/20">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
-        <div className="flex items-center">
+        <div className="flex items-center pl-2 mr-4">
           <div className="relative">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-300 via-primary to-baco-blue bg-clip-text text-transparent animate-text-shimmer">Baco</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent">Baco</h1>
             <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-primary to-baco-blue rounded-full"></div>
           </div>
         </div>
@@ -72,6 +72,33 @@ export default function Header() {
             </div>
           </form>
         </div>
+        
+        {/* Botão de filtros */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon" className="mr-2 border-primary/40 text-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              <span className="sr-only">Filtros</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>Filtrar eventos por</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {/* TODO: Adicionar itens de filtro quando implementados */}
+            <DropdownMenuItem onClick={() => showComingSoon("Filtros")}>
+              Todas categorias
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => showComingSoon("Filtros")}>
+              Eventos gratuitos
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => showComingSoon("Filtros")}>
+              Eventos próximos
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => showComingSoon("Filtros")}>
+              Eventos desta semana
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         
         {/* Perfil do usuário */}
         <DropdownMenu>

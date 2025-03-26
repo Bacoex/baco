@@ -45,27 +45,8 @@ export default function HomePage() {
       {/* Cabeçalho com barra de pesquisa e perfil */}
       <Header />
       
-      {/* Filtro de categorias */}
-      <div className="pt-32 bg-gradient-to-b from-black to-black/90 pb-3 border-b border-primary/20">
-        {categoriesQuery.isLoading ? (
-          <div className="flex justify-center p-4">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          </div>
-        ) : categoriesQuery.isError ? (
-          <div className="text-center p-4 text-destructive">
-            Erro ao carregar categorias
-          </div>
-        ) : (
-          <CategoryFilter 
-            categories={categoriesQuery.data || []} 
-            selectedCategory={selectedCategory}
-            onSelectCategory={handleCategorySelect}
-          />
-        )}
-      </div>
-      
       {/* Conteúdo principal com eventos */}
-      <main className="flex-grow px-4 pb-20 bg-gradient-to-b from-black/90 to-gray-50">
+      <main className="flex-grow px-4 pb-20 bg-white pt-28">
         <div className="container mx-auto">
           {/* Título da seção */}
           <div className="text-center py-6">
