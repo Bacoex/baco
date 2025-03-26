@@ -314,7 +314,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                   <FormItem>
                     <FormLabel>Horário de Início</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field} />
+                      <Input type="time" value={field.value || ""} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -329,7 +329,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                     <FormLabel>Horário de Término</FormLabel>
                     <FormDescription className="text-xs">Opcional</FormDescription>
                     <FormControl>
-                      <Input type="time" {...field} />
+                      <Input type="time" value={field.value || ""} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -395,8 +395,11 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                       type="number" 
                       placeholder="Ilimitado" 
                       min="1"
-                      {...field}
+                      value={field.value || ""}
                       onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : '')}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
                     />
                   </FormControl>
                   <FormMessage />
@@ -419,7 +422,11 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                       <Textarea 
                         placeholder="Ex: Traga documento com foto, não é permitido animais, etc." 
                         rows={2}
-                        {...field} 
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
                       />
                     </FormControl>
                     <FormMessage />
@@ -442,8 +449,11 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                           placeholder="0.00" 
                           min="0" 
                           step="0.01"
-                          {...field}
+                          value={field.value || ""}
                           onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          onBlur={field.onBlur}
+                          name={field.name}
+                          ref={field.ref}
                         />
                       </FormControl>
                       <FormMessage />
@@ -588,7 +598,11 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                     <Textarea 
                       placeholder="Descreva o seu evento" 
                       rows={4}
-                      {...field} 
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
                     />
                   </FormControl>
                   <FormMessage />
