@@ -104,6 +104,10 @@ export default {
           "0%, 100%": { opacity: "1", transform: "scale(1)" },
           "50%": { opacity: "0.5", transform: "scale(0.8)" },
         },
+        "pulse-bright": {
+          "0%, 100%": { opacity: "1", transform: "scale(1)", boxShadow: "0 0 4px 2px rgba(255,255,255,0.8), 0 0 8px 4px rgba(255,153,0,0.4), 0 0 12px 6px rgba(0,102,255,0.2)" },
+          "50%": { opacity: "0.8", transform: "scale(0.9)", boxShadow: "0 0 2px 1px rgba(255,255,255,0.4), 0 0 4px 2px rgba(255,153,0,0.2), 0 0 6px 3px rgba(0,102,255,0.1)" },
+        },
         "text-shimmer": {
           "0%": { backgroundPosition: "0% 50%" },
           "100%": { backgroundPosition: "100% 50%" },
@@ -118,6 +122,7 @@ export default {
         "slow-spin": "slow-spin 60s linear infinite",
         "slow-morph": "slow-morph 15s ease-in-out infinite",
         "pulse-slow": "pulse-slow 4s ease-in-out infinite",
+        "pulse-bright": "pulse-bright 3s ease-in-out infinite",
         "text-shimmer": "text-shimmer 3s linear infinite",
       },
     },

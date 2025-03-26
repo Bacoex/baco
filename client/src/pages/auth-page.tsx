@@ -50,33 +50,119 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
-      {/* Fundo com formas fluidas e cores vibrantes */}
+      {/* Fundo representando a matriz espiritual/cósmica */}
       <div className="absolute inset-0 bg-black z-0">
-        {/* Círculos e formas orgânicas */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-70">
-          {/* Forma fluida 1 - roxo/rosa */}
-          <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-[60%] bg-gradient-to-br from-purple-600 via-pink-500 to-primary animate-slow-pulse" 
-               style={{filter: 'blur(80px)', transform: 'rotate(-15deg)'}}></div>
-          
-          {/* Forma fluida 2 - azul */}
-          <div className="absolute bottom-[-30%] right-[-10%] w-[70%] h-[70%] rounded-[40%] bg-gradient-to-tl from-baco-blue via-blue-500 to-cyan-400 animate-slow-float" 
-               style={{filter: 'blur(80px)', transform: 'rotate(30deg)'}}></div>
-          
-          {/* Forma fluida 3 - amarelo/laranja */}
-          <div className="absolute top-[30%] right-[-20%] w-[50%] h-[50%] rounded-[60%] bg-gradient-to-bl from-yellow-400 via-primary to-red-500 animate-slow-spin" 
-               style={{filter: 'blur(70px)', transform: 'rotate(15deg)'}}></div>
-          
-          {/* Padrão de linhas curvas */}
-          <div className="absolute inset-0 mix-blend-overlay opacity-30" 
-               style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\' fill=\'%23ffffff\' fill-opacity=\'0.6\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")',
-              backgroundSize: '150px 150px'}}>
+        {/* Gradiente de fundo profundo */}
+        <div className="absolute inset-0 bg-gradient-to-br from-black via-[#0A0A14] to-[#070711] opacity-90"></div>
+        
+        {/* Elementos geométricos sagrados e matriz cósmica */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+          {/* Grade de matriz sutilmente brilhante */}
+          <div className="absolute inset-0 opacity-10" 
+               style={{
+                 backgroundImage: 'linear-gradient(#FF9900 0.5px, transparent 0.5px), linear-gradient(90deg, #FF9900 0.5px, transparent 0.5px)',
+                 backgroundSize: '40px 40px',
+               }}>
           </div>
           
-          {/* Partículas brilhantes */}
-          <div className="absolute w-2 h-2 top-1/4 left-1/4 bg-white rounded-full animate-pulse-slow"></div>
-          <div className="absolute w-3 h-3 bottom-1/3 right-1/3 bg-white rounded-full animate-pulse-slow" style={{animationDelay: '1s'}}></div>
-          <div className="absolute w-1 h-1 top-1/2 right-1/4 bg-white rounded-full animate-pulse-slow" style={{animationDelay: '2s'}}></div>
-          <div className="absolute w-2 h-2 bottom-1/4 left-1/3 bg-white rounded-full animate-pulse-slow" style={{animationDelay: '1.5s'}}></div>
+          {/* Flor da Vida - Geometria Sagrada */}
+          <div className="absolute top-[10%] left-[10%] w-[25rem] h-[25rem] opacity-10 animate-slow-spin" 
+               style={{ animationDuration: '120s' }}>
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="flowerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#FF9900" />
+                  <stop offset="100%" stopColor="#0066ff" />
+                </linearGradient>
+              </defs>
+              <circle cx="50" cy="50" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
+              <circle cx="66" cy="50" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
+              <circle cx="58" cy="66" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
+              <circle cx="42" cy="66" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
+              <circle cx="34" cy="50" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
+              <circle cx="42" cy="34" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
+              <circle cx="58" cy="34" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
+              <circle cx="50" cy="18" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
+              <circle cx="50" cy="82" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
+              <circle cx="26" cy="34" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
+              <circle cx="26" cy="66" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
+              <circle cx="74" cy="66" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
+              <circle cx="74" cy="34" r="16" fill="none" stroke="url(#flowerGradient)" strokeWidth="0.5" />
+            </svg>
+          </div>
+          
+          {/* Árvore da Vida - Cabala */}
+          <div className="absolute top-[20%] right-[10%] w-[15rem] h-[15rem] opacity-15 animate-pulse-slow">
+            <svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="treeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#0066ff" />
+                  <stop offset="100%" stopColor="#FF9900" />
+                </linearGradient>
+              </defs>
+              <circle cx="50" cy="10" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
+              <circle cx="30" cy="30" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
+              <circle cx="70" cy="30" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
+              <circle cx="50" cy="50" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
+              <circle cx="20" cy="70" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
+              <circle cx="80" cy="70" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
+              <circle cx="35" cy="90" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
+              <circle cx="65" cy="90" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
+              <circle cx="50" cy="110" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
+              <circle cx="50" cy="140" r="8" fill="none" stroke="url(#treeGradient)" strokeWidth="1" />
+              <line x1="50" y1="18" x2="50" y2="42" stroke="url(#treeGradient)" strokeWidth="0.5" />
+              <line x1="38" y1="30" x2="62" y2="30" stroke="url(#treeGradient)" strokeWidth="0.5" />
+              <line x1="30" y1="38" x2="50" y2="50" stroke="url(#treeGradient)" strokeWidth="0.5" />
+              <line x1="70" y1="38" x2="50" y2="50" stroke="url(#treeGradient)" strokeWidth="0.5" />
+              <line x1="50" y1="58" x2="50" y2="102" stroke="url(#treeGradient)" strokeWidth="0.5" />
+              <line x1="20" y1="78" x2="35" y2="90" stroke="url(#treeGradient)" strokeWidth="0.5" />
+              <line x1="80" y1="78" x2="65" y2="90" stroke="url(#treeGradient)" strokeWidth="0.5" />
+              <line x1="35" y1="98" x2="50" y2="110" stroke="url(#treeGradient)" strokeWidth="0.5" />
+              <line x1="65" y1="98" x2="50" y2="110" stroke="url(#treeGradient)" strokeWidth="0.5" />
+              <line x1="50" y1="118" x2="50" y2="132" stroke="url(#treeGradient)" strokeWidth="0.5" />
+            </svg>
+          </div>
+
+          {/* Merkaba - Tetraedro Estelar */}
+          <div className="absolute bottom-[15%] left-[15%] w-[12rem] h-[12rem] opacity-20 animate-slow-spin" 
+               style={{ animationDuration: '80s' }}>
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="50,15 15,65 85,65" fill="none" stroke="#FF9900" strokeWidth="0.8" opacity="0.8" />
+              <polygon points="50,85 15,35 85,35" fill="none" stroke="#0066ff" strokeWidth="0.8" opacity="0.8" />
+            </svg>
+          </div>
+          
+          {/* Espiral Áurea - Sequência de Fibonacci */}
+          <div className="absolute bottom-[20%] right-[15%] w-[14rem] h-[14rem] opacity-25 animate-slow-spin" 
+               style={{ animationDuration: '-100s' }}>
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <path d="M95,50 A45,45 0 0,0 50,5 A45,45 0 0,0 5,50 A45,45 0 0,0 50,95 A45,45 0 0,0 95,50 Z" 
+                    fill="none" stroke="#FF9900" strokeWidth="0.5" opacity="0.6" />
+              <path d="M81,50 A31,31 0 0,0 50,19 A31,31 0 0,0 19,50 A31,31 0 0,0 50,81 A31,31 0 0,0 81,50 Z" 
+                    fill="none" stroke="#0066ff" strokeWidth="0.5" opacity="0.6" />
+              <path d="M69,50 A19,19 0 0,0 50,31 A19,19 0 0,0 31,50 A19,19 0 0,0 50,69 A19,19 0 0,0 69,50 Z" 
+                    fill="none" stroke="#FF9900" strokeWidth="0.5" opacity="0.6" />
+              <path d="M62,50 A12,12 0 0,0 50,38 A12,12 0 0,0 38,50 A12,12 0 0,0 50,62 A12,12 0 0,0 62,50 Z" 
+                    fill="none" stroke="#0066ff" strokeWidth="0.5" opacity="0.6" />
+              <path d="M57,50 A7,7 0 0,0 50,43 A7,7 0 0,0 43,50 A7,7 0 0,0 50,57 A7,7 0 0,0 57,50 Z" 
+                    fill="none" stroke="#FF9900" strokeWidth="0.5" opacity="0.6" />
+            </svg>
+          </div>
+          
+          {/* Ponto de Luz brilhante simulando consciência */}
+          <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-white rounded-full animate-pulse-bright"></div>
+          
+          {/* Linhas conectando os pontos - representando a rede da matriz */}
+          <div className="absolute inset-0 w-full h-full">
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <line x1="10%" y1="20%" x2="90%" y2="20%" stroke="#0066ff" strokeWidth="0.3" opacity="0.1" />
+              <line x1="20%" y1="10%" x2="20%" y2="90%" stroke="#FF9900" strokeWidth="0.3" opacity="0.1" />
+              <line x1="10%" y1="80%" x2="90%" y2="80%" stroke="#0066ff" strokeWidth="0.3" opacity="0.1" />
+              <line x1="80%" y1="10%" x2="80%" y2="90%" stroke="#FF9900" strokeWidth="0.3" opacity="0.1" />
+              <line x1="10%" y1="10%" x2="90%" y2="90%" stroke="#0066ff" strokeWidth="0.3" opacity="0.1" />
+              <line x1="90%" y1="10%" x2="10%" y2="90%" stroke="#FF9900" strokeWidth="0.3" opacity="0.1" />
+            </svg>
+          </div>
         </div>
       </div>
       
@@ -93,10 +179,12 @@ export default function AuthPage() {
           </div>
           
           <p className="text-white mt-4 text-center text-xl font-light tracking-wide">
-            <span className="inline-block animate-float">Sua </span>
-            <span className="inline-block animate-float" style={{animationDelay: '0.2s'}}>plataforma </span>
-            <span className="inline-block animate-float" style={{animationDelay: '0.4s'}}>de </span>
-            <span className="bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent inline-block animate-float" style={{animationDelay: '0.6s'}}>eventos</span>
+            <span className="inline-block animate-float">Onde </span>
+            <span className="inline-block animate-float" style={{animationDelay: '0.15s'}}>você </span>
+            <span className="inline-block animate-float" style={{animationDelay: '0.3s'}}>se </span>
+            <span className="inline-block animate-float" style={{animationDelay: '0.45s'}}>conecta </span>
+            <span className="inline-block animate-float" style={{animationDelay: '0.6s'}}>à </span>
+            <span className="bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent inline-block animate-float" style={{animationDelay: '0.75s'}}>experiência</span>
           </p>
         </div>
 
