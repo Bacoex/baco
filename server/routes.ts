@@ -529,97 +529,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user!.id;
       const events = await storage.getEventsByCreator(userId);
+      const categories = await storage.getCategories();
 
-      // Função auxiliar para processar participantes
-      const processParticipants = async (participants) => {
-        const participantsWithDetails = await Promise.all(
-          participants.map(async (participant) => {
-            const user = await storage.getUser(participant.userId);
-            return {
-              id: participant.id,
-              userId: participant.userId,
-              status: participant.status,
-              createdAt: participant.createdAt,
-              user: user ? {
-                id: user.id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                profileImage: user.profileImage
-              } : null
-            };
-          })
-        );
-
-        // Agrupa por status
-        const byStatus = {
-          pending: [],
-          approved: [],
-          confirmed: [],
-          rejected: []
-        };
-
-        participantsWithDetails.forEach(p => {
-          byStatus[p.status].push(p);
-        });
-
-        return {
-          all: participantsWithDetails,
-          byStatus,
-          counts: {
-            pending: byStatus.pending.length,
-            approved: byStatus.approved.length,
-            confirmed: byStatus.confirmed.length,
-            rejected: byStatus.rejected.length,
-            total: participantsWithDetails.length
-          }
-        };
-      };
-
-
-      // Obtém os detalhes das categorias, criador e participantes para cada evento
       const eventsWithDetails = await Promise.all(
         events.map(async (event) => {
-          console.log(`Processando evento ${event.id}: ${event.name}`);
-
-          const categoriasArray = await storage.getCategories();
-          const categoria = categoriasArray.find(cat => cat.id === event.categoryId);
-
-          // Busca participantes e adiciona dados do usuário
+          // Busca categoria
+          const category = categories.find(cat => cat.id === event.categoryId);
+          
+          // Busca participantes
           const participants = await storage.getParticipants(event.id);
-          console.log(`Evento ${event.id} tem ${participants.length} participantes:`, 
-                      participants.map(p => ({ id: p.id, userId: p.userId, status: p.status })));
-          const processedParticipants = await processParticipants(participants);
+          
+          // Processa participantes com detalhes do usuário
+          const participantsWithDetails = await Promise.all(
+            participants.map(async (participant) => {
+              const user = await storage.getUser(participant.userId);
+              return {
+                id: participant.id,
+                userId: participant.userId,
+                status: participant.status,
+                createdAt: participant.createdAt,
+                user: user ? {
+                  id: user.id,
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  profileImage: user.profileImage
+                } : null
+              };
+            })
+          );
 
+          // Agrupa participantes por status
+          const groupedParticipants = {
+            pending: participantsWithDetails.filter(p => p.status === 'pending'),
+            approved: participantsWithDetails.filter(p => p.status === 'approved'),
+            confirmed: participantsWithDetails.filter(p => p.status === 'confirmed'),
+            rejected: participantsWithDetails.filter(p => p.status === 'rejected')
+          };
 
-          console.log(`Estatísticas do evento ${event.id}: 
-                      Pendentes: ${processedParticipants.counts.pending}, 
-                      Aprovados: ${processedParticipants.counts.approved}, 
-                      Rejeitados: ${processedParticipants.counts.rejected}, 
-                      Confirmados: ${processedParticipants.counts.confirmed}`);
+          // Contagem de participantes
+          const participantCounts = {
+            total: participantsWithDetails.length,
+            pending: groupedParticipants.pending.length,
+            approved: groupedParticipants.approved.length,
+            confirmed: groupedParticipants.confirmed.length,
+            rejected: groupedParticipants.rejected.length
+          };
 
           return {
             ...event,
-            category: categoria,
+            category,
             creator: {
               id: req.user!.id,
               firstName: req.user!.firstName,
               lastName: req.user!.lastName,
               profileImage: req.user!.profileImage
             },
-            participants: processedParticipants.byStatus,
-            participantCounts: processedParticipants.counts
+            participants: groupedParticipants,
+            participantCounts
           };
         })
       );
-
-      // Log resumido dos eventos com o número de participantes
-      console.log("Resumo de eventos criados pelo usuário:", 
-                 eventsWithDetails.map(e => ({ 
-                   id: e.id, 
-                   name: e.name, 
-                   participantCount: e.participants.all.length,
-                   pendingCount: e.participantCounts.pending
-                 })));
 
       res.json(eventsWithDetails);
     } catch (err) {
