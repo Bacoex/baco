@@ -766,24 +766,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.id);
       const userId = req.user!.id;
       
+      console.log(`Solicitação de participação: usuário ${userId} para evento ${eventId}`);
+      
       // Verifica se o evento existe
       const event = await storage.getEvent(eventId);
       if (!event) {
+        console.log("Evento não encontrado:", eventId);
         return res.status(404).json({ message: "Evento não encontrado" });
       }
       
       // Verifica se o usuário é o criador do evento
       if (event.creatorId === userId) {
+        console.log(`Usuário ${userId} tentou participar do próprio evento ${eventId}`);
         return res.status(400).json({ message: "Você não pode participar do seu próprio evento como participante" });
       }
       
       // Verifica se já está participando
       const existingParticipation = await storage.getParticipation(eventId, userId);
       if (existingParticipation) {
+        console.log(`Usuário ${userId} já está participando do evento ${eventId}`);
         return res.status(400).json({ message: "Você já está participando deste evento" });
       }
       
       // Cria a participação
+      console.log(`Criando participação: evento=${eventId}, usuário=${userId}, tipo=${event.eventType}`);
       const participationData = insertEventParticipantSchema.parse({
         eventId,
         userId,
@@ -791,6 +797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const participation = await storage.createParticipation(participationData);
+      console.log(`Participação criada com ID ${participation.id}, status: ${participation.status}`);
       
       // Obtém o usuário para incluir na resposta
       const user = await storage.getUser(userId);
@@ -800,6 +807,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Preparar resposta com base no tipo de evento
       if (event.eventType === 'private_application') {
+        console.log(`Evento ${eventId} requer aprovação, criando notificações`);
+        
         // Notificação para o criador em caso de evento com candidatura
         const notificationForCreator = {
           title: "Nova Candidatura para seu Evento",
@@ -818,12 +827,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: userId // ID do usuário que se candidatou e receberá esta notificação
         };
         
+        console.log("Criando notificação para o criador:", notificationForCreator);
+        console.log("Criando notificação para o participante:", notificationForParticipant);
+        
         // Adicionar recipientes para as notificações
         const savedCreatorNotification = await storage.createNotification(notificationForCreator);
         await storage.addNotificationRecipients(savedCreatorNotification.id, [event.creatorId]);
         
         const savedParticipantNotification = await storage.createNotification(notificationForParticipant);
         await storage.addNotificationRecipients(savedParticipantNotification.id, [userId]);
+        
+        console.log("Notificações criadas e associadas aos usuários:");
+        console.log("- Para criador:", savedCreatorNotification);
+        console.log("- Para participante:", savedParticipantNotification);
         
         // Retornar notificações junto com a resposta para o frontend tratar
         res.status(201).json({

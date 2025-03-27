@@ -46,33 +46,67 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       const response = await apiRequest('GET', '/api/user/events/creator');
       const data = await response.json();
       
+      console.log('Eventos do usuário para verificação de solicitações pendentes:', data);
+      
       // Filtrar eventos com participantes pendentes
-      const eventsWithPendingParticipants = data.filter((event: any) => 
-        event.pendingCount && event.pendingCount > 0
-      );
+      const eventsWithPendingParticipants = data.filter((event: any) => {
+        // Verificar se o evento tem participantes
+        if (!event.participants || !Array.isArray(event.participants)) {
+          return false;
+        }
+        
+        // Conta quantos participantes estão com status "pending"
+        const pendingCount = event.participants.filter((p: any) => p.status === 'pending').length;
+        console.log(`Evento ${event.id} (${event.name}) tem ${pendingCount} participantes pendentes`);
+        
+        return pendingCount > 0;
+      });
+      
+      console.log('Eventos com participantes pendentes:', eventsWithPendingParticipants);
       
       // Criar notificações para eventos com participantes pendentes
       if (eventsWithPendingParticipants.length > 0) {
-        const newNotifications: Notification[] = eventsWithPendingParticipants.map((event: any) => ({
-          id: `event-${event.id}-pending-${Date.now()}`,
-          title: "Solicitações pendentes",
-          message: `Você tem ${event.pendingCount} solicitação(ões) pendente(s) para o evento "${event.name}"`,
-          date: new Date(),
-          read: false,
-          type: "participant_request",
-          eventId: event.id
-        }));
+        const newNotifications: Notification[] = [];
         
-        // Adicionar novas notificações, evitando duplicatas (verificando pelo eventId)
-        setNotifications(prev => {
-          const eventIds = new Set(prev.filter(n => n.type === "participant_request").map(n => n.eventId));
-          const uniqueNewNotifications = newNotifications.filter(n => !eventIds.has(n.eventId));
-          return [...uniqueNewNotifications, ...prev];
+        // Para cada evento com participantes pendentes
+        eventsWithPendingParticipants.forEach((event: any) => {
+          // Contar participantes pendentes
+          const pendingParticipants = event.participants.filter((p: any) => p.status === 'pending');
+          
+          // Criar uma notificação para cada participante pendente
+          pendingParticipants.forEach((participant: any) => {
+            const participantName = participant.user ? 
+              `${participant.user.firstName} ${participant.user.lastName}` : 
+              'Alguém';
+              
+            newNotifications.push({
+              id: `event-${event.id}-participant-${participant.id}-${Date.now()}`,
+              title: "Nova solicitação para seu evento",
+              message: `${participantName} quer participar do seu evento "${event.name}"`,
+              date: new Date(),
+              read: false,
+              type: "participant_request",
+              eventId: event.id
+            });
+          });
         });
+        
+        // Adicionar novas notificações, evitando duplicatas por ID
+        if (newNotifications.length > 0) {
+          console.log('Adicionando novas notificações de solicitações:', newNotifications);
+          
+          setNotifications(prev => {
+            // Obter IDs de notificações existentes para evitar duplicatas
+            const existingIds = new Set(prev.map(n => n.id));
+            const uniqueNewNotifications = newNotifications.filter(n => !existingIds.has(n.id));
+            return [...uniqueNewNotifications, ...prev];
+          });
+        }
       }
       
       return data;
-    }
+    },
+    refetchInterval: 20000, // Atualiza a cada 20 segundos
   });
 
   // Efeito para carregar notificações do localStorage na inicialização
