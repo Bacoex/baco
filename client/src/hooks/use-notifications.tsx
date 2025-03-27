@@ -1,5 +1,5 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from "react";
-import { useAuth } from "@/hooks/use-auth";
+import { useState, useEffect } from 'react';
+import { useAuth } from './use-auth';
 
 export interface Notification {
   id: string;
@@ -12,134 +12,71 @@ export interface Notification {
   userId?: number;
 }
 
-interface NotificationsContextType {
-  notifications: Notification[];
-  unreadCount: number;
-  markAsRead: (id: string) => void;
-  markAllAsRead: () => void;
-  removeNotification: (id: string) => void;
-  removeAllNotifications: () => void;
-  addNotification: (notification: Omit<Notification, "id" | "date" | "read">) => void;
-}
-
-const NotificationsContext = createContext<NotificationsContextType | null>(null);
-
-const NOTIFICATIONS_STORAGE_KEY = 'baco-notifications';
-
-export function NotificationsProvider({ children }: { children: ReactNode }) {
+export function useNotifications() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  
-  // Carregar notificações do localStorage na inicialização
-  useEffect(() => {
-    if (user) {
-      const userKey = `${NOTIFICATIONS_STORAGE_KEY}-${user.id}`;
-      const storedNotifications = localStorage.getItem(userKey);
-      if (storedNotifications) {
-        try {
-          const parsedNotifications = JSON.parse(storedNotifications) as Notification[];
-          setNotifications(parsedNotifications);
-        } catch (e) {
-          console.error("Erro ao carregar notificações:", e);
-          localStorage.removeItem(userKey);
-        }
-      }
-    } else {
-      setNotifications([]);
-    }
-  }, [user]);
 
-  // Verificar notificações periodicamente
+  // Buscar notificações a cada 5 segundos
   useEffect(() => {
     if (user) {
-      const interval = setInterval(() => {
-        const userStorageKey = `baco-notifications-${user.id}`;
-        const storedNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
-        setNotifications(storedNotifications);
-      }, 5000); // Verifica a cada 5 segundos
+      const fetchNotifications = async () => {
+        try {
+          const response = await fetch('/api/notifications');
+          if (response.ok) {
+            const data = await response.json();
+            setNotifications(data);
+          }
+        } catch (error) {
+          console.error('Erro ao buscar notificações:', error);
+        }
+      };
+
+      // Busca inicial
+      fetchNotifications();
+
+      // Polling a cada 5 segundos
+      const interval = setInterval(fetchNotifications, 5000);
 
       return () => clearInterval(interval);
     }
   }, [user]);
-  
-  // Salvar notificações no localStorage sempre que elas mudarem
-  useEffect(() => {
-    if (user) {
-      const userKey = `${NOTIFICATIONS_STORAGE_KEY}-${user.id}`;
-      if (notifications.length > 0) {
-        localStorage.setItem(userKey, JSON.stringify(notifications));
-      } else {
-        localStorage.removeItem(userKey);
-      }
-    }
-  }, [notifications, user]);
-  
-  // Calcular número de notificações não lidas
-  const unreadCount = notifications.filter(notification => !notification.read).length;
-  
-  // Marcar uma notificação como lida
-  const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === id 
-          ? { ...notification, read: true }
-          : notification
-      )
-    );
-  };
-  
-  // Marcar todas as notificações como lidas
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notification => ({ ...notification, read: true }))
-    );
-  };
-  
-  // Remover uma notificação específica
-  const removeNotification = (id: string) => {
-    setNotifications(prev => 
-      prev.filter(notification => notification.id !== id)
-    );
-  };
-  
-  // Remover todas as notificações
-  const removeAllNotifications = () => {
-    setNotifications([]);
-  };
-  
-  // Adicionar uma nova notificação
-  const addNotification = (notification: Omit<Notification, "id" | "date" | "read">) => {
-    const newNotification: Notification = {
-      ...notification,
-      id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      date: new Date(),
-      read: false
-    };
-    
-    setNotifications(prev => [newNotification, ...prev]);
-  };
-  
-  return (
-    <NotificationsContext.Provider 
-      value={{ 
-        notifications, 
-        unreadCount, 
-        markAsRead, 
-        markAllAsRead,
-        removeNotification,
-        removeAllNotifications,
-        addNotification
-      }}
-    >
-      {children}
-    </NotificationsContext.Provider>
-  );
-}
 
-export function useNotifications() {
-  const context = useContext(NotificationsContext);
-  if (!context) {
-    throw new Error("useNotifications must be used within a NotificationsProvider");
-  }
-  return context;
+  // Marcar como lida
+  const markAsRead = async (id: string) => {
+    try {
+      await fetch(`/api/notifications/${id}/read`, {
+        method: 'PATCH'
+      });
+      setNotifications(prev =>
+        prev.map(notification =>
+          notification.id === id
+            ? { ...notification, read: true }
+            : notification
+        )
+      );
+    } catch (error) {
+      console.error('Erro ao marcar notificação como lida:', error);
+    }
+  };
+
+  // Remover notificação
+  const removeNotification = async (id: string) => {
+    try {
+      await fetch(`/api/notifications/${id}`, {
+        method: 'DELETE'
+      });
+      setNotifications(prev =>
+        prev.filter(notification => notification.id !== id)
+      );
+    } catch (error) {
+      console.error('Erro ao remover notificação:', error);
+    }
+  };
+
+  return {
+    notifications,
+    markAsRead,
+    removeNotification,
+    unreadCount: notifications.filter(n => !n.read).length
+  };
 }

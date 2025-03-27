@@ -467,3 +467,20 @@ export type ChatMessage = typeof chatMessages.$inferSelect;
 export type UpdateUserProfile = z.infer<typeof updateUserProfileSchema>;
 export type InsertEventCoOrganizerInvite = z.infer<typeof insertEventCoOrganizerInviteSchema>;
 export type EventCoOrganizerInvite = typeof eventCoOrganizerInvites.$inferSelect;
+
+/**
+ * Esquema da tabela de notificações
+ */
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: text("type").notNull(),
+  eventId: integer("event_id"),
+  read: boolean("read").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
