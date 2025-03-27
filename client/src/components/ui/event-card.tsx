@@ -207,9 +207,67 @@ export default function EventCard({
     }).format(price);
   };
   
-  // Verifica se o usuário pode participar do evento
-  const handleParticipation = () => {
-    // Verificar se o usuário é o criador do evento
+  // Gerencia a participação do usuário no evento
+  const handleParticipation = async () => {
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para participar do evento",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Verifica se o usuário é o criador
+    if (event.creatorId === user.id) {
+      toast({
+        title: "Erro",
+        description: "Você não pode participar do seu próprio evento",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Envia solicitação de participação
+      const response = await axios.post(`/api/events/${event.id}/participate`);
+      
+      // Exibe mensagem apropriada baseada no tipo de evento
+      if (event.eventType === 'private_application') {
+        toast({
+          title: "Solicitação enviada!",
+          description: "Aguarde a aprovação do organizador do evento.",
+        });
+      } else {
+        toast({
+          title: "Sucesso!",
+          description: "Você está confirmado no evento.",
+        });
+      }
+
+      // Atualiza o estado local e cache
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participation`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      
+      // Processa notificações recebidas
+      const data = response.data;
+      if (data.notification) {
+        if (data.notification.forCreator && data.notification.forCreator.userId === user.id) {
+          addNotification(data.notification.forCreator);
+        }
+        if (data.notification.forParticipant && data.notification.forParticipant.userId === user.id) {
+          addNotification(data.notification.forParticipant);
+        }
+      }
+
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao participar do evento",
+        variant: "destructive",
+      });
+    }
+  };
     if (isCreator) {
       toast({
         title: "Ação não permitida",

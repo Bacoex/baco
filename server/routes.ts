@@ -765,95 +765,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.id);
       const userId = req.user!.id;
 
-      console.log(`Solicitação de participação: usuário ${userId} para evento ${eventId}`);
-
       // Verifica se o evento existe
       const event = await storage.getEvent(eventId);
       if (!event) {
-        console.log("Evento não encontrado:", eventId);
         return res.status(404).json({ message: "Evento não encontrado" });
       }
 
       // Verifica se o usuário é o criador do evento
       if (event.creatorId === userId) {
-        console.log(`Usuário ${userId} tentou participar do próprio evento ${eventId}`);
-        return res.status(400).json({ message: "Você não pode participar do seu próprio evento como participante" });
+        return res.status(400).json({ message: "Você não pode participar do seu próprio evento" });
       }
 
       // Verifica se já está participando
       const existingParticipation = await storage.getParticipation(eventId, userId);
       if (existingParticipation) {
-        console.log(`Usuário ${userId} já está participando do evento ${eventId}`);
         return res.status(400).json({ message: "Você já está participando deste evento" });
       }
 
-      // Cria a participação
-      console.log(`Criando participação: evento=${eventId}, usuário=${userId}, tipo=${event.eventType}`);
-      const participationData = insertEventParticipantSchema.parse({
-        eventId,
-        userId,
-        status: event.eventType === 'private_application' ? "pending" : "confirmed"
-      });
-
-      const participation = await storage.createParticipation(participationData);
-      console.log(`Participação criada com ID ${participation.id}, status: ${participation.status}`);
-
-      // Obtém o usuário para incluir na resposta
+      // Obtém dados do usuário e do criador
       const user = await storage.getUser(userId);
-
-      // Obter o criador do evento
       const creator = await storage.getUser(event.creatorId);
 
-      // Preparar resposta com base no tipo de evento
-      if (event.eventType === 'private_application') {
-        console.log(`Evento ${eventId} requer aprovação, criando notificações`);
+      if (!user || !creator) {
+        return res.status(500).json({ message: "Erro ao processar solicitação" });
+      }
 
-        // Notificação para o criador em caso de evento com candidatura
-        const notificationForCreator = {
+      // Define o status inicial com base no tipo do evento
+      const initialStatus = event.eventType === 'private_application' ? 'pending' : 'confirmed';
+
+      // Cria a participação
+      const participation = await storage.createParticipation({
+        eventId,
+        userId,
+        status: initialStatus
+      });
+
+      // Cria notificações apropriadas
+      let notifications = {
+        forCreator: null,
+        forParticipant: null
+      };
+
+      if (event.eventType === 'private_application') {
+        // Notificação para o criador
+        const creatorNotification = await storage.createNotification({
           title: "Nova Candidatura para seu Evento",
-          message: `${user?.firstName} ${user?.lastName} aguarda sua aprovação para participar do evento "${event.name}"`,
+          message: `${user.firstName} ${user.lastName} aguarda sua aprovação para participar do evento "${event.name}"`,
           type: "event_application",
           eventId: event.id,
-          userId: event.creatorId // ID do criador do evento que receberá esta notificação
-        };
+          userId: event.creatorId
+        });
+        await storage.addNotificationRecipients(creatorNotification.id, [event.creatorId]);
 
         // Notificação para o participante
-        const notificationForParticipant = {
+        const participantNotification = await storage.createNotification({
           title: "Candidatura Enviada",
-          message: `Você se candidatou para o evento "${event.name}". Aguarde o retorno de ${creator?.firstName} ${creator?.lastName}.`,
+          message: `Você se candidatou para o evento "${event.name}". Aguarde o retorno de ${creator.firstName} ${creator.lastName}.`,
           type: "event_application",
           eventId: event.id,
-          userId: userId // ID do usuário que se candidatou e receberá esta notificação
+          userId: userId
+        });
+        await storage.addNotificationRecipients(participantNotification.id, [userId]);
+
+        notifications = {
+          forCreator: creatorNotification,
+          forParticipant: participantNotification
         };
+      } else {
+        // Para eventos sem necessidade de aprovação
+        const participantNotification = await storage.createNotification({
+          title: "Participação Confirmada",
+          message: `Você está confirmado no evento "${event.name}". Compareça no dia e hora marcados.`,
+          type: "event_confirmation",
+          eventId: event.id,
+          userId: userId
+        });
+        await storage.addNotificationRecipients(participantNotification.id, [userId]);
 
-        console.log("Criando notificação para o criador:", notificationForCreator);
-        console.log("Criando notificação para o participante:", notificationForParticipant);
+        notifications = {
+          forCreator: null,
+          forParticipant: participantNotification
+        };
+      }
 
-        // Adicionar recipientes para as notificações
-        const savedCreatorNotification = await storage.createNotification(notificationForCreator);
-        await storage.addNotificationRecipients(savedCreatorNotification.id, [event.creatorId]);
-
-        const savedParticipantNotification = await storage.createNotification(notificationForParticipant);
-        await storage.addNotificationRecipients(savedParticipantNotification.id, [userId]);
-
-        console.log("Notificações criadas e associadas aos usuários:");
-        console.log("- Para criador:", savedCreatorNotification);
-        console.log("- Para participante:", savedParticipantNotification);
-
-        // Retornar notificações junto com a resposta para o frontend tratar
-        res.status(201).json({
+      // Retorna resposta com dados da participação e notificações
+      res.status(201).json({
+        participation: {
           ...participation,
-          user: user ? {
+          user: {
+            id: user.id,
             firstName: user.firstName,
             lastName: user.lastName,
             profileImage: user.profileImage
-          } : null,
-          notification: {
-            forCreator: savedCreatorNotification,
-            forParticipant: savedParticipantNotification
           }
-        });
-      } else {
+        },
+        notification: notifications
+      });
+      
+    } catch (err) {
+      console.error("Erro ao processar participação:", err);
+      res.status(500).json({ 
+        message: err instanceof Error ? err.message : "Erro ao processar participação" 
+      });
+    }
+  });
                 // Para eventos normais (public ou private_ticket), também incluir uma notificação de confirmação
         const notificationForParticipant = {
           title: "Participação Confirmada",
