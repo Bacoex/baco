@@ -73,14 +73,12 @@ export function ManageCoOrganizersDialog({ eventId, isOpen, onClose }: ManageCoO
               <div className="flex justify-center items-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
-            ) : coOrganizersQuery.isError ? (
-              <div className="bg-red-50 text-red-800 rounded-md p-4">
-                <div className="font-medium">Erro ao carregar dados</div>
-                <div className="text-sm">
-                  Não foi possível carregar os co-organizadores. Por favor, tente novamente.
-                </div>
+            ) : !coOrganizersQuery.data ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <div>Nenhum co-organizador encontrado.</div>
+                <div>Convide alguém para ajudar a gerenciar este evento.</div>
               </div>
-            ) : !coOrganizersQuery.data || coOrganizersQuery.data.length === 0 ? (
+            ) : coOrganizersQuery.data.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <div>Nenhum co-organizador encontrado.</div>
                 <div>Convide alguém para ajudar a gerenciar este evento.</div>
