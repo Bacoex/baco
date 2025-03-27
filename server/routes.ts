@@ -973,6 +973,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: userId // ID do usuário que se candidatou e receberá esta notificação
         };
         
+        // Salvar notificações no banco de dados
+        const savedCreatorNotification = await storage.createNotification(notificationForCreator);
+        const savedParticipantNotification = await storage.createNotification(notificationForParticipant);
+        
         // Retornar notificações junto com a resposta para o frontend tratar
         res.status(201).json({
           ...participation,
@@ -982,8 +986,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             profileImage: user.profileImage
           } : null,
           notification: {
-            forCreator: notificationForCreator,
-            forParticipant: notificationForParticipant
+            forCreator: savedCreatorNotification,
+            forParticipant: savedParticipantNotification
           }
         });
       } else {
@@ -1005,6 +1009,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: event.creatorId // ID do criador do evento
         };
         
+        // Salvar notificações no banco de dados
+        const savedCreatorNotification = await storage.createNotification(notificationForCreator);
+        const savedParticipantNotification = await storage.createNotification(notificationForParticipant);
+        
         res.status(201).json({
           ...participation,
           user: user ? {
@@ -1013,8 +1021,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             profileImage: user.profileImage
           } : null,
           notification: {
-            forCreator: notificationForCreator,
-            forParticipant: notificationForParticipant
+            forCreator: savedCreatorNotification,
+            forParticipant: savedParticipantNotification
           }
         });
       }
@@ -1106,13 +1114,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `${user?.firstName} ${user?.lastName} cancelou a candidatura para o evento "${event.name}"`,
           type: "event_application",
           eventId: eventId,
-          userId: userId
+          userId: event.creatorId
         };
+        
+        // Salvar notificação no banco de dados (apenas se o criador não for o próprio usuário)
+        let savedNotification = null;
+        if (event.creatorId !== userId) {
+          savedNotification = await storage.createNotification(notificationForCreator);
+        }
         
         return res.status(200).json({ 
           message: "Participação cancelada com sucesso",
           notification: {
-            forCreator: event.creatorId === userId ? null : notificationForCreator,
+            forCreator: event.creatorId === userId ? null : savedNotification,
             forParticipant: null
           }
         });
@@ -1161,7 +1175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `Você aprovou a candidatura de ${user?.firstName} ${user?.lastName} para o evento "${event?.name}".`,
           type: "event_approval",
           eventId: event?.id,
-          userId: user?.id
+          userId: event?.creatorId
         };
         
         // Notificação para o participante que foi aprovado
@@ -1170,14 +1184,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `Sua candidatura para o evento "${event?.name}" foi aprovada. Você pode ver os detalhes do evento agora.`,
           type: "event_approval",
           eventId: event?.id,
-          userId: creator?.id // ID do criador para indicar quem aprovou
+          userId: user?.id
         };
+        
+        // Salvar notificações no banco de dados
+        const savedCreatorNotification = await storage.createNotification(notificationForCreator);
+        const savedParticipantNotification = await storage.createNotification(notificationForParticipant);
         
         res.json({
           ...participation,
           notification: {
-            forCreator: notificationForCreator,
-            forParticipant: notificationForParticipant
+            forCreator: savedCreatorNotification,
+            forParticipant: savedParticipantNotification
           }
         });
       } else {
@@ -1187,7 +1205,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `Você recusou a candidatura de ${user?.firstName} ${user?.lastName} para o evento "${event?.name}".`,
           type: "event_rejection",
           eventId: event?.id,
-          userId: user?.id
+          userId: event?.creatorId
         };
         
         // Notificação para o participante que foi recusado
@@ -1196,14 +1214,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `Infelizmente sua candidatura para o evento "${event?.name}" foi recusada.`,
           type: "event_rejection",
           eventId: event?.id,
-          userId: creator?.id
+          userId: user?.id
         };
+        
+        // Salvar notificações no banco de dados
+        const savedCreatorNotification = await storage.createNotification(notificationForCreator);
+        const savedParticipantNotification = await storage.createNotification(notificationForParticipant);
         
         res.json({
           ...participation,
           notification: {
-            forCreator: notificationForCreator,
-            forParticipant: notificationForParticipant
+            forCreator: savedCreatorNotification,
+            forParticipant: savedParticipantNotification
           }
         });
       }
