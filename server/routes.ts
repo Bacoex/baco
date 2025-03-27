@@ -874,7 +874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Notificação para o criador do evento
         const notificationForCreator = {
-          title: ""Novo Participante em seu Evento",
+          title: "Novo Participante em seu Evento",
           message: `${user?.firstName} ${user?.lastName} entrou como participante do seu evento "${event.name}".`,
           type: "event_approval",
           eventId: event.id,
