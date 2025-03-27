@@ -3,15 +3,42 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { LogOut, Menu, User, HelpCircle, Info, Bell } from "lucide-react";
-import { NotificationsMenu } from "@/components/ui/notifications-menu";
+import { useEffect, useState } from "react";
+import { toast } from "@/components/ui/use-toast";
 
 export function Header() {
-  const { user, logoutMutation } = useAuth();
-  
-  // Função para lidar com o logout
-  const handleLogout = () => {
-    logoutMutation.mutate();
-  };
+  const { user, logout } = useAuth();
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    if (user) {
+      // Verifica notificações a cada 30 segundos
+      const interval = setInterval(() => {
+        const userStorageKey = `baco-notifications-${user.id}`;
+        const storedNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
+
+        // Filtra apenas notificações não lidas
+        const unreadNotifications = storedNotifications.filter(n => !n.read);
+
+        // Mostra toast para cada notificação não lida
+        unreadNotifications.forEach(notification => {
+          toast({
+            title: notification.title,
+            description: notification.message,
+          });
+
+          // Marca como lida
+          notification.read = true;
+        });
+
+        // Atualiza no localStorage
+        localStorage.setItem(userStorageKey, JSON.stringify(storedNotifications));
+        setNotifications(storedNotifications);
+      }, 30000);
+
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
   return (
     <div className="fixed w-full z-50 flex justify-between items-center px-4 py-2">
@@ -38,11 +65,28 @@ export function Header() {
 
       {/* Ações no lado direito */}
       {user && (
-        <div className="flex items-center gap-2">
-          {/* Menu de Notificações */}
-          <NotificationsMenu />
-
-          {/* Mini Menu */}
+        <>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full w-10 h-10 mr-2"
+            onClick={() => {
+              const userStorageKey = `baco-notifications-${user.id}`;
+              const storedNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
+              storedNotifications.forEach(n => {
+                if (!n.read) {
+                  toast({
+                    title: n.title,
+                    description: n.message,
+                  });
+                  n.read = true;
+                }
+              });
+              localStorage.setItem(userStorageKey, JSON.stringify(storedNotifications));
+            }}
+          >
+            <Bell className="h-5 w-5" />
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 flex items-center justify-center">
@@ -74,13 +118,13 @@ export function Header() {
                   Sobre
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout}>
+              <DropdownMenuItem onClick={logout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Sair
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
+        </>
       )}
     </div>
   );
