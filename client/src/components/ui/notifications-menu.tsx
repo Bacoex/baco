@@ -15,7 +15,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 export function NotificationsMenu() {
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification, removeAllNotifications } = useNotifications();
@@ -32,7 +32,7 @@ export function NotificationsMenu() {
       storedNotifications
         .filter((n: any) => !n.read)
         .forEach((notification: any) => {
-          toast({
+          useToast().toast({
             title: notification.title,
             description: notification.message,
           });
