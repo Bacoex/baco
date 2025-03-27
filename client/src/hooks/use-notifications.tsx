@@ -48,6 +48,19 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       setNotifications([]);
     }
   }, [user]);
+
+  // Verificar notificações periodicamente
+  useEffect(() => {
+    if (user) {
+      const interval = setInterval(() => {
+        const userStorageKey = `baco-notifications-${user.id}`;
+        const storedNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
+        setNotifications(storedNotifications);
+      }, 5000); // Verifica a cada 5 segundos
+
+      return () => clearInterval(interval);
+    }
+  }, [user]);
   
   // Salvar notificações no localStorage sempre que elas mudarem
   useEffect(() => {

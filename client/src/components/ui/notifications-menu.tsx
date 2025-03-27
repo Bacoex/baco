@@ -17,6 +17,25 @@ import { ptBR } from 'date-fns/locale';
 export function NotificationsMenu() {
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification, removeAllNotifications } = useNotifications();
   const [_, setLocation] = useLocation();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      // Carregar notificações do localStorage
+      const userStorageKey = `baco-notifications-${user.id}`;
+      const storedNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
+      
+      // Mostrar notificações não lidas
+      storedNotifications
+        .filter((n: any) => !n.read)
+        .forEach((notification: any) => {
+          toast({
+            title: notification.title,
+            description: notification.message,
+          });
+        });
+    }
+  }, [user]);
 
   const handleNotificationClick = (notification: Notification) => {
     // Marcar como lida
