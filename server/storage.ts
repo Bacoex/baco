@@ -34,6 +34,7 @@ export interface IStorage {
   
   // Participantes
   getParticipants(eventId: number): Promise<EventParticipant[]>;
+  getParticipant(id: number): Promise<EventParticipant | undefined>;
   getParticipation(eventId: number, userId: number): Promise<EventParticipant | undefined>;
   createParticipation(participation: InsertEventParticipant): Promise<EventParticipant>;
   removeParticipation(id: number): Promise<void>;
@@ -496,6 +497,11 @@ export class MemStorage implements IStorage {
     return Array.from(this.participantsMap.values()).filter(
       (participant) => participant.eventId === eventId
     );
+  }
+  
+  // Busca participante por ID
+  async getParticipant(id: number): Promise<EventParticipant | undefined> {
+    return this.participantsMap.get(id);
   }
   
   async getParticipation(eventId: number, userId: number): Promise<EventParticipant | undefined> {

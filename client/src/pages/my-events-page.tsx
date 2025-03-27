@@ -497,15 +497,24 @@ export default function MyEventsPage() {
   // Mutação para aprovar participante
   const approveParticipantMutation = useMutation({
     mutationFn: async (participantId: number) => {
-      const res = await apiRequest("PATCH", `/api/participants/${participantId}/approve`);
+      const res = await apiRequest("PATCH", `/api/participants/${participantId}/approve`, { status: "approved" });
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/user/events/created"] });
-      toast({
-        title: "Participante aprovado!",
-        description: "O participante foi aprovado com sucesso.",
-      });
+      
+      // Exibe a notificação customizada com as informações do backend
+      if (data.notification) {
+        toast({
+          title: data.notification.title,
+          description: data.notification.message,
+        });
+      } else {
+        toast({
+          title: "Participante aprovado!",
+          description: "O participante foi aprovado com sucesso.",
+        });
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -519,15 +528,24 @@ export default function MyEventsPage() {
   // Mutação para rejeitar participante
   const rejectParticipantMutation = useMutation({
     mutationFn: async (participantId: number) => {
-      const res = await apiRequest("PATCH", `/api/participants/${participantId}/reject`);
+      const res = await apiRequest("PATCH", `/api/participants/${participantId}/reject`, { status: "rejected" });
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/user/events/created"] });
-      toast({
-        title: "Participante rejeitado",
-        description: "O participante foi rejeitado com sucesso.",
-      });
+      
+      // Exibe a notificação customizada com as informações do backend
+      if (data.notification) {
+        toast({
+          title: data.notification.title,
+          description: data.notification.message,
+        });
+      } else {
+        toast({
+          title: "Participante rejeitado",
+          description: "O participante foi rejeitado com sucesso.",
+        });
+      }
     },
     onError: (error: Error) => {
       toast({

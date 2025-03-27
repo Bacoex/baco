@@ -73,6 +73,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     res.status(401).json({ message: "Não autorizado" });
   };
+  
+  // Helper para transformar rotas para o formato da aplicação
+  // Permite usar ambos formatos sem modificar o frontend
+  const createEndpointAlias = (app: Express, originalPath: string, aliasPath: string, methods: string[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']) => {
+    methods.forEach(method => {
+      const methodLower = method.toLowerCase() as 'get' | 'post' | 'put' | 'patch' | 'delete';
+      if (typeof app[methodLower] === 'function') {
+        app[methodLower](aliasPath, (req: any, res: any, next: any) => {
+          // Apenas redirecionar a rota internamente
+          req.url = originalPath;
+          next();
+        });
+      }
+    });
+  };
 
   /**
    * API de Categorias
@@ -504,6 +519,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
    * API de Participação em Eventos
    */
   
+  // Criar aliases para rotas usadas pelo frontend
+  createEndpointAlias(app, "/api/participations/:id/status", "/api/participants/:id/approve", ["PATCH"]);
+  createEndpointAlias(app, "/api/participations/:id/status", "/api/participants/:id/reject", ["PATCH"]);
+  
   // Participa de um evento
   app.post("/api/events/:id/participate", ensureAuthenticated, async (req, res) => {
     try {
@@ -582,11 +601,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Status inválido" });
       }
       
+      // Busca a participação para obter informações do usuário
+      const existingParticipation = await storage.getParticipant(participationId);
+      if (!existingParticipation) {
+        return res.status(404).json({ message: "Participação não encontrada" });
+      }
+      
       // Atualiza o status
       const participation = await storage.updateParticipationStatus(participationId, status);
       
-      res.json(participation);
+      // Busca dados do usuário para a notificação
+      const user = await storage.getUser(participation.userId);
+      const event = await storage.getEvent(participation.eventId);
+      
+      // Retorna informações adicionais para exibição de notificação
+      res.json({
+        ...participation,
+        notification: {
+          title: status === "approved" ? "Candidatura Aprovada!" : "Candidatura Recusada",
+          message: status === "approved" 
+            ? `Sua candidatura para o evento "${event?.name}" foi aprovada.` 
+            : `Sua candidatura para o evento "${event?.name}" foi recusada.`,
+          user: user ? {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email
+          } : null,
+          event: event ? {
+            name: event.name,
+            date: event.date
+          } : null
+        }
+      });
     } catch (err) {
+      console.error("Erro ao atualizar status de participação:", err);
       res.status(500).json({ message: "Erro ao atualizar status de participação" });
     }
   });
