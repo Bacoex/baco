@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Calendar, MapPin, Clock, Users, Tag, User, Share2, Heart, 
-         MessageSquare, MessageSquareX, LockKeyhole, UserPlus, Pencil } from "lucide-react";
+         MessageSquare, MessageSquareX, LockKeyhole, UserPlus, Pencil, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -80,6 +80,7 @@ interface ViewEventModalProps {
   onReject?: (participantId: number) => void;
   onRemoveParticipant?: (participantId: number) => void;
   onRevertParticipant?: (participantId: number) => void;
+  onRemove?: (eventId: number) => void;
 }
 
 /**
@@ -92,7 +93,8 @@ export default function ViewEventModal({
   onApprove,
   onReject,
   onRemoveParticipant,
-  onRevertParticipant
+  onRevertParticipant,
+  onRemove
 }: ViewEventModalProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -369,6 +371,20 @@ export default function ViewEventModal({
                       <UserPlus className="h-4 w-4 mr-2" />
                       Co-organizadores
                     </Button>
+                    {onRemove && (
+                      <Button 
+                        variant="destructive" 
+                        onClick={() => {
+                          if (window.confirm('Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita.')) {
+                            onRemove(event.id);
+                            onClose();
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Excluir Evento
+                      </Button>
+                    )}
                   </div>
                 )}
                 

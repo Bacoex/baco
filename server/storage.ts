@@ -36,6 +36,7 @@ export interface IStorage {
   getEventsByCreator(creatorId: number): Promise<Event[]>;
   createEvent(event: InsertEvent, creatorId: number): Promise<Event>;
   updateEvent(id: number, eventData: Partial<InsertEvent>): Promise<Event>;
+  removeEvent(id: number): Promise<void>;
   
   // Participantes
   getParticipants(eventId: number): Promise<EventParticipant[]>;
@@ -473,6 +474,30 @@ export class MemStorage implements IStorage {
     
     this.eventsMap.set(id, updatedEvent);
     return updatedEvent;
+  }
+  
+  /**
+   * Remove um evento pelo ID
+   * @param id ID do evento a ser removido
+   */
+  async removeEvent(id: number): Promise<void> {
+    if (!this.eventsMap.has(id)) {
+      throw new Error(`Evento com ID ${id} não encontrado`);
+    }
+    
+    // Remove o evento
+    this.eventsMap.delete(id);
+    
+    // Remove também as participações relacionadas a este evento
+    const participantsToRemove = Array.from(this.participantsMap.values())
+      .filter(participant => participant.eventId === id)
+      .map(participant => participant.id);
+    
+    for (const participantId of participantsToRemove) {
+      this.participantsMap.delete(participantId);
+    }
+    
+    console.log(`Evento com ID ${id} removido com sucesso`);
   }
   
   // Implementação de participantes

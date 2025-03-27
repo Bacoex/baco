@@ -383,6 +383,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Exclui um evento existente
+  app.delete("/api/events/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      
+      // Verifica se o evento existe
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      // Verifica se o usuário é o criador do evento
+      if (event.creatorId !== req.user!.id) {
+        return res.status(403).json({ message: "Você não tem permissão para excluir este evento" });
+      }
+      
+      // Remove o evento e suas participações
+      await storage.removeEvent(eventId);
+      
+      res.status(200).json({ message: "Evento excluído com sucesso" });
+    } catch (err) {
+      console.error("Erro ao excluir evento:", err);
+      res.status(500).json({ message: "Erro ao excluir evento" });
+    }
+  });
+  
   /**
    * API de Eventos do Usuário
    */
