@@ -535,10 +535,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         events.map(async (event) => {
           // Busca categoria
           const category = categories.find(cat => cat.id === event.categoryId);
-          
+
           // Busca participantes
           const participants = await storage.getParticipants(event.id);
-          
+
           // Processa participantes com detalhes do usuário
           const participantsWithDetails = await Promise.all(
             participants.map(async (participant) => {
@@ -861,7 +861,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         notification: notifications
       });
-      
+
     } catch (err) {
       console.error("Erro ao processar participação:", err);
       res.status(500).json({ 
@@ -869,54 +869,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-                if (event.eventType !== 'private_application') {
-          // Para eventos normais (public ou private_ticket)
-          const notificationForParticipant = {
-            title: "Participação Confirmada",
-            message: `Você está confirmado no evento "${event.name}". Compareça no dia e hora marcados.`,
-            type: "event_approval",
-            eventId: event.id,
-            userId: userId
-          };
-
-          // Notificação para o criador do evento
-          const notificationForCreator = {
-            title: "Novo Participante em seu Evento",
-            message: `${user?.firstName} ${user?.lastName} entrou como participante do seu evento "${event.name}".`,
-            type: "event_approval",
-            eventId: event.id,
-            userId: event.creatorId
-          };
-
-          // Salvar notificações no banco de dados
-          const savedCreatorNotification = await storage.createNotification(notificationForCreator);
-          await storage.addNotificationRecipients(savedCreatorNotification.id, [event.creatorId]);
-
-          const savedParticipantNotification = await storage.createNotification(notificationForParticipant);
-          await storage.addNotificationRecipients(savedParticipantNotification.id, [userId]);
-
-          res.status(201).json({
-            ...participation,
-            user: user ? {
-              firstName: user.firstName,
-              lastName: user.lastName,
-              profileImage: user.profileImage
-            } : null,
-            notification: {
-              forCreator: savedCreatorNotification,
-              forParticipant: savedParticipantNotification
-            }
-          });
-        }
-      } catch (err) {
-        if (err instanceof ZodError) {
-          const validationError = fromZodError(err);
-          return res.status(400).json({ message: validationError.message });
-      }
-      res.status(500).json({ message: "Erro ao participar do evento" });
-    }
-  });
-
   // Verifica se o usuário está participando de um evento
   app.get("/api/events/:id/participation", ensureAuthenticated, async (req, res) => {
     try {
