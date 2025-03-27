@@ -2,12 +2,13 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Menu, LogOut } from "lucide-react";
+import { Menu, LogOut, Home, Calendar, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 
 export function Header() {
@@ -23,49 +24,29 @@ export function Header() {
       <div className="container flex h-14 items-center">
         <div className="mr-4 flex">
           <Link to="/" className="mr-6 flex items-center space-x-2">
-            <svg 
-              width="32" 
-              height="32" 
-              viewBox="0 0 80 80" 
-              xmlns="http://www.w3.org/2000/svg"
-              className="text-orange-500"
-            >
-              <defs>
-                <linearGradient id="bacoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#ff9900" />
-                  <stop offset="100%" stopColor="#ff6600" />
-                </linearGradient>
-              </defs>
-              <g fill="url(#bacoGradient)">
-                <path d="M20 10 H60 A10 10 0 0 1 70 20 V30 A10 10 0 0 1 60 40 A10 10 0 0 1 70 50 V60 A10 10 0 0 1 60 70 H20 A10 10 0 0 1 10 60 V20 A10 10 0 0 1 20 10 Z" />
-                <circle cx="40" cy="25" r="8" fill="#000" />
-                <circle cx="40" cy="55" r="8" fill="#000" />
-              </g>
-              <path d="M30 40 H50 Z" stroke="#000" strokeWidth="2" />
-            </svg>
-            <span className="hidden font-bold sm:inline-block bg-gradient-to-r from-orange-500 to-orange-600 text-transparent bg-clip-text">
-              Baco
-            </span>
+            <div className="flex items-center">
+              {/* Traço esquerdo */}
+              <div className="w-4 h-[2px] bg-gradient-to-r from-transparent to-orange-500"></div>
+              
+              {/* Texto com gradiente fixo */}
+              <h1 className="text-2xl uppercase mx-2" 
+                  style={{
+                    fontFamily: 'Futura, "Trebuchet MS", Arial, sans-serif',
+                    fontWeight: '600',
+                    letterSpacing: '0.05em'
+                  }}>
+                <span className="bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-400 bg-clip-text text-transparent">BACO</span>
+              </h1>
+              
+              {/* Traço direito */}
+              <div className="w-4 h-[2px] bg-gradient-to-l from-transparent to-orange-500"></div>
+            </div>
           </Link>
         </div>
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <div className="w-full flex-1 md:w-auto md:flex-none">
-            <nav className="flex items-center">
-              <Link to="/">
-                <Button variant="ghost" className="mr-2">Início</Button>
-              </Link>
-              {user && (
-                <>
-                  <Link to="/my-events">
-                    <Button variant="ghost" className="mr-2">Meus Eventos</Button>
-                  </Link>
-                  <Link to="/profile">
-                    <Button variant="ghost" className="mr-2">Perfil</Button>
-                  </Link>
-                </>
-              )}
-            </nav>
+          <div className="flex-1">
+            {/* Sem links na navbar - mantendo estilo original */}
           </div>
 
           <div className="flex items-center">
@@ -77,8 +58,22 @@ export function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <Link to="/">
+                    <DropdownMenuItem>
+                      Início
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link to="/my-events">
+                    <DropdownMenuItem>
+                      Meus Eventos
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link to="/profile">
+                    <DropdownMenuItem>
+                      Perfil
+                    </DropdownMenuItem>
+                  </Link>
                   <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
                     Sair
                   </DropdownMenuItem>
                 </DropdownMenuContent>
