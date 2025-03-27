@@ -779,8 +779,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notification: {
           // Notificação para o criador do evento
           forCreator: {
-            title: "Candidatura Aprovada!",
-            message: `Candidatura para o evento "${event?.name}" foi aprovada. O usuário agora aparecerá na lista de participantes.`,
+            title: "Você Aprovou a Candidatura",
+            message: `Você aprovou a candidatura de ${user?.firstName} ${user?.lastName} para o evento "${event?.name}". O participante foi notificado.`,
             type: "event_approval",
             eventId: event?.id,
             userId: user?.id
@@ -788,7 +788,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Notificação para o participante
           forParticipant: {
             title: "Sua Candidatura foi Aprovada!",
-            message: `Sua candidatura para o evento "${event?.name}" foi aprovada. Você pode ver os detalhes do evento agora.`,
+            message: `${creator?.firstName} ${creator?.lastName} aprovou sua candidatura para o evento "${event?.name}". Você pode ver os detalhes completos agora.`,
             type: "event_approval",
             eventId: event?.id,
             userId: creator?.id
@@ -818,6 +818,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(participation.userId);
       const event = await storage.getEvent(participation.eventId);
       
+      // Busca o criador do evento para a notificação
+      const creator = await storage.getUser(event?.creatorId || 0);
+      
       // Retorna informações adicionais para exibição de notificação
       // Preparamos notificações para ambos: o criador do evento e o participante
       res.json({
@@ -825,19 +828,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notification: {
           // Notificação para o criador do evento
           forCreator: {
-            title: "Candidatura Rejeitada",
-            message: `Candidatura para o evento "${event?.name}" foi rejeitada.`,
+            title: "Você Recusou uma Candidatura",
+            message: `Você recusou a candidatura de ${user?.firstName} ${user?.lastName} para o evento "${event?.name}".`,
             type: "event_rejection",
             eventId: event?.id,
             userId: user?.id
           },
           // Notificação para o participante
           forParticipant: {
-            title: "Sua Candidatura foi Rejeitada",
-            message: `Sua candidatura para o evento "${event?.name}" foi rejeitada.`,
+            title: "Sua Candidatura foi Recusada",
+            message: `${creator?.firstName} ${creator?.lastName} recusou sua candidatura para o evento "${event?.name}".`,
             type: "event_rejection",
             eventId: event?.id,
-            userId: null
+            userId: creator?.id
           }
         }
       });
@@ -874,8 +877,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notification: {
           // Notificação para o criador do evento
           forCreator: {
-            title: "Participante Removido",
-            message: `${user?.firstName} ${user?.lastName} foi removido do evento "${event?.name}".`,
+            title: "Você Removeu um Participante",
+            message: `Você removeu ${user?.firstName} ${user?.lastName} do evento "${event?.name}".`,
             type: "event_removal",
             eventId: event?.id,
             userId: user?.id
@@ -883,7 +886,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Notificação para o participante
           forParticipant: {
             title: "Sua Participação foi Removida",
-            message: `Você foi removido do evento "${event?.name}".`,
+            message: `${creator?.firstName} ${creator?.lastName} removeu você do evento "${event?.name}".`,
             type: "event_removal",
             eventId: event?.id,
             userId: creator?.id
@@ -929,8 +932,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notification: {
           // Notificação para o criador do evento
           forCreator: {
-            title: "Candidatura Revertida",
-            message: `A candidatura de ${user?.firstName} ${user?.lastName} para o evento "${event?.name}" foi revertida para análise.`,
+            title: "Você Reativou uma Candidatura",
+            message: `Você reativou a candidatura de ${user?.firstName} ${user?.lastName} para o evento "${event?.name}". Agora você pode aprová-la ou rejeitá-la novamente.`,
             type: "event_revert",
             eventId: event?.id,
             userId: user?.id
@@ -938,7 +941,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Notificação para o participante
           forParticipant: {
             title: "Sua Candidatura foi Reativada",
-            message: `Sua candidatura para o evento "${event?.name}" foi revertida para análise. Aguarde a aprovação.`,
+            message: `${creator?.firstName} ${creator?.lastName} reativou sua candidatura para o evento "${event?.name}". Aguarde a nova avaliação.`,
             type: "event_revert",
             eventId: event?.id,
             userId: creator?.id
@@ -993,8 +996,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (event.eventType === 'private_application') {
         // Notificação para o criador em caso de evento com candidatura
         const notificationForCreator = {
-          title: "Nova Candidatura",
-          message: `${user?.firstName} ${user?.lastName} se candidatou ao seu evento "${event.name}"`,
+          title: "Nova Candidatura para seu Evento",
+          message: `${user?.firstName} ${user?.lastName} aguarda sua aprovação para participar do evento "${event.name}"`,
           type: "event_application",
           eventId: event.id,
           userId: event.creatorId // ID do criador do evento que receberá esta notificação
@@ -1003,7 +1006,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Notificação para o participante
         const notificationForParticipant = {
           title: "Candidatura Enviada",
-          message: `Sua candidatura para o evento "${event.name}" foi enviada com sucesso. Aguarde a aprovação.`,
+          message: `Você se candidatou para o evento "${event.name}". Aguarde o retorno de ${creator?.firstName} ${creator?.lastName}.`,
           type: "event_application",
           eventId: event.id,
           userId: userId // ID do usuário que se candidatou e receberá esta notificação
@@ -1038,8 +1041,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Notificação para o criador do evento
         const notificationForCreator = {
-          title: "Novo Participante",
-          message: `${user?.firstName} ${user?.lastName} se inscreveu no seu evento "${event.name}"`,
+          title: "Novo Participante em seu Evento",
+          message: `${user?.firstName} ${user?.lastName} entrou como participante do seu evento "${event.name}".`,
           type: "event_approval",
           eventId: event.id,
           userId: event.creatorId // ID do criador do evento
@@ -1151,8 +1154,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Preparar notificação para o criador do evento
         const notificationForCreator = {
-          title: "Candidatura Cancelada",
-          message: `${user.firstName} ${user.lastName} cancelou a candidatura para o evento "${event.name}"`,
+          title: "Candidatura foi Cancelada",
+          message: `${user.firstName} ${user.lastName} cancelou sua candidatura para o evento "${event.name}".`,
           type: "event_application",
           eventId: event.id,
           userId: event.creatorId
