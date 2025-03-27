@@ -540,9 +540,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
    * API de Participação em Eventos
    */
   
-  // Criar aliases para rotas usadas pelo frontend
-  createEndpointAlias(app, "/api/participations/:id/status", "/api/participants/:id/approve", ["PATCH"]);
-  createEndpointAlias(app, "/api/participations/:id/status", "/api/participants/:id/reject", ["PATCH"]);
+  // Endpoints específicos para aprovar e rejeitar candidaturas
+  app.patch("/api/participants/:id/approve", ensureAuthenticated, async (req, res) => {
+    try {
+      const participationId = parseInt(req.params.id);
+      
+      // Busca a participação para obter informações do usuário
+      const existingParticipation = await storage.getParticipant(participationId);
+      if (!existingParticipation) {
+        return res.status(404).json({ message: "Participação não encontrada" });
+      }
+      
+      // Atualiza o status
+      const participation = await storage.updateParticipationStatus(participationId, "approved");
+      
+      // Busca dados do usuário para a notificação
+      const user = await storage.getUser(participation.userId);
+      const event = await storage.getEvent(participation.eventId);
+      
+      // Retorna informações adicionais para exibição de notificação
+      res.json({
+        ...participation,
+        notification: {
+          title: "Candidatura Aprovada!",
+          message: `Candidatura para o evento "${event?.name}" foi aprovada.`,
+          user: user ? {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email
+          } : null,
+          event: event ? {
+            name: event.name,
+            date: event.date
+          } : null
+        }
+      });
+    } catch (err) {
+      console.error("Erro ao aprovar candidatura:", err);
+      res.status(500).json({ message: "Erro ao aprovar candidatura" });
+    }
+  });
+  
+  app.patch("/api/participants/:id/reject", ensureAuthenticated, async (req, res) => {
+    try {
+      const participationId = parseInt(req.params.id);
+      
+      // Busca a participação para obter informações do usuário
+      const existingParticipation = await storage.getParticipant(participationId);
+      if (!existingParticipation) {
+        return res.status(404).json({ message: "Participação não encontrada" });
+      }
+      
+      // Atualiza o status
+      const participation = await storage.updateParticipationStatus(participationId, "rejected");
+      
+      // Busca dados do usuário para a notificação
+      const user = await storage.getUser(participation.userId);
+      const event = await storage.getEvent(participation.eventId);
+      
+      // Retorna informações adicionais para exibição de notificação
+      res.json({
+        ...participation,
+        notification: {
+          title: "Candidatura Recusada",
+          message: `Candidatura para o evento "${event?.name}" foi recusada.`,
+          user: user ? {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email
+          } : null,
+          event: event ? {
+            name: event.name,
+            date: event.date
+          } : null
+        }
+      });
+    } catch (err) {
+      console.error("Erro ao rejeitar candidatura:", err);
+      res.status(500).json({ message: "Erro ao rejeitar candidatura" });
+    }
+  });
   
   // Participa de um evento
   app.post("/api/events/:id/participate", ensureAuthenticated, async (req, res) => {
