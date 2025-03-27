@@ -827,6 +827,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * API de compartilhamento de eventos
+   */
+   
+  // Gera um link de compartilhamento para um evento
+  app.get("/api/events/:id/share", async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      
+      // Verifica se o evento existe
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      // Obtém os detalhes da categoria
+      const categoriasArray = await storage.getCategories();
+      const categoria = categoriasArray.find(cat => cat.id === event.categoryId);
+      
+      // Obtém o criador do evento
+      const creator = await storage.getUser(event.creatorId);
+      
+      // URL base da aplicação (em produção seria o domínio real)
+      const baseUrl = req.protocol + '://' + req.get('host');
+      
+      // Parâmetros da URL para abrir o modal diretamente
+      const shareParams = new URLSearchParams();
+      shareParams.append('modal', 'event');
+      shareParams.append('eventId', eventId.toString());
+      
+      // Link completo de compartilhamento
+      const shareLink = `${baseUrl}/?${shareParams.toString()}`;
+      
+      // Informações para compartilhamento em redes sociais
+      const shareData = {
+        link: shareLink,
+        title: `${event.name} - ${event.date}`,
+        description: event.description.substring(0, 100) + (event.description.length > 100 ? '...' : ''),
+        image: event.coverImage || null,
+        event: {
+          id: event.id,
+          name: event.name,
+          date: event.date,
+          time: event.timeStart,
+          location: event.location,
+          category: categoria?.name || '',
+          creator: creator ? `${creator.firstName} ${creator.lastName}` : ''
+        }
+      };
+      
+      res.json(shareData);
+    } catch (err) {
+      console.error("Erro ao gerar link de compartilhamento:", err);
+      res.status(500).json({ message: "Erro ao gerar link de compartilhamento" });
+    }
+  });
+  
+  /**
    * API de perfil do usuário
    */
 
