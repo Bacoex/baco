@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
@@ -17,58 +17,31 @@ export default function SearchPage() {
   const queryParams = new URLSearchParams(location.split("?")[1]);
   const searchQuery = queryParams.get("q") || "";
 
-  // Estado para guardar os resultados da pesquisa
-  const [filteredEvents, setFilteredEvents] = useState<any[]>([]);
-
-  // Busca todos os eventos
-  const eventsQuery = useQuery({
-    queryKey: ["/api/events"],
-    initialData: [],
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
-    onSuccess: (data) => {
-      console.log("Eventos recuperados para pesquisa:", data);
-    },
-    onError: (error) => {
-      console.error("Erro ao buscar eventos para pesquisa:", error);
-    }
-  });
-
-  // Filtra os eventos com base na pesquisa
-  useEffect(() => {
-    if (eventsQuery.data && searchQuery) {
-      // Normaliza a string para pesquisa (remove acentos, converte para lowercase)
-      const normalizedQuery = searchQuery.toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-
-      const filtered = eventsQuery.data.filter((event: any) => {
-        // Normaliza o nome do evento (verificando se existe)
-        const normalizedName = event.name 
-          ? event.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-          : "";
-        
-        // Normaliza a descrição do evento (verificando se existe)
-        const normalizedDescription = event.description 
-          ? event.description.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-          : "";
-        
-        // Normaliza a localização do evento (verificando se existe)
-        const normalizedLocation = event.location 
-          ? event.location.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-          : "";
-        
-        // Verifica se o termo de pesquisa está presente em algum dos campos
-        return (
-          normalizedName.includes(normalizedQuery) ||
-          normalizedDescription.includes(normalizedQuery) ||
-          normalizedLocation.includes(normalizedQuery)
-        );
-      });
+  // Busca eventos usando a API de pesquisa
+  const searchResultsQuery = useQuery({
+    queryKey: ["/api/search", searchQuery],
+    queryFn: async () => {
+      if (!searchQuery) return [];
       
-      setFilteredEvents(filtered);
-    }
-  }, [eventsQuery.data, searchQuery]);
+      try {
+        console.log("Realizando pesquisa para:", searchQuery);
+        const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
+        
+        if (!res.ok) {
+          throw new Error(`Erro ao pesquisar: ${res.status}`);
+        }
+        
+        const data = await res.json();
+        console.log("Resultados da pesquisa:", data);
+        return data;
+      } catch (error) {
+        console.error("Erro na pesquisa:", error);
+        throw error;
+      }
+    },
+    enabled: !!searchQuery,
+    initialData: []
+  });
 
   return (
     <div className="flex flex-col min-h-screen bg-black">
@@ -84,13 +57,27 @@ export default function SearchPage() {
             <div className="mx-auto w-24 h-0.5 bg-primary rounded-full"></div>
           </div>
           
-          {eventsQuery.isLoading ? (
+          {searchResultsQuery.isLoading ? (
             <div className="flex justify-center items-center h-64">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
+          ) : searchResultsQuery.isError ? (
+            <Card className="p-8 text-center border-dashed border-gray-700 bg-black/30 backdrop-blur-sm">
+              <h3 className="text-lg font-semibold mb-2 text-red-500">Erro na pesquisa</h3>
+              <p className="text-muted-foreground">
+                Ocorreu um erro ao realizar a pesquisa. Por favor, tente novamente mais tarde.
+              </p>
+            </Card>
           ) : (
             <>
-              {filteredEvents.length === 0 ? (
+              {!searchQuery ? (
+                <Card className="p-8 text-center border-dashed border-gray-700 bg-black/30 backdrop-blur-sm">
+                  <h3 className="text-lg font-semibold mb-2">Digite um termo para pesquisar</h3>
+                  <p className="text-muted-foreground">
+                    Use a barra de pesquisa para encontrar eventos de seu interesse.
+                  </p>
+                </Card>
+              ) : searchResultsQuery.data.length === 0 ? (
                 <Card className="p-8 text-center border-dashed border-gray-700 bg-black/30 backdrop-blur-sm">
                   <h3 className="text-lg font-semibold mb-2">Nenhum resultado encontrado</h3>
                   <p className="text-muted-foreground">
@@ -100,7 +87,7 @@ export default function SearchPage() {
                 </Card>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredEvents.map((event) => (
+                  {searchResultsQuery.data.map((event: any) => (
                     <EventCard key={event.id} event={event} />
                   ))}
                 </div>

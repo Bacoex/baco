@@ -115,16 +115,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
         events.map(async (event) => {
           const categoriasArray = await storage.getCategories();
           const categoria = categoriasArray.find(cat => cat.id === event.categoryId);
+          
+          // Obtém o criador do evento
+          const creator = await storage.getUser(event.creatorId);
+          
           return {
             ...event,
-            category: categoria
+            category: categoria,
+            creator: creator ? {
+              id: creator.id,
+              firstName: creator.firstName,
+              lastName: creator.lastName,
+              profileImage: creator.profileImage
+            } : null
           };
         })
       );
       
+      console.log(`Retornando ${eventsWithCategories.length} eventos`);
       res.json(eventsWithCategories);
     } catch (err) {
+      console.error("Erro ao buscar eventos:", err);
       res.status(500).json({ message: "Erro ao buscar eventos" });
+    }
+  });
+  
+  // Pesquisa de eventos
+  app.get("/api/search", async (req, res) => {
+    try {
+      const query = req.query.q as string;
+      
+      if (!query) {
+        return res.status(400).json({ message: "Parâmetro de pesquisa 'q' é obrigatório" });
+      }
+      
+      // Busca todos os eventos
+      const allEvents = await storage.getEvents();
+      const categories = await storage.getCategories();
+      
+      // Normaliza a string de busca (remove acentos, converte para lowercase)
+      const normalizedQuery = query.toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      
+      // Filtra eventos baseado na pesquisa
+      const filteredEvents = allEvents.filter(event => {
+        // Normaliza os campos do evento
+        const normalizedName = event.name 
+          ? event.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          : "";
+        
+        const normalizedDescription = event.description 
+          ? event.description.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          : "";
+        
+        const normalizedLocation = event.location 
+          ? event.location.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          : "";
+        
+        // Verifica se o termo de pesquisa está presente em algum dos campos
+        return (
+          normalizedName.includes(normalizedQuery) ||
+          normalizedDescription.includes(normalizedQuery) ||
+          normalizedLocation.includes(normalizedQuery)
+        );
+      });
+      
+      // Adiciona detalhes completos aos eventos filtrados
+      const eventsWithDetails = await Promise.all(
+        filteredEvents.map(async (event) => {
+          // Obtém a categoria
+          const category = categories.find(cat => cat.id === event.categoryId);
+          
+          // Obtém o criador
+          const creator = await storage.getUser(event.creatorId);
+          
+          return {
+            ...event,
+            category,
+            creator: creator ? {
+              id: creator.id,
+              firstName: creator.firstName,
+              lastName: creator.lastName,
+              profileImage: creator.profileImage
+            } : null
+          };
+        })
+      );
+      
+      console.log(`Pesquisa por "${query}" retornou ${eventsWithDetails.length} resultados`);
+      res.json(eventsWithDetails);
+    } catch (err) {
+      console.error("Erro na pesquisa de eventos:", err);
+      res.status(500).json({ message: "Erro ao pesquisar eventos" });
     }
   });
   
