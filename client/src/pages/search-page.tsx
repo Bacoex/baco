@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import { Header } from "@/components/ui/header";
@@ -16,7 +15,7 @@ export default function SearchPage() {
   const [location] = useLocation();
   console.log("SearchPage: URL completa:", location);
   
-  // O location vem apenas como "/search", então precisamos pegar a URL completa
+  // Usando window.location para obter parâmetros da URL
   const urlCompleta = window.location.href;
   console.log("SearchPage: URL completa com janela:", urlCompleta);
   
@@ -25,19 +24,46 @@ export default function SearchPage() {
   const searchQuery = url.searchParams.get("q") || "";
   console.log("SearchPage: Parâmetro de pesquisa:", searchQuery);
   
-  // Para debugging
+  // Estado para armazenar os resultados da pesquisa
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
+  
+  // Efeito para buscar resultados quando o termo de pesquisa mudar
   useEffect(() => {
-    console.log("SearchPage: Query da URL:", searchQuery);
+    async function fetchSearchResults() {
+      if (!searchQuery) {
+        setSearchResults([]);
+        return;
+      }
+      
+      setIsLoading(true);
+      setIsError(false);
+      
+      try {
+        const searchUrl = `/api/search?q=${encodeURIComponent(searchQuery)}`;
+        console.log("SearchPage: Fazendo requisição para:", searchUrl);
+        
+        const response = await fetch(searchUrl);
+        
+        if (!response.ok) {
+          throw new Error(`Erro na requisição: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("SearchPage: Resultados recebidos:", data);
+        setSearchResults(data);
+      } catch (error) {
+        console.error("SearchPage: Erro na busca:", error);
+        setIsError(true);
+        setSearchResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    fetchSearchResults();
   }, [searchQuery]);
-
-  // Busca eventos usando a API de pesquisa
-  const searchResultsQuery = useQuery({
-    queryKey: [`/api/search?q=${encodeURIComponent(searchQuery)}`],
-    enabled: !!searchQuery,
-    refetchOnMount: true,
-    retry: 1,
-    initialData: []
-  });
 
   return (
     <div className="flex flex-col min-h-screen bg-black">
@@ -53,11 +79,11 @@ export default function SearchPage() {
             <div className="mx-auto w-24 h-0.5 bg-primary rounded-full"></div>
           </div>
           
-          {searchResultsQuery.isLoading ? (
+          {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          ) : searchResultsQuery.isError ? (
+          ) : isError ? (
             <Card className="p-8 text-center border-dashed border-gray-700 bg-black/30 backdrop-blur-sm">
               <h3 className="text-lg font-semibold mb-2 text-red-500">Erro na pesquisa</h3>
               <p className="text-muted-foreground">
@@ -73,7 +99,7 @@ export default function SearchPage() {
                     Use a barra de pesquisa para encontrar eventos de seu interesse.
                   </p>
                 </Card>
-              ) : searchResultsQuery.data.length === 0 ? (
+              ) : searchResults.length === 0 ? (
                 <Card className="p-8 text-center border-dashed border-gray-700 bg-black/30 backdrop-blur-sm">
                   <h3 className="text-lg font-semibold mb-2">Nenhum resultado encontrado</h3>
                   <p className="text-muted-foreground">
@@ -83,7 +109,7 @@ export default function SearchPage() {
                 </Card>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {searchResultsQuery.data.map((event: any) => (
+                  {searchResults.map((event: any) => (
                     <EventCard key={event.id} event={event} />
                   ))}
                 </div>
