@@ -209,8 +209,7 @@ export function ManageCoOrganizersDialog({
               Gerenciar Co-Organizadores
             </DialogTitle>
             <DialogDescription>
-              Convide pessoas para ajudar a gerenciar este evento. Co-organizadores podem aceitar ou rejeitar 
-              inscrições, editar informações do evento e enviar mensagens aos participantes.
+              Convide pessoas para ajudar a gerenciar este evento. Co-organizadores podem aceitar ou rejeitar inscrições, editar informações do evento e enviar mensagens aos participantes.
             </DialogDescription>
           </DialogHeader>
 
