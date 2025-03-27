@@ -121,10 +121,13 @@ export default function EventCard({
 
   return (
     <>
-      <Card className={cn(
-        "overflow-hidden hover:shadow-xl transition-all duration-300 group transform hover:scale-[1.02] cursor-pointer",
-        event.category.slug === "lgbt" && "border-0 pride-border"
-      )}>
+      <Card 
+        className={cn(
+          "overflow-hidden hover:shadow-xl transition-all duration-300 group transform hover:scale-[1.02] cursor-pointer",
+          event.category.slug === "lgbt" && "border-0 pride-border"
+        )}
+        onClick={() => setIsViewModalOpen(true)} // Adiciona onClick para abrir o modal ao clicar no card
+      >
         {event.coverImage ? (
           <div className="h-48 overflow-hidden">
             <img
@@ -155,7 +158,10 @@ export default function EventCard({
           <div className="mt-4 flex items-center justify-between">
             {!isCreator && (
               <Button 
-                onClick={handleParticipate}
+                onClick={(e) => {
+                  e.stopPropagation(); // Impede que o clique do botão abra o modal
+                  handleParticipate();
+                }}
                 disabled={isParticipating}
                 variant="secondary"
               >

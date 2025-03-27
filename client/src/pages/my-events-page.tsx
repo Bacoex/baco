@@ -417,24 +417,36 @@ export default function MyEventsPage() {
   const createdEventsQuery = useQuery({
     queryKey: ["/api/user/events/created"],
     queryFn: async () => {
-      const res = await apiRequest("GET", "/api/user/events/created");
-      const data = await res.json();
-      console.log("Eventos criados:", data);
-      return data;
+      try {
+        const res = await apiRequest("GET", "/api/user/events/created");
+        const data = await res.json();
+        console.log("Eventos criados:", data);
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("Erro ao buscar eventos criados:", error);
+        return [];
+      }
     },
     enabled: !!user,
+    initialData: [] // Sempre iniciar com um array vazio
   });
   
   // Buscar eventos que o usuário está participando
   const participatingEventsQuery = useQuery({
     queryKey: ["/api/user/events/participating"],
     queryFn: async () => {
-      const res = await apiRequest("GET", "/api/user/events/participating");
-      const data = await res.json();
-      console.log("Eventos participando:", data);
-      return data;
+      try {
+        const res = await apiRequest("GET", "/api/user/events/participating");
+        const data = await res.json();
+        console.log("Eventos participando:", data);
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("Erro ao buscar eventos participando:", error);
+        return [];
+      }
     },
     enabled: !!user,
+    initialData: [] // Sempre iniciar com um array vazio
   });
   
   // Funcionalidade de seguir eventos foi removida

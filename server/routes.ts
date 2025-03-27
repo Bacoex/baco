@@ -216,6 +216,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * Rotas de Eventos do Usuário
+   */
+  app.get("/api/user/events/created", ensureAuthenticated, async (req, res) => {
+    try {
+      const events = await storage.getEventsByCreator(req.user!.id);
+      
+      const eventsWithDetails = await Promise.all(
+        events.map(async (event) => {
+          const categories = await storage.getCategories();
+          const category = categories.find(cat => cat.id === event.categoryId);
+          const creator = await storage.getUser(event.creatorId);
+          const participants = await storage.getParticipants(event.id);
+
+          const participantsWithDetails = await Promise.all(
+            participants.map(async (participant) => {
+              const user = await storage.getUser(participant.userId);
+              return {
+                ...participant,
+                user: user ? {
+                  id: user.id,
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  profileImage: user.profileImage
+                } : null
+              };
+            })
+          );
+
+          return {
+            ...event,
+            category,
+            creator: creator ? {
+              id: creator.id,
+              firstName: creator.firstName,
+              lastName: creator.lastName,
+              profileImage: creator.profileImage
+            } : null,
+            participants: participantsWithDetails
+          };
+        })
+      );
+
+      res.json(eventsWithDetails);
+    } catch (err) {
+      console.error("Erro ao buscar eventos criados pelo usuário:", err);
+      res.status(500).json({ message: "Erro ao buscar eventos criados" });
+    }
+  });
+
+  // Rota alternativa para manter compatibilidade
+  app.get("/api/user/events/creator", ensureAuthenticated, async (req, res) => {
+    try {
+      const events = await storage.getEventsByCreator(req.user!.id);
+      res.json(events);
+    } catch (err) {
+      res.status(500).json({ message: "Erro ao buscar eventos criados" });
+    }
+  });
+
+  app.get("/api/user/events/participating", ensureAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const allEvents = await storage.getEvents();
+      const participants = [];
+      
+      for (const event of allEvents) {
+        const participation = await storage.getParticipation(event.id, userId);
+        if (participation) {
+          participants.push({
+            event,
+            participation
+          });
+        }
+      }
+      
+      // Enriquece os eventos com dados da categoria e criador
+      const eventsWithDetails = await Promise.all(
+        participants.map(async ({ event, participation }) => {
+          const categories = await storage.getCategories();
+          const category = categories.find(cat => cat.id === event.categoryId);
+          const creator = await storage.getUser(event.creatorId);
+          
+          return {
+            ...event,
+            category,
+            creator: creator ? {
+              id: creator.id,
+              firstName: creator.firstName,
+              lastName: creator.lastName,
+              profileImage: creator.profileImage
+            } : null,
+            participation
+          };
+        })
+      );
+      
+      res.json(eventsWithDetails);
+    } catch (err) {
+      console.error("Erro ao buscar eventos que o usuário participa:", err);
+      res.status(500).json({ message: "Erro ao buscar eventos participando" });
+    }
+  });
+
+  /**
    * Rotas de Notificações
    */
   app.get("/api/notifications", ensureAuthenticated, async (req, res) => {
