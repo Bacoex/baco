@@ -11,6 +11,9 @@ function validarCPF(cpf: string): boolean {
   // Remove caracteres não numéricos
   cpf = cpf.replace(/[^\d]/g, '');
   
+  // Exceção para o CPF do administrador (00000000000)
+  if (cpf === '00000000000') return true;
+  
   // Verifica se tem 11 dígitos
   if (cpf.length !== 11) return false;
   
@@ -366,6 +369,7 @@ export const loginUserSchema = z.object({
   username: z.string()
     .min(11, "CPF inválido")
     .max(14, "CPF inválido")
+    // Já adicionamos a exceção para CPF 00000000000 na função validarCPF
     .refine(val => validarCPF(val), {
       message: "CPF inválido. Verifique se digitou corretamente."
     }),
