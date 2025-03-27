@@ -22,6 +22,7 @@ function Router() {
     <Switch>
       <ProtectedRoute path="/" component={HomePage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
+      <ProtectedRoute path="/profile/:id" component={ProfilePage} />
       <ProtectedRoute path="/my-events" component={MyEventsPage} />
       <ProtectedRoute path="/search" component={SearchPage} />
       <Route path="/auth" component={AuthPage} />

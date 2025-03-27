@@ -66,6 +66,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // API para obter detalhes de um usuário específico
+  app.get("/api/users/:id", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "ID de usuário inválido" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      
+      // Remover campos sensíveis antes de enviar
+      const { password, ...safeUser } = user;
+      return res.json(safeUser);
+    } catch (error: any) {
+      return res.status(500).json({ message: error.message });
+    }
+  });
+  
   // Middleware para verificar autenticação nas rotas protegidas
   const ensureAuthenticated = (req: any, res: any, next: any) => {
     if (req.isAuthenticated()) {

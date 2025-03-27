@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Phone, Instagram, MessageSquare, Lock, ExternalLink, Camera, X, Check, ChevronLeft, Home } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { updateUserProfileSchema, User } from "@shared/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,7 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { Eneagon } from "@/components/ui/eneagon";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "wouter";
+import { Link, useParams } from "wouter";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
@@ -45,12 +45,29 @@ const phoneValidationSchema = z.object({
 export default function ProfilePage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const params = useParams();
+  const profileId = params.id ? parseInt(params.id) : undefined;
+  const isOwnProfile = !profileId;
   const [activeTab, setActiveTab] = useState("profile");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [showPhoneValidation, setShowPhoneValidation] = useState(false);
   const [phoneValidationSent, setPhoneValidationSent] = useState(false);
   const [emailValidationSent, setEmailValidationSent] = useState(false);
+  
+  // Consulta para buscar dados do perfil do usuário, caso não seja o próprio usuário
+  const userProfileQuery = useQuery({
+    queryKey: ["/api/users", profileId],
+    queryFn: async () => {
+      if (!profileId) return null;
+      const res = await apiRequest("GET", `/api/users/${profileId}`);
+      return res.json();
+    },
+    enabled: !!profileId,
+  });
+  
+  // Perfil a ser exibido (próprio usuário ou outro usuário)
+  const profileToShow = profileId ? userProfileQuery.data : user;
 
   // Form para edição do perfil
   const profileForm = useForm<z.infer<typeof updateUserProfileSchema>>({
@@ -288,10 +305,33 @@ export default function ProfilePage() {
     validatePhoneMutation.mutate(data);
   };
 
+  // Verificar se os dados do usuário estão carregados
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  
+  // Verificar se está visualizando perfil de outro usuário e se os dados estão carregando
+  if (profileId && userProfileQuery.isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  
+  // Verificar se o perfil não foi encontrado
+  if (profileId && userProfileQuery.isError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-2xl font-bold mb-4">Perfil não encontrado</h1>
+        <p className="text-gray-400 mb-6">O usuário solicitado não existe ou não está disponível.</p>
+        <Link to="/">
+          <Button variant="default">Voltar à página inicial</Button>
+        </Link>
       </div>
     );
   }
@@ -314,41 +354,43 @@ export default function ProfilePage() {
                 <div className="relative">
                   <Eneagon className="w-32 h-32 mb-2">
                     <div className="w-full h-full">
-                      {imagePreview ? (
+                      {profileToShow?.profileImage ? (
                         <img 
-                          src={imagePreview} 
-                          alt={getUserDisplayName(user)}
+                          src={profileToShow.profileImage} 
+                          alt={getUserDisplayName(profileToShow)}
                           className="w-full h-full object-cover" 
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-primary text-primary-foreground">
-                          <span className="text-2xl font-bold">{getUserDisplayName(user).charAt(0)}</span>
+                          <span className="text-2xl font-bold">{getUserDisplayName(profileToShow).charAt(0)}</span>
                         </div>
                       )}
                     </div>
                   </Eneagon>
-                  <label 
-                    htmlFor="profile-image" 
-                    className="absolute bottom-2 right-2 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer shadow-lg"
-                  >
-                    <Camera className="h-4 w-4" />
-                    <input 
-                      id="profile-image" 
-                      type="file" 
-                      className="sr-only" 
-                      accept="image/*"
-                      onChange={handleImageChange}
-                    />
-                  </label>
+                  {isOwnProfile && (
+                    <label 
+                      htmlFor="profile-image" 
+                      className="absolute bottom-2 right-2 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer shadow-lg"
+                    >
+                      <Camera className="h-4 w-4" />
+                      <input 
+                        id="profile-image" 
+                        type="file" 
+                        className="sr-only" 
+                        accept="image/*"
+                        onChange={handleImageChange}
+                      />
+                    </label>
+                  )}
                 </div>
               </div>
-              <CardTitle className="text-2xl font-bold">{getUserDisplayName(user)}</CardTitle>
-              <CardDescription>{user.city && user.state ? `${user.city}, ${user.state}` : ''}</CardDescription>
+              <CardTitle className="text-2xl font-bold">{getUserDisplayName(profileToShow)}</CardTitle>
+              <CardDescription>{profileToShow?.city && profileToShow?.state ? `${profileToShow.city}, ${profileToShow.state}` : ''}</CardDescription>
               
               <div className="flex gap-2 mt-2 justify-center">
-                {user.instagramUsername && (
+                {profileToShow?.instagramUsername && (
                   <a 
-                    href={`https://instagram.com/${user.instagramUsername}`} 
+                    href={`https://instagram.com/${profileToShow.instagramUsername}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-white hover:text-gray-300"
@@ -356,9 +398,9 @@ export default function ProfilePage() {
                     <Instagram className="h-5 w-5" />
                   </a>
                 )}
-                {user.threadsUsername && (
+                {profileToShow?.threadsUsername && (
                   <a 
-                    href={`https://threads.net/@${user.threadsUsername}`} 
+                    href={`https://threads.net/@${profileToShow.threadsUsername}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-white hover:text-gray-300"
@@ -369,11 +411,11 @@ export default function ProfilePage() {
               </div>
             </CardHeader>
             <CardContent>
-              {user.biography && (
+              {profileToShow?.biography && (
                 <div className="mb-4">
                   <h3 className="text-sm font-semibold mb-2">Biografia</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {user.biography}
+                    {profileToShow.biography}
                   </p>
                 </div>
               )}
@@ -381,37 +423,54 @@ export default function ProfilePage() {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <Badge variant="outline" className="rounded-full px-3">
-                    {user.zodiacSign}
+                    {profileToShow?.zodiacSign}
                   </Badge>
                 </div>
                 
                 <Separator className="my-3" />
                 
-                <div className="flex items-center gap-2 text-sm">
-                  <Mail className="h-4 w-4 text-gray-500" />
-                  <span>{user.email}</span>
-                </div>
-                
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="h-4 w-4 text-gray-500" />
-                  <span>{user.phone}</span>
-                </div>
+                {!profileId && (
+                  <>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Mail className="h-4 w-4 text-gray-500" />
+                      <span>{profileToShow?.email}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-sm">
+                      <Phone className="h-4 w-4 text-gray-500" />
+                      <span>{profileToShow?.phone}</span>
+                    </div>
+                  </>
+                )}
               </div>
             </CardContent>
             <CardFooter className="flex-col gap-2">
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => setShowPasswordDialog(true)}
-              >
-                <Lock className="h-4 w-4 mr-2" />
-                Alterar Senha
-              </Button>
-              <Link to="/my-events">
-                <Button variant="secondary" className="w-full">
-                  Meus Eventos
+              {isOwnProfile ? (
+                <>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setShowPasswordDialog(true)}
+                  >
+                    <Lock className="h-4 w-4 mr-2" />
+                    Alterar Senha
+                  </Button>
+                  <Link to="/my-events">
+                    <Button variant="secondary" className="w-full">
+                      Meus Eventos
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <Button 
+                  variant="default" 
+                  className="w-full"
+                  onClick={() => window.location.href = `mailto:${profileToShow?.email}`}
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Entrar em contato
                 </Button>
-              </Link>
+              )}
             </CardFooter>
           </Card>
         </aside>
@@ -420,7 +479,9 @@ export default function ProfilePage() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full grid grid-cols-2">
               <TabsTrigger value="profile">Perfil</TabsTrigger>
-              <TabsTrigger value="settings">Configurações</TabsTrigger>
+              {isOwnProfile && (
+                <TabsTrigger value="settings">Configurações</TabsTrigger>
+              )}
             </TabsList>
             
             <TabsContent value="profile" className="mt-6">
