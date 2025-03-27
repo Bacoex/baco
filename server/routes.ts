@@ -520,8 +520,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/user/events/created", ensureAuthenticated, async (req, res) => {
     try {
       console.log("Buscando eventos para o usuário", req.user!.id, req.user!.firstName, req.user!.lastName);
-      const events = await storage.getEventsByCreator(req.user!.id);
-      console.log(`Encontrados ${events.length} eventos criados pelo usuário ${req.user!.id}`);
+      const userId = req.user!.id;
+      const events = await storage.getEventsByCreator(userId);
+      console.log(`Encontrados ${events.length} eventos criados pelo usuário ${userId}`);
+      console.log("Resumo de eventos criados pelo usuário:", events);
       
       // Obtém os detalhes das categorias e criador para cada evento
       const eventsWithDetails = await Promise.all(

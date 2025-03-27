@@ -569,9 +569,14 @@ export class MemStorage implements IStorage {
   }
 
   async getEventsByCreator(creatorId: number): Promise<Event[]> {
-    return Array.from(this.eventsMap.values()).filter(
+    const events = Array.from(this.eventsMap.values()).filter(
       (event) => event.creatorId === creatorId
     );
+    console.log(`getEventsByCreator: Buscando eventos do criador ${creatorId}, encontrados ${events.length} eventos`);
+    if (events.length > 0) {
+      console.log("Eventos encontrados:", events.map(e => ({ id: e.id, name: e.name, creatorId: e.creatorId })));
+    }
+    return events;
   }
 
   async createEvent(event: InsertEvent, creatorId: number): Promise<Event> {
@@ -587,6 +592,7 @@ export class MemStorage implements IStorage {
       paymentMethods: null
     };
     this.eventsMap.set(id, newEvent);
+    console.log(`Evento criado: ID=${id}, Nome=${event.name}, Criador=${creatorId}`);
     return newEvent;
   }
 
