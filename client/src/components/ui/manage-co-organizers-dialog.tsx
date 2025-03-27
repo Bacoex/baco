@@ -87,6 +87,11 @@ export function ManageCoOrganizersDialog({ eventId, isOpen, onClose }: ManageCoO
                 <div>Nenhum co-organizador encontrado.</div>
                 <div>Convide alguém para ajudar a gerenciar este evento.</div>
               </div>
+            ) : !coOrganizersQuery.data || coOrganizersQuery.data.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <div>Nenhum co-organizador encontrado.</div>
+                <div>Convide alguém para ajudar a gerenciar este evento.</div>
+              </div>
             ) : (
               <div className="space-y-2">
                 {coOrganizersQuery.data.map((coOrg: any) => (
