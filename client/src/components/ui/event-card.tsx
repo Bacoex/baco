@@ -140,8 +140,28 @@ export default function EventCard({ event }: EventProps) {
     },
   });
   
-  // Imagem de fallback se não houver imagem do evento
-  const imageSrc = event.coverImage || "https://via.placeholder.com/500x250?text=Evento";
+  // Função para obter uma imagem de acordo com a categoria do evento
+  const getEventImage = () => {
+    if (event.coverImage) return event.coverImage;
+    
+    const categoryImages: Record<string, string> = {
+      "birthday": "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?q=80&w=870&auto=format&fit=crop",
+      "wedding": "https://images.unsplash.com/photo-1509927083803-4bd519298ac4?q=80&w=870&auto=format&fit=crop",
+      "religious": "https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?q=80&w=387&auto=format&fit=crop",
+      "meeting": "https://images.unsplash.com/photo-1565688534261-c1c0e901382e?q=80&w=870&auto=format&fit=crop",
+      "barbecue": "https://images.unsplash.com/photo-1529108091279-c4a68c97cd1c?q=80&w=876&auto=format&fit=crop",
+      "party": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=870&auto=format&fit=crop",
+      "concert": "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=870&auto=format&fit=crop",
+      "lgbt": "https://images.unsplash.com/photo-1531299983330-093763e1d963?q=80&w=870&auto=format&fit=crop",
+      "default": "https://images.unsplash.com/photo-1541532713592-79a0317b6b77?q=80&w=889&auto=format&fit=crop"
+    };
+    
+    const slug = event.category.slug;
+    return categoryImages[slug] || categoryImages.default;
+  };
+
+  // Imagem do evento
+  const imageSrc = getEventImage();
   
   // Função para buscar detalhes completos do evento
   const fetchEventDetails = useQuery({
@@ -173,7 +193,11 @@ export default function EventCard({ event }: EventProps) {
   return (
     <>
       <Card 
-        className="overflow-hidden hover:shadow-xl transition-all duration-300 border-primary/10 hover:border-primary/30 group transform hover:scale-[1.02] cursor-pointer"
+        className={`overflow-hidden hover:shadow-xl transition-all duration-300 group transform hover:scale-[1.02] cursor-pointer ${
+          event.category.slug === "lgbt" 
+          ? "border-0 pride-border" 
+          : "border-primary/10 hover:border-primary/30"
+        }`}
         onClick={openEventDetails}
       >
         <div className="relative h-48">
@@ -224,7 +248,7 @@ export default function EventCard({ event }: EventProps) {
           </div>
           
           <div className="flex justify-between items-center mt-4">
-            <span className="bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent font-semibold text-lg">{formatPrice(event.ticketPrice || 0)}</span>
+            <span className="text-primary font-semibold text-lg">{formatPrice(event.ticketPrice || 0)}</span>
             
             <div onClick={(e) => e.stopPropagation()}>
               {isParticipating ? (
@@ -247,7 +271,11 @@ export default function EventCard({ event }: EventProps) {
               ) : (
                 <Button 
                   size="sm" 
-                  className="rounded-full bg-gradient-to-r from-primary to-baco-blue hover:from-baco-blue hover:to-primary text-white transition-all duration-300"
+                  className={`rounded-full text-white transition-all duration-300 ${
+                    event.category.slug === "lgbt" 
+                    ? "pride-gradient" 
+                    : "bg-primary hover:bg-primary/90"
+                  }`}
                   onClick={() => participateMutation.mutate()}
                   disabled={participateMutation.isPending}
                 >

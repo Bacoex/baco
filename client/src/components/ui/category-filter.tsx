@@ -60,19 +60,17 @@ export default function CategoryFilter({
                   category.slug === "lgbt" && selectedCategory === category.slug 
                     ? "pride-gradient border-0" 
                     : selectedCategory === category.slug && category.slug !== "lgbt" 
-                      ? "bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white border-0" 
+                      ? "bg-primary hover:bg-primary/90 text-white border-0" 
                       : "text-gray-300 hover:text-white bg-black/30 backdrop-blur-md"
                 )}
-                style={(category.slug === "lgbt" && category.color === "pride" && selectedCategory === category.slug) 
-                  ? { 
-                      background: "linear-gradient(90deg, rgba(255,0,0,0.8) 0%, rgba(255,154,0,0.8) 17%, rgba(208,222,33,0.8) 33%, rgba(79,220,74,0.8) 50%, rgba(63,218,216,0.8) 66%, rgba(47,201,226,0.8) 83%, rgba(28,127,238,0.8) 100%)",
-                      color: "#fff", 
-                      textShadow: "0px 0px 2px rgba(0,0,0,0.6)",
-                      borderColor: "transparent"
-                    }
-                  : (category.color && category.color !== "pride" && selectedCategory === category.slug)
-                    ? { backgroundColor: category.color, color: "#fff", borderColor: "transparent" }
-                    : { borderColor: category.color || 'rgba(55, 65, 81, 0.5)' }
+                style={
+                  selectedCategory !== category.slug
+                  ? { borderColor: category.color || 'rgba(55, 65, 81, 0.5)' }
+                  : category.slug === "lgbt" && category.color === "pride"
+                    ? { borderColor: "transparent" }
+                    : (category.color && category.color !== "pride")
+                      ? { backgroundColor: category.color, color: "#fff", borderColor: "transparent" }
+                      : { borderColor: "transparent" }
                 }
               >
                 {category.name}

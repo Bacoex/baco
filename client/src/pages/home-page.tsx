@@ -83,12 +83,12 @@ export default function HomePage() {
           
           {/* Título da seção */}
           <div className="text-center pb-6">
-            <h2 className="text-xl font-semibold inline-block bg-gradient-to-r from-orange-400 to-baco-blue bg-clip-text text-transparent">
+            <h2 className="text-xl font-semibold inline-block text-white">
               {selectedCategory 
                 ? `Eventos de ${categoriesQuery.data?.find(c => c.slug === selectedCategory)?.name || selectedCategory}` 
                 : "Eventos em destaque"}
             </h2>
-            <div className="mx-auto w-24 h-0.5 bg-gradient-to-r from-orange-500 to-baco-blue rounded-full mt-2"></div>
+            <div className="mx-auto w-24 h-0.5 bg-primary rounded-full mt-2"></div>
           </div>
           
           {/* Grade de eventos */}
