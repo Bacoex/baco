@@ -5,7 +5,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { LogOut, Menu, User, HelpCircle, Info } from "lucide-react";
 
 export function Header() {
-  const { user, logout } = useAuth();
+  const { user, logoutMutation } = useAuth();
+  
+  // Função para lidar com o logout
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
 
   return (
     <div className="fixed w-full z-50 flex justify-between items-center px-4 py-2">
@@ -63,7 +68,7 @@ export function Header() {
                 Sobre
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={logout}>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               Sair
             </DropdownMenuItem>
