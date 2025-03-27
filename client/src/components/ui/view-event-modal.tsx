@@ -195,16 +195,26 @@ export default function ViewEventModal({
       
       // Processar notificações que vêm do backend
       if (participationData.notification) {
+        console.log("Notificações disponíveis em view-event-modal:", participationData.notification);
+        
         // Notificação para o criador do evento (se existir)
         if (participationData.notification.forCreator) {
-          // Adiciona a notificação no estado global
-          addNotification(participationData.notification.forCreator);
+          // Se o usuário atual é o destinatário da notificação
+          if (participationData.notification.forCreator.userId === user?.id) {
+            console.log("Adicionando notificação para o criador:", participationData.notification.forCreator);
+            // Adiciona a notificação no estado global
+            addNotification(participationData.notification.forCreator);
+          }
         }
         
         // Notificação para o participante (se existir)
         if (participationData.notification.forParticipant) {
-          // Adiciona a notificação no estado global
-          addNotification(participationData.notification.forParticipant);
+          // Se o usuário atual é o destinatário da notificação
+          if (participationData.notification.forParticipant.userId === user?.id) {
+            console.log("Adicionando notificação para o participante:", participationData.notification.forParticipant);
+            // Adiciona a notificação no estado global
+            addNotification(participationData.notification.forParticipant);
+          }
         }
       }
       

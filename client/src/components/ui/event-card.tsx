@@ -252,13 +252,21 @@ export default function EventCard({
         // Se temos notificação na resposta da API
         if (data.notification) {
           // Notificação para o criador do evento
-          if (data.notification.forCreator && user?.id === event.creatorId) {
-            addNotification(data.notification.forCreator);
+          if (data.notification.forCreator) {
+            // Se o usuário atual é o destinatário da notificação
+            if (data.notification.forCreator.userId === user?.id) {
+              console.log("Adicionando notificação para o criador:", data.notification.forCreator);
+              addNotification(data.notification.forCreator);
+            }
           }
           
-          // Notificação para o participante (usuário atual)
-          if (data.notification.forParticipant && user?.id !== event.creatorId) {
-            addNotification(data.notification.forParticipant);
+          // Notificação para o participante
+          if (data.notification.forParticipant) {
+            // Se o usuário atual é o destinatário da notificação
+            if (data.notification.forParticipant.userId === user?.id) {
+              console.log("Adicionando notificação para o participante:", data.notification.forParticipant);
+              addNotification(data.notification.forParticipant);
+            }
           }
         }
       } else {
@@ -311,13 +319,21 @@ export default function EventCard({
       // Se temos notificações na resposta da API
       if (data?.notification) {
         // Notificação para o criador do evento
-        if (data.notification.forCreator && user?.id === event.creatorId) {
-          addNotification(data.notification.forCreator);
+        if (data.notification.forCreator) {
+          // Se o usuário atual é o destinatário da notificação
+          if (data.notification.forCreator.userId === user?.id) {
+            console.log("Adicionando notificação para o criador (cancel):", data.notification.forCreator);
+            addNotification(data.notification.forCreator);
+          }
         }
         
-        // Notificação para o participante (usuário atual)
-        if (data.notification.forParticipant && user?.id !== event.creatorId) {
-          addNotification(data.notification.forParticipant);
+        // Notificação para o participante
+        if (data.notification.forParticipant) {
+          // Se o usuário atual é o destinatário da notificação
+          if (data.notification.forParticipant.userId === user?.id) {
+            console.log("Adicionando notificação para o participante (cancel):", data.notification.forParticipant);
+            addNotification(data.notification.forParticipant);
+          }
         }
       }
       
