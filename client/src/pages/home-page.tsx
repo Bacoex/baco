@@ -7,6 +7,7 @@ import CategoryFilter from "@/components/ui/category-filter";
 import CreateEventModal from "@/components/ui/create-event-modal";
 import ViewEventModal from "@/components/ui/view-event-modal";
 import NetworkBackground from "@/components/ui/network-background";
+import { SearchBar } from "@/components/ui/search-bar";
 import { Button } from "@/components/ui/button";
 import { PlusIcon, Loader2 } from "lucide-react";
 import { EventCategory, Event } from "@shared/schema";
@@ -159,6 +160,9 @@ export default function HomePage() {
           )}
         </div>
       </main>
+      
+      {/* Barra de pesquisa flutuante na parte inferior */}
+      <SearchBar />
       
       {/* Botão flutuante para criar evento */}
       <div className="fixed bottom-24 right-8 z-20">
