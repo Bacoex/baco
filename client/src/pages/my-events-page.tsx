@@ -89,16 +89,15 @@ interface Event {
 }
 
 // Componente para o card de evento
-function EventCard({ event, isCreator = false, participation = null, onApprove, onReject, onRemove, onFollow, onUnfollow, isFollowing = false }: { 
+function EventCard({ event, isCreator = false, participation = null, onApprove, onReject, onRemove, onRemoveParticipant, onRevertParticipant }: { 
   event: Event, 
   isCreator?: boolean,
   participation?: { id: number, status: string } | null,
   onApprove?: (participantId: number) => void,
   onReject?: (participantId: number) => void,
   onRemove?: (eventId: number) => void,
-  onFollow?: (eventId: number) => void,
-  onUnfollow?: (eventId: number) => void,
-  isFollowing?: boolean
+  onRemoveParticipant?: (participantId: number) => void,
+  onRevertParticipant?: (participantId: number) => void
 }) {
   const { toast } = useToast();
   const [showParticipants, setShowParticipants] = useState(false);
@@ -192,30 +191,7 @@ function EventCard({ event, isCreator = false, participation = null, onApprove, 
         </div>
       )}
       
-      {/* Ícone para eventos que estou seguindo */}
-      {!isCreator && (
-        <div className="absolute top-4 right-4">
-          {isFollowing ? (
-            <Button 
-              variant="secondary" 
-              size="icon" 
-              className="rounded-full bg-white/90 dark:bg-black/90 text-red-500"
-              onClick={() => onUnfollow && onUnfollow(event.id)}
-            >
-              <Heart className="h-4 w-4 fill-current" />
-            </Button>
-          ) : (
-            <Button 
-              variant="secondary" 
-              size="icon" 
-              className="rounded-full bg-white/90 dark:bg-black/90"
-              onClick={() => onFollow && onFollow(event.id)}
-            >
-              <Heart className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      )}
+      {/* O ícone para seguir eventos foi removido */}
       
       {/* Status da participação */}
       {participation && (
@@ -461,17 +437,7 @@ export default function MyEventsPage() {
     enabled: !!user,
   });
   
-  // Buscar eventos que o usuário está seguindo
-  const followingEventsQuery = useQuery({
-    queryKey: ["/api/user/events/following"],
-    queryFn: async () => {
-      const res = await apiRequest("GET", "/api/user/events/following");
-      const data = await res.json();
-      console.log("Eventos seguindo:", data);
-      return data;
-    },
-    enabled: !!user,
-  });
+  // Funcionalidade de seguir eventos foi removida
   
   // Buscar categorias (para o modal de criação)
   const categoriesQuery = useQuery<EventCategory[]>({
@@ -773,49 +739,7 @@ export default function MyEventsPage() {
     },
   });
   
-  // Mutação para seguir evento
-  const followEventMutation = useMutation({
-    mutationFn: async (eventId: number) => {
-      const res = await apiRequest("POST", `/api/events/${eventId}/follow`);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user/events/following"] });
-      toast({
-        title: "Evento seguido!",
-        description: "Você está seguindo o evento.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Erro ao seguir evento",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-  
-  // Mutação para deixar de seguir evento
-  const unfollowEventMutation = useMutation({
-    mutationFn: async (eventId: number) => {
-      const res = await apiRequest("DELETE", `/api/events/${eventId}/follow`);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user/events/following"] });
-      toast({
-        title: "Deixou de seguir",
-        description: "Você deixou de seguir o evento.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Erro ao deixar de seguir",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  // As mutações para seguir/deixar de seguir eventos foram removidas
   
   // Handlers
   const handleRemoveEvent = (eventId: number) => {
@@ -842,26 +766,7 @@ export default function MyEventsPage() {
     revertParticipantMutation.mutate(participantId);
   };
   
-  const handleFollowEvent = (eventId: number) => {
-    followEventMutation.mutate(eventId);
-  };
-  
-  const handleUnfollowEvent = (eventId: number) => {
-    unfollowEventMutation.mutate(eventId);
-  };
-  
-  // Verificar se um evento está sendo seguido pelo usuário
-  const isEventFollowed = (eventId: number) => {
-    if (!followingEventsQuery.data) return false;
-    console.log("Verificando se evento está sendo seguido:", eventId, followingEventsQuery.data);
-    // Verificar se followingEventsQuery.data é um array
-    if (!Array.isArray(followingEventsQuery.data)) {
-      console.error("followingEventsQuery.data não é um array:", followingEventsQuery.data);
-      return false;
-    }
-    // Verificar se algum evento na lista tem o ID procurado
-    return followingEventsQuery.data.some((e: any) => e && typeof e === 'object' && e.id === eventId);
-  };
+  // Os handlers para seguir/deixar de seguir eventos foram removidos
   
   if (!user) {
     return (
@@ -891,10 +796,9 @@ export default function MyEventsPage() {
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-3 mb-6 h-10 text-sm">
+            <TabsList className="grid grid-cols-2 mb-6 h-10 text-sm">
               <TabsTrigger value="created">Criados por mim</TabsTrigger>
               <TabsTrigger value="participating">Participando</TabsTrigger>
-              <TabsTrigger value="following">Seguindo</TabsTrigger>
             </TabsList>
             
             {/* Tab: Eventos criados pelo usuário */}
@@ -984,58 +888,13 @@ export default function MyEventsPage() {
                         id: participation.id, 
                         status: participation.status 
                       }}
-                      onFollow={handleFollowEvent}
-                      onUnfollow={handleUnfollowEvent}
-                      isFollowing={isEventFollowed(participation.event.id)}
                     />
                   ))}
                 </div>
               )}
             </TabsContent>
             
-            {/* Tab: Eventos que o usuário está seguindo */}
-            <TabsContent value="following">
-              {followingEventsQuery.isLoading ? (
-                <div className="flex justify-center items-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : followingEventsQuery.isError ? (
-                <Card className="bg-red-50 border-red-200">
-                  <CardHeader>
-                    <CardTitle className="text-red-800">Erro ao carregar eventos seguidos</CardTitle>
-                    <CardDescription className="text-red-700">
-                      Não foi possível carregar os eventos que você está seguindo.
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-              ) : followingEventsQuery.data?.length === 0 ? (
-                <Card className="bg-black/30 backdrop-blur-sm border-gray-700">
-                  <CardHeader>
-                    <CardTitle className="text-center text-white">Você não está seguindo nenhum evento</CardTitle>
-                    <CardDescription className="text-center text-gray-400">
-                      Siga eventos para receber atualizações e novidades.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardFooter className="flex justify-center">
-                    <Button asChild>
-                      <Link to="/">Explorar eventos</Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ) : (
-                <div className="space-y-6">
-                  {followingEventsQuery.data?.map((event: Event) => (
-                    <EventCard 
-                      key={event.id} 
-                      event={event}
-                      onFollow={handleFollowEvent}
-                      onUnfollow={handleUnfollowEvent}
-                      isFollowing={true}
-                    />
-                  ))}
-                </div>
-              )}
-            </TabsContent>
+
           </Tabs>
         </div>
       </main>

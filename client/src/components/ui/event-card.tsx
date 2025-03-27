@@ -60,14 +60,11 @@ interface EventProps {
     id: number;
     status: string;
   } | null;
-  isFollowing?: boolean;
   onRemove?: (eventId: number) => void;
   onApprove?: (participantId: number) => void;
   onReject?: (participantId: number) => void;
   onRemoveParticipant?: (participantId: number) => void;
   onRevertParticipant?: (participantId: number) => void;
-  onFollow?: (eventId: number) => void;
-  onUnfollow?: (eventId: number) => void;
 }
 
 // Importar a interface do ViewEventModal em vez de duplicá-la
@@ -122,14 +119,11 @@ export default function EventCard({
   event, 
   isCreator = false,
   participation = null,
-  isFollowing = false,
   onRemove,
   onApprove,
   onReject,
   onRemoveParticipant,
-  onRevertParticipant,
-  onFollow,
-  onUnfollow
+  onRevertParticipant
 }: EventProps) {
   const { toast } = useToast();
   const { user } = useAuth();

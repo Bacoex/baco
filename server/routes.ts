@@ -609,7 +609,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const event of allEvents) {
         const participation = await storage.getParticipation(event.id, req.user!.id);
         
-        if (participation) {
+        if (participation && (participation.status === "approved" || participation.status === "confirmed")) {
           // Obtém o criador do evento
           const creator = await storage.getUser(event.creatorId);
           
@@ -641,111 +641,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Obtém eventos que o usuário está seguindo
-  app.get("/api/user/events/following", ensureAuthenticated, async (req, res) => {
-    try {
-      // Simulação - na versão atual, os eventos seguidos são apenas os que o usuário é participante
-      // Num sistema real, teria uma tabela à parte para eventos seguidos
-      
-      // Obtém todos os eventos
-      const allEvents = await storage.getEvents();
-      const categories = await storage.getCategories();
-      
-      // Para cada evento, cria uma lista de seguidos (atualmente são os mesmos que participa)
-      const followedEvents = [];
-      
-      for (const event of allEvents) {
-        const participation = await storage.getParticipation(event.id, req.user!.id);
-        
-        // Se está participando, considera como seguindo
-        if (participation && participation.status === "approved") {
-          // Obtém o criador do evento
-          const creator = await storage.getUser(event.creatorId);
-          
-          // Adiciona categoria ao evento
-          const category = categories.find(cat => cat.id === event.categoryId);
-          
-          followedEvents.push({
-            ...event,
-            category,
-            creator: creator ? {
-              id: creator.id,
-              firstName: creator.firstName,
-              lastName: creator.lastName,
-              profileImage: creator.profileImage
-            } : null
-          });
-        }
-      }
-      
-      console.log("Eventos seguidos pelo usuário:", followedEvents);
-      res.json(followedEvents);
-    } catch (err) {
-      console.error("Erro ao buscar eventos seguidos:", err);
-      res.status(500).json({ message: "Erro ao buscar eventos seguidos" });
-    }
-  });
+  // REMOVIDO: Funcionalidade de "eventos seguidos" foi descontinuada.
+  // Eventos "seguidos" agora são considerados como participações com status "approved"
   
-  // Seguir um evento
-  app.post("/api/events/:id/follow", ensureAuthenticated, async (req, res) => {
-    try {
-      const eventId = parseInt(req.params.id);
-      
-      // Verifica se o evento existe
-      const event = await storage.getEvent(eventId);
-      if (!event) {
-        return res.status(404).json({ message: "Evento não encontrado" });
-      }
-      
-      // Na versão atual, seguir é o mesmo que participar com status approved
-      // Se já estiver participando, atualiza o status para approved
-      const existingParticipation = await storage.getParticipation(eventId, req.user!.id);
-      
-      if (existingParticipation) {
-        // Atualiza para approved se não estiver
-        if (existingParticipation.status !== "approved") {
-          await storage.updateParticipationStatus(existingParticipation.id, "approved");
-        }
-        
-        return res.status(200).json({ message: "Agora você está seguindo este evento" });
-      }
-      
-      // Se não estiver participando, cria uma participação com status approved
-      const participationData = {
-        eventId,
-        userId: req.user!.id,
-        status: "approved"
-      };
-      
-      await storage.createParticipation(participationData);
-      
-      res.status(200).json({ message: "Agora você está seguindo este evento" });
-    } catch (err) {
-      console.error("Erro ao seguir evento:", err);
-      res.status(500).json({ message: "Erro ao seguir evento" });
-    }
-  });
+  // REMOVIDO: Endpoint para seguir evento. 
+  // Funcionalidade substituída pelo sistema de participação normal
   
-  // Deixar de seguir um evento
-  app.delete("/api/events/:id/follow", ensureAuthenticated, async (req, res) => {
-    try {
-      const eventId = parseInt(req.params.id);
-      
-      // Verifica se existe a participação
-      const participation = await storage.getParticipation(eventId, req.user!.id);
-      if (!participation) {
-        return res.status(404).json({ message: "Você não está seguindo este evento" });
-      }
-      
-      // Remove a participação (deixa de seguir)
-      await storage.removeParticipation(participation.id);
-      
-      res.status(200).json({ message: "Você deixou de seguir este evento" });
-    } catch (err) {
-      console.error("Erro ao deixar de seguir evento:", err);
-      res.status(500).json({ message: "Erro ao deixar de seguir evento" });
-    }
-  });
+  // REMOVIDO: Endpoint para deixar de seguir um evento.
+  // Funcionalidade substituída pelo sistema de cancelamento de participação normal
   
   /**
    * API de Participação em Eventos
