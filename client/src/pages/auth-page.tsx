@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Info, Fingerprint, Save } from "lucide-react";
+import { Loader2, Info, Fingerprint, Save, Eye, EyeOff } from "lucide-react";
 import RegisterForm from "@/components/register-form";
 import {
   Dialog,
@@ -334,6 +334,9 @@ function LoginForm({
   const { loginMutation } = useAuth();
   const [rememberPassword, setRememberPassword] = useState(false);
   
+  // Estado para controlar se a senha está visível ou não
+  const [showPassword, setShowPassword] = useState(false);
+  
   // Estado para controlar se a solicitação biométrica está sendo processada
   const [biometricAuthPending, setBiometricAuthPending] = useState(false);
   
@@ -471,14 +474,31 @@ function LoginForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-gray-300">Senha</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="password" 
-                      placeholder="Digite sua senha" 
-                      className="border-white/10 focus-visible:ring-baco-blue bg-black/40 text-white backdrop-blur-sm rounded-lg"
-                      {...field} 
-                    />
-                  </FormControl>
+                  <div className="relative">
+                    <FormControl>
+                      <Input 
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Digite sua senha" 
+                        className="border-white/10 focus-visible:ring-baco-blue bg-black/40 text-white backdrop-blur-sm rounded-lg pr-10"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                      <span className="sr-only">
+                        {showPassword ? "Ocultar senha" : "Mostrar senha"}
+                      </span>
+                    </Button>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
