@@ -85,6 +85,9 @@ export class MemStorage implements IStorage {
     
     // Pré-cadastra categorias de eventos comuns
     this._createInitialCategories();
+    
+    // Cria usuários e eventos de teste
+    this._createTestUsersAndEvents();
   }
   
   /**
@@ -106,11 +109,277 @@ export class MemStorage implements IStorage {
       rg: "123456789",
       zodiacSign: "Capricórnio",
       createdAt: new Date("2023-01-01"),
-      profileImage: null
+      profileImage: null,
+      biography: "Criador do Baco, apaixonado por tecnologia e inovação.",
+      instagramUsername: "kevin.baco",
+      threadsUsername: "kevin.baco",
+      city: "Bauru",
+      state: "SP",
+      isActive: true,
+      isPremium: true,
+      coordinates: null,
+      lastLogin: null
     };
     
     // Adiciona o usuário permanente ao mapa
     this.usersMap.set(1, kevinUser);
+  }
+  
+  /**
+   * Cria usuários e eventos de teste para a aplicação
+   */
+  private _createTestUsersAndEvents() {
+    console.log("Criando usuários e eventos de teste...");
+    
+    // 1. Criar 5 usuários de teste
+    const testUsers: InsertUser[] = [
+      {
+        username: "12345678901",
+        password: "445c678c04146877b6fb1cd930af60213a78b098e05b8a6a4ff9dbf4ff8bafa01c6b05b851f43f27d4bb3dcb7504e8645a026013cd91901704d24ae5eeec03c0.73b9deb7c7cd0891f61221d27b10b44a", // Teste@123
+        firstName: "Ana",
+        lastName: "Silva",
+        birthDate: "1990-05-15",
+        email: "ana.silva@example.com",
+        phone: "11987654321",
+        rg: "223344556",
+        zodiacSign: "Touro",
+        city: "São Paulo",
+        state: "SP",
+        biography: "Adoro eventos culturais e conhecer pessoas novas.",
+        instagramUsername: "ana.silvaa",
+        threadsUsername: "ana.silvaa"
+      },
+      {
+        username: "23456789012",
+        password: "445c678c04146877b6fb1cd930af60213a78b098e05b8a6a4ff9dbf4ff8bafa01c6b05b851f43f27d4bb3dcb7504e8645a026013cd91901704d24ae5eeec03c0.73b9deb7c7cd0891f61221d27b10b44a", // Teste@123
+        firstName: "Carlos",
+        lastName: "Oliveira",
+        birthDate: "1988-10-22",
+        email: "carlos.oliveira@example.com",
+        phone: "21976543210",
+        rg: "334455667",
+        zodiacSign: "Libra",
+        city: "Rio de Janeiro",
+        state: "RJ",
+        biography: "DJ profissional, curto festas e música eletrônica.",
+        instagramUsername: "dj_carlos",
+        threadsUsername: "dj_carlos"
+      },
+      {
+        username: "34567890123",
+        password: "445c678c04146877b6fb1cd930af60213a78b098e05b8a6a4ff9dbf4ff8bafa01c6b05b851f43f27d4bb3dcb7504e8645a026013cd91901704d24ae5eeec03c0.73b9deb7c7cd0891f61221d27b10b44a", // Teste@123
+        firstName: "Beatriz",
+        lastName: "Santos",
+        birthDate: "1995-03-08",
+        email: "beatriz.santos@example.com",
+        phone: "31965432109",
+        rg: "445566778",
+        zodiacSign: "Peixes",
+        city: "Belo Horizonte",
+        state: "MG",
+        biography: "Fotógrafa, amo registrar momentos especiais.",
+        instagramUsername: "beatriz.foto",
+        threadsUsername: "beatriz.foto"
+      },
+      {
+        username: "45678901234",
+        password: "445c678c04146877b6fb1cd930af60213a78b098e05b8a6a4ff9dbf4ff8bafa01c6b05b851f43f27d4bb3dcb7504e8645a026013cd91901704d24ae5eeec03c0.73b9deb7c7cd0891f61221d27b10b44a", // Teste@123
+        firstName: "Rafael",
+        lastName: "Costa",
+        birthDate: "1992-07-18",
+        email: "rafael.costa@example.com",
+        phone: "51954321098",
+        rg: "556677889",
+        zodiacSign: "Câncer",
+        city: "Porto Alegre",
+        state: "RS",
+        biography: "Chef de cozinha, especialista em churrasco.",
+        instagramUsername: "chef_rafael",
+        threadsUsername: "chef_rafael"
+      },
+      {
+        username: "56789012345",
+        password: "445c678c04146877b6fb1cd930af60213a78b098e05b8a6a4ff9dbf4ff8bafa01c6b05b851f43f27d4bb3dcb7504e8645a026013cd91901704d24ae5eeec03c0.73b9deb7c7cd0891f61221d27b10b44a", // Teste@123
+        firstName: "Fernanda",
+        lastName: "Lima",
+        birthDate: "1991-12-05",
+        email: "fernanda.lima@example.com",
+        phone: "81943210987",
+        rg: "667788990",
+        zodiacSign: "Sagitário",
+        city: "Recife",
+        state: "PE",
+        biography: "Organizadora de eventos profissional.",
+        instagramUsername: "fer.eventos",
+        threadsUsername: "fer.eventos"
+      }
+    ];
+
+    // Criar os usuários e armazenar seus IDs
+    const userIds: number[] = [];
+    testUsers.forEach((userData) => {
+      const id = this.userIdCounter++;
+      const newUser: User = {
+        ...userData,
+        id,
+        createdAt: new Date(),
+        profileImage: null,
+        isActive: true,
+        isPremium: false,
+        coordinates: null,
+        lastLogin: null
+      };
+      this.usersMap.set(id, newUser);
+      userIds.push(id);
+      console.log(`Usuário criado: ${id} - ${userData.firstName} ${userData.lastName}`);
+    });
+
+    // 2. Criar um evento do Kevin (usuário 1) que precisa de aprovação
+    const kevinEventId = this.eventIdCounter++;
+    const kevinEvent: Event = {
+      id: kevinEventId,
+      name: "Workshop de Fotografia",
+      description: "Workshop exclusivo de fotografia com profissionais renomados. Vagas limitadas.",
+      date: "2025-04-15",
+      timeStart: "14:00",
+      timeEnd: "18:00",
+      location: "Estúdio Fotográfico Central, Bauru-SP",
+      coordinates: "-22.3156,-49.0709",
+      coverImage: null,
+      eventType: "private_application",
+      categoryId: 4, // Reunião
+      creatorId: 1, // Kevin
+      capacity: 15,
+      ticketPrice: null,
+      isActive: true,
+      createdAt: new Date()
+    };
+    this.eventsMap.set(kevinEventId, kevinEvent);
+    console.log(`Evento criado: ${kevinEventId} - ${kevinEvent.name} (Criador: Kevin)`);
+    
+    // 3. Criar eventos para os outros usuários
+    const eventDetails = [
+      {
+        name: "Festa de Aniversário",
+        description: "Comemoração de 30 anos com open bar e DJ.",
+        date: "2025-05-20",
+        category: 1, // Aniversário
+        creator: userIds[0], // Ana
+        type: "private_ticket"
+      },
+      {
+        name: "Night Eletrônica",
+        description: "A melhor noite de música eletrônica da cidade com DJs internacionais.",
+        date: "2025-04-10",
+        category: 6, // Festa
+        creator: userIds[1], // Carlos
+        type: "public"
+      },
+      {
+        name: "Exposição de Fotografia",
+        description: "Exposição de fotografia urbana com coquetel de abertura.",
+        date: "2025-04-25",
+        category: 7, // Show (usando para exposição)
+        creator: userIds[2], // Beatriz
+        type: "public"
+      },
+      {
+        name: "Festival Gastronômico",
+        description: "Festival com os melhores chefs da região sul. Pratos típicos e harmonização.",
+        date: "2025-06-05",
+        category: 5, // Churrasco (usando para gastronomia)
+        creator: userIds[3], // Rafael
+        type: "private_ticket"
+      },
+      {
+        name: "Workshop de Organização de Eventos",
+        description: "Aprenda a organizar eventos profissionais com foco em experiência do cliente.",
+        date: "2025-05-10",
+        category: 4, // Reunião
+        creator: userIds[4], // Fernanda
+        type: "private_application"
+      },
+      {
+        name: "Casamento Ana & João",
+        description: "Cerimônia e recepção para celebrar nossa união. Traje: Esporte fino.",
+        date: "2025-07-12",
+        category: 2, // Casamento
+        creator: userIds[0], // Ana
+        type: "private_application"
+      },
+      {
+        name: "Culto Especial de Páscoa",
+        description: "Celebração especial com apresentações musicais e reflexão.",
+        date: "2025-04-20",
+        category: 3, // Religioso
+        creator: userIds[2], // Beatriz
+        type: "public"
+      },
+      {
+        name: "Pride Parade 2025",
+        description: "Celebração da diversidade com shows, desfiles e atividades culturais.",
+        date: "2025-06-28",
+        category: 8, // LGBT+
+        creator: userIds[1], // Carlos
+        type: "public"
+      },
+      {
+        name: "Encontro de Empreendedores",
+        description: "Networking e palestras para empreendedores da região.",
+        date: "2025-05-15",
+        category: 4, // Reunião
+        creator: userIds[4], // Fernanda
+        type: "private_application"
+      }
+    ];
+
+    // Criar os eventos
+    eventDetails.forEach((eventDetail, index) => {
+      const eventId = this.eventIdCounter++;
+      const event: Event = {
+        id: eventId,
+        name: eventDetail.name,
+        description: eventDetail.description,
+        date: eventDetail.date,
+        timeStart: "19:00",
+        timeEnd: "23:00",
+        location: "Local a confirmar",
+        coordinates: null,
+        coverImage: null,
+        eventType: eventDetail.type as 'public' | 'private_ticket' | 'private_application',
+        categoryId: eventDetail.category,
+        creatorId: eventDetail.creator,
+        capacity: 50,
+        ticketPrice: eventDetail.type === 'private_ticket' ? 50 + (index * 10) : null,
+        isActive: true,
+        createdAt: new Date()
+      };
+      this.eventsMap.set(eventId, event);
+      console.log(`Evento criado: ${eventId} - ${event.name} (Criador: ${event.creatorId})`);
+    });
+
+    // 4. Criar candidaturas para o evento do Kevin
+    // Três usuários se candidatam ao workshop de fotografia
+    [userIds[0], userIds[2], userIds[4]].forEach((userId, index) => {
+      const participationId = this.participantIdCounter++;
+      const participation: EventParticipant = {
+        id: participationId,
+        eventId: kevinEventId,
+        userId: userId,
+        status: "pending", // Pendente de aprovação
+        applicationReason: `Gostaria de participar do workshop porque tenho interesse em fotografia e quero aprimorar minhas habilidades. ${index === 1 ? 'Tenho experiência prévia como fotógrafa amadora.' : ''}`,
+        reviewedBy: null,
+        reviewedAt: null,
+        createdAt: new Date()
+      };
+      this.participantsMap.set(participationId, participation);
+      console.log(`Candidatura criada: Usuário ${userId} para o evento ${kevinEventId}`);
+    });
+
+    console.log("Criação de dados de teste concluída!");
+    console.log(`Total de usuários: ${this.usersMap.size}`);
+    console.log(`Total de eventos: ${this.eventsMap.size}`);
+    console.log(`Total de participações: ${this.participantsMap.size}`);
   }
   
   /**
@@ -158,7 +427,11 @@ export class MemStorage implements IStorage {
       ...user, 
       id,
       createdAt: new Date(), 
-      profileImage: null
+      profileImage: null,
+      isActive: true,
+      isPremium: false,
+      coordinates: null,
+      lastLogin: null
     };
     this.usersMap.set(id, newUser);
     return newUser;
