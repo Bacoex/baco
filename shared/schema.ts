@@ -180,6 +180,7 @@ export const eventCategories = pgTable("event_categories", {
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
   color: text("color").notNull(),
+  ageRestriction: integer("age_restriction"), // Restrição de idade para a categoria (ex: 18 para maiores de 18 anos)
 });
 
 /**

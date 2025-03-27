@@ -48,6 +48,7 @@ interface EventDetails {
     name: string;
     slug: string;
     color: string;
+    ageRestriction?: number | null;
   };
   creator: {
     id: number;
@@ -128,8 +129,40 @@ export default function ViewEventModal({
     });
   };
   
+  // Calcula a idade do usuário
+  const calculateAge = (birthDateString?: string) => {
+    if (!birthDateString) return 0;
+    
+    const birthDate = new Date(birthDateString);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+  
+  // Verifica se o evento tem restrição de idade
+  const hasAgeRestriction = !!event.category?.ageRestriction;
+  
+  // Verifica se o usuário tem idade suficiente para o evento
+  const userAge = user?.birthDate ? calculateAge(user.birthDate) : 0;
+  const isUserOldEnough = !hasAgeRestriction || 
+    (event.category?.ageRestriction && userAge >= event.category.ageRestriction);
+  
   // Função para lidar com a ação de participar
   const handleParticipate = async () => {
+    // Verificar restrição de idade
+    if (hasAgeRestriction && !isUserOldEnough) {
+      toast({
+        title: "Restrição de idade",
+        description: `Este evento é apenas para maiores de ${event.category.ageRestriction} anos.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const response = await fetch(`/api/events/${event.id}/participate`, {
         method: 'POST',
@@ -207,6 +240,11 @@ export default function ViewEventModal({
                 >
                   {event.category?.name}
                 </Badge>
+                {event.category?.ageRestriction && (
+                  <Badge variant="outline" className="bg-red-600 text-white border-none">
+                    {event.category.ageRestriction}+
+                  </Badge>
+                )}
               </div>
             </DialogDescription>
           </DialogHeader>

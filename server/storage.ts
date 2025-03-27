@@ -409,6 +409,15 @@ export class MemStorage implements IStorage {
         creator: userIds[4], // Fernanda
         type: "private_application",
         image: "https://images.unsplash.com/photo-1577497445563-e1ecff94b40d?q=80&w=2070&auto=format&fit=crop"
+      },
+      {
+        name: "Festa Open Bar Premium",
+        description: "Uma noite especial apenas para maiores de 18 anos com open bar premium e atrações exclusivas.",
+        date: "2025-07-20",
+        category: 9, // Eventos 18+
+        creator: userIds[1], // Carlos
+        type: "private_ticket",
+        image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=1170&auto=format&fit=crop"
       }
     ];
 
@@ -476,7 +485,8 @@ export class MemStorage implements IStorage {
       { name: "Churrasco", slug: "barbecue", color: "#f59e0b" },
       { name: "Festa", slug: "party", color: "#ec4899" },
       { name: "Show", slug: "concert", color: "#10b981" },
-      { name: "LGBT+", slug: "lgbt", color: "pride" }
+      { name: "LGBT+", slug: "lgbt", color: "pride" },
+      { name: "Eventos 18+", slug: "adult", color: "#ef4444", ageRestriction: 18 }
     ];
     
     console.log("Inicializando categorias...");

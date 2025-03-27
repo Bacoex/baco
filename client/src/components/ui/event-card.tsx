@@ -4,10 +4,11 @@ import { Card } from "@/components/ui/card";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, MapPinIcon, CheckIcon, XIcon, InfoIcon } from "lucide-react";
+import { CalendarIcon, MapPinIcon, CheckIcon, XIcon, InfoIcon, ShieldAlertIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import ViewEventModal from "@/components/ui/view-event-modal";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 /**
  * Interface para os dados do evento
@@ -32,6 +33,7 @@ interface EventProps {
       color: string;
       slug: string;
       id: number;
+      ageRestriction?: number | null;
     };
     creator?: {
       id: number;
@@ -129,6 +131,21 @@ export default function EventCard({
     }).format(price);
   };
   
+  // Verifica a idade antes de participar (se houver restrição)
+  const handleParticipation = () => {
+    // Se não há restrição de idade ou o usuário tem idade suficiente
+    if (isUserOldEnough) {
+      participateMutation.mutate();
+    } else {
+      // Se o usuário não tem idade suficiente, mostra um alerta
+      toast({
+        title: "Restrição de idade",
+        description: `Este evento é apenas para maiores de ${event.category.ageRestriction} anos.`,
+        variant: "destructive",
+      });
+    }
+  };
+  
   // Mutação para participar do evento
   const participateMutation = useMutation({
     mutationFn: async () => {
@@ -190,6 +207,7 @@ export default function EventCard({
       "party": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=870&auto=format&fit=crop",
       "concert": "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=870&auto=format&fit=crop",
       "lgbt": "https://images.unsplash.com/photo-1531299983330-093763e1d963?q=80&w=870&auto=format&fit=crop",
+      "adult": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=870&auto=format&fit=crop",
       "default": "https://images.unsplash.com/photo-1541532713592-79a0317b6b77?q=80&w=889&auto=format&fit=crop"
     };
     
@@ -200,6 +218,26 @@ export default function EventCard({
   // Imagem do evento
   const imageSrc = getEventImage();
   
+  // Verifica se o evento tem restrição de idade
+  const hasAgeRestriction = !!event.category.ageRestriction;
+  
+  // Verifica se o usuário tem idade suficiente para o evento (se houver restrição)
+  const calculateAge = (birthDateString: string) => {
+    const birthDate = new Date(birthDateString);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+  
+  // Verifica a idade do usuário conectado (se houver restrição)
+  const userAge = user && user.birthDate ? calculateAge(user.birthDate) : 0;
+  const isUserOldEnough = !hasAgeRestriction || 
+    (event.category.ageRestriction && userAge >= event.category.ageRestriction);
+
   // Função para buscar detalhes completos do evento
   const fetchEventDetails = useQuery({
     queryKey: [`/api/events/${event.id}`, user?.id],
@@ -244,18 +282,36 @@ export default function EventCard({
             className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-50 group-hover:opacity-80 transition-all duration-300"></div>
-          <div 
-            className={cn(
-              "absolute top-3 right-3 text-white text-xs font-bold px-3 py-1 rounded-full",
-              event.category.slug === "lgbt" ? "pride-badge" : ""
+          <div className="absolute top-3 right-3 flex gap-2">
+            {hasAgeRestriction && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center">
+                      <ShieldAlertIcon className="h-3 w-3 mr-1" />
+                      {event.category.ageRestriction}+
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Evento para maiores de {event.category.ageRestriction} anos</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
-            style={
-              event.category.slug === "lgbt" && event.category.color === "pride"
-              ? {} // O estilo vem direto da classe CSS pride-badge
-              : { backgroundColor: event.category.color }
-            }
-          >
-            {event.category.name}
+            
+            <div 
+              className={cn(
+                "text-white text-xs font-bold px-3 py-1 rounded-full",
+                event.category.slug === "lgbt" ? "pride-badge" : ""
+              )}
+              style={
+                event.category.slug === "lgbt" && event.category.color === "pride"
+                ? {} // O estilo vem direto da classe CSS pride-badge
+                : { backgroundColor: event.category.color }
+              }
+            >
+              {event.category.name}
+            </div>
           </div>
           <div className="absolute bottom-3 left-3 right-3">
             <h3 className="text-lg font-bold text-white mb-1 drop-shadow-md line-clamp-2">{event.name}</h3>
@@ -313,7 +369,7 @@ export default function EventCard({
                     ? "pride-gradient" 
                     : "bg-primary hover:bg-primary/90"
                   }`}
-                  onClick={() => participateMutation.mutate()}
+                  onClick={handleParticipation}
                   disabled={participateMutation.isPending}
                 >
                   {participateMutation.isPending ? (
