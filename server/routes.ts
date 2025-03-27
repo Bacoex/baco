@@ -1244,9 +1244,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: user.id
         };
         
-        // Salvar notificações no banco de dados
+        // Salvar notificações no banco de dados e adicionar destinatários específicos
         const savedCreatorNotification = await storage.createNotification(notificationForCreator);
+        await storage.addNotificationRecipients(savedCreatorNotification.id, [event.creatorId]);
+        
         const savedParticipantNotification = await storage.createNotification(notificationForParticipant);
+        await storage.addNotificationRecipients(savedParticipantNotification.id, [user.id]);
         
         res.json({
           ...participation,
@@ -1279,9 +1282,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: user.id
         };
         
-        // Salvar notificações no banco de dados
+        // Salvar notificações no banco de dados e adicionar destinatários específicos
         const savedCreatorNotification = await storage.createNotification(notificationForCreator);
+        await storage.addNotificationRecipients(savedCreatorNotification.id, [event.creatorId]);
+        
         const savedParticipantNotification = await storage.createNotification(notificationForParticipant);
+        await storage.addNotificationRecipients(savedParticipantNotification.id, [user.id]);
         
         res.json({
           ...participation,
