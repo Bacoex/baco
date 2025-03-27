@@ -68,29 +68,27 @@ export default function HomePage() {
       {/* Cabeçalho com barra de pesquisa e perfil */}
       <Header />
       
-      {/* Filtro de categorias - posicionado logo abaixo da navbar */}
-      <div className="sticky top-16 z-40 w-full border-b border-gray-800/50">
-        <div className="container mx-auto">
-          <CategoryFilter
-            categories={categoriesQuery.data || []}
-            selectedCategory={selectedCategory}
-            onSelectCategory={handleCategorySelect}
-          />
-        </div>
+      {/* Filtro de categorias flutuante */}
+      <div className="relative pt-24">
+        <CategoryFilter
+          categories={categoriesQuery.data || []}
+          selectedCategory={selectedCategory}
+          onSelectCategory={handleCategorySelect}
+        />
       </div>
       
       {/* Conteúdo principal com eventos */}
-      <main className="flex-grow px-4 pb-20 pt-8 relative z-10">
+      <main className="flex-grow px-4 pb-20 relative z-10">
         <div className="container mx-auto">
           
           {/* Título da seção */}
-          <div className="text-center py-4">
-            <h2 className="text-xl font-semibold mb-2 inline-block text-white">
+          <div className="text-center pb-6">
+            <h2 className="text-xl font-semibold inline-block bg-gradient-to-r from-orange-400 to-baco-blue bg-clip-text text-transparent">
               {selectedCategory 
                 ? `Eventos de ${categoriesQuery.data?.find(c => c.slug === selectedCategory)?.name || selectedCategory}` 
                 : "Eventos em destaque"}
             </h2>
-            <div className="mx-auto w-24 h-0.5 bg-primary rounded-full"></div>
+            <div className="mx-auto w-24 h-0.5 bg-gradient-to-r from-orange-500 to-baco-blue rounded-full mt-2"></div>
           </div>
           
           {/* Grade de eventos */}

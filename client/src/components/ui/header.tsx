@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Menu, Calendar, Star, User, LogOut } from "lucide-react";
+import { Search, Menu, Calendar, Star, User, LogOut, Home } from "lucide-react";
 import { useState } from "react";
 import {
   DropdownMenu,
@@ -42,105 +42,93 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-800 bg-black/80 backdrop-blur supports-[backdrop-filter]:bg-black/60">
-      <div className="container flex h-16 items-center">
-        <Link href="/" className="flex items-center space-x-3">
+    <div className="relative">
+      {/* Logo flutuante no canto superior esquerdo */}
+      <div className="fixed top-4 left-4 z-50">
+        <Link href="/" className="flex items-center space-x-2 p-2 rounded-full bg-black/50 backdrop-blur-md hover:bg-black/70 transition-all shadow-lg">
           <div className="flex items-center space-x-2">
-            <div className="w-6 h-[2px] bg-gradient-to-r from-transparent to-orange-500"></div>
-            <h1 className="text-xl uppercase font-bold tracking-wide">
+            <div className="w-4 h-[2px] bg-gradient-to-r from-transparent to-orange-500"></div>
+            <h1 className="text-lg uppercase font-bold tracking-wide">
               <span className="bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-400 bg-clip-text text-transparent">BACO</span>
             </h1>
-            <div className="w-6 h-[2px] bg-gradient-to-l from-transparent to-orange-500"></div>
+            <div className="w-4 h-[2px] bg-gradient-to-l from-transparent to-orange-500"></div>
           </div>
         </Link>
+      </div>
 
-        {/* Links de navegação para telas maiores */}
-        <div className="hidden md:flex ml-8 space-x-1">
-          <Button variant="ghost" size="sm" asChild className="text-gray-300 hover:text-white hover:bg-gray-800">
-            <Link href="/">
-              <Calendar className="mr-2 h-4 w-4" />
-              Eventos
-            </Link>
-          </Button>
-          <Button variant="ghost" size="sm" asChild className="text-gray-300 hover:text-white hover:bg-gray-800">
-            <Link href="/my-events">
-              <Star className="mr-2 h-4 w-4" />
-              Meus Eventos
-            </Link>
-          </Button>
-        </div>
-
-        <div className="ml-auto flex items-center gap-4">
-          <form onSubmit={handleSearch} className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+      {/* Barra de pesquisa flutuante centralizada */}
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+        <form onSubmit={handleSearch} className="relative">
+          <div className="bg-black/50 backdrop-blur-md rounded-full shadow-lg flex items-center pl-4 pr-2 py-2 border border-gray-800/50">
+            <Search className="h-4 w-4 text-gray-400" />
             <Input
               type="search"
               placeholder="Buscar eventos..."
-              className="w-[200px] pl-9 border-gray-800 bg-gray-900/60 text-gray-200 focus:border-blue-700 focus:ring-blue-700"
+              className="w-[200px] sm:w-[300px] border-0 bg-transparent text-gray-200 focus:border-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-          </form>
-
-          {user ? (
-            <div className="flex items-center gap-2">
-              {/* Menu para telas grandes */}
-              <div className="hidden md:flex items-center gap-2">
-                <Link href="/profile">
-                  <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white hover:bg-gray-800">
-                    <User className="mr-2 h-4 w-4" />
-                    Perfil
-                  </Button>
-                </Link>
-                <Button variant="ghost" size="sm" onClick={handleLogout} className="text-gray-300 hover:text-white hover:bg-gray-800">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sair
-                </Button>
-              </div>
-              
-              {/* Menu dropdown para telas menores */}
-              <div className="md:hidden">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 text-gray-300 hover:text-white hover:bg-gray-800">
-                      <Menu className="h-5 w-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48 bg-gray-900 border-gray-800">
-                    <DropdownMenuItem asChild>
-                      <Link href="/" className="flex items-center cursor-pointer">
-                        <Calendar className="mr-2 h-4 w-4" />
-                        <span>Eventos</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/my-events" className="flex items-center cursor-pointer">
-                        <Star className="mr-2 h-4 w-4" />
-                        <span>Meus Eventos</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile" className="flex items-center cursor-pointer">
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Perfil</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleLogout} className="flex items-center cursor-pointer">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Sair</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          ) : (
-            <Button asChild variant="default" className="bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 border-0">
-              <Link href="/auth">Entrar</Link>
+            <Button type="submit" size="sm" variant="ghost" className="rounded-full px-2 py-0 text-gray-400 hover:text-white">
+              Buscar
             </Button>
-          )}
-        </div>
+          </div>
+        </form>
       </div>
-    </header>
+
+      {/* Menu flutuante no canto superior direito */}
+      <div className="fixed top-4 right-4 z-50">
+        {user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="h-10 w-10 rounded-full bg-black/50 backdrop-blur-md border-gray-800/50 text-orange-500 hover:text-orange-400 hover:bg-black/70 shadow-lg">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-black/90 backdrop-blur-md border-gray-800/50 shadow-xl rounded-xl mt-2">
+              <DropdownMenuItem asChild>
+                <Link href="/" className="flex items-center cursor-pointer">
+                  <Home className="mr-2 h-4 w-4" />
+                  <span>Início</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/" className="flex items-center cursor-pointer">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  <span>Eventos</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/my-events" className="flex items-center cursor-pointer">
+                  <Star className="mr-2 h-4 w-4" />
+                  <span>Meus Eventos</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/profile" className="flex items-center cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Perfil</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout} className="flex items-center cursor-pointer">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sair</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button 
+            asChild 
+            variant="default" 
+            className="rounded-full bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 border-0 shadow-lg"
+          >
+            <Link href="/auth">Entrar</Link>
+          </Button>
+        )}
+      </div>
+      
+      {/* Espaçador para compensar elementos flutuantes */}
+      <div className="h-16"></div>
+    </div>
   );
 }
