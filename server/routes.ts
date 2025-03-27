@@ -359,6 +359,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Obtém os participantes
       const participants = await storage.getParticipants(event.id);
       
+      // Obtém detalhes de usuário para cada participante
+      const participantsWithDetails = await Promise.all(
+        participants.map(async (participant) => {
+          const user = await storage.getUser(participant.userId);
+          return {
+            ...participant,
+            user: user ? {
+              firstName: user.firstName,
+              lastName: user.lastName,
+              profileImage: user.profileImage
+            } : null
+          };
+        })
+      );
+      
       res.json({
         ...event,
         category: categoria,
@@ -368,9 +383,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastName: creator.lastName,
           profileImage: creator.profileImage
         } : null,
+        participants: participantsWithDetails,
         participantsCount: participants.length
       });
     } catch (err) {
+      console.error("Erro ao buscar evento:", err);
       res.status(500).json({ message: "Erro ao buscar evento" });
     }
   });

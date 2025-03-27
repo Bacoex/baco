@@ -249,11 +249,16 @@ export default function EventCard({
           description: "Sua candidatura foi recebida. Você será notificado quando for aprovado.",
         });
         
-        // Se temos notificação na resposta da API (para o criador do evento)
-        if (data.notification?.forCreator && event.creatorId !== user?.id) {
-          // Adicione a notificação para o sistema apenas se o usuário atual for o criador
-          if (user?.id === event.creatorId) {
+        // Se temos notificação na resposta da API
+        if (data.notification) {
+          // Notificação para o criador do evento
+          if (data.notification.forCreator && user?.id === event.creatorId) {
             addNotification(data.notification.forCreator);
+          }
+          
+          // Notificação para o participante (usuário atual)
+          if (data.notification.forParticipant && user?.id !== event.creatorId) {
+            addNotification(data.notification.forParticipant);
           }
         }
       } else {
@@ -372,45 +377,35 @@ export default function EventCard({
     queryKey: [`/api/events/${event.id}`, user?.id],
     queryFn: async () => {
       try {
-        // Converter eventType para o tipo esperado
-        let validEventType: 'public' | 'private_ticket' | 'private_application' = 'public';
-        if (event.eventType === 'private_ticket' || event.eventType === 'private_application') {
-          validEventType = event.eventType;
+        // Buscar os detalhes completos do evento do servidor
+        const response = await fetch(`/api/events/${event.id}`);
+        
+        if (!response.ok) {
+          throw new Error("Erro ao buscar detalhes do evento");
         }
         
-        // Garantir que o creator tenha um valor válido
-        const creator = event.creator || {
-          id: event.creatorId,
-          firstName: "Usuário",
-          lastName: "",
-          profileImage: null
-        };
+        const eventData = await response.json();
         
-        // Formatar os participantes para garantir compatibilidade com ViewEventModal
-        const participants = event.participants?.map(p => ({
-          ...p,
-          user: {
-            firstName: p.user.firstName,
-            lastName: p.user.lastName,
-            profileImage: p.user.profileImage
-          }
-        }));
+        // Garantir que o eventType seja um valor válido
+        let validEventType: 'public' | 'private_ticket' | 'private_application' = 'public';
+        if (eventData.eventType === 'private_ticket' || eventData.eventType === 'private_application') {
+          validEventType = eventData.eventType;
+        }
         
-        // Converte o evento atual para o formato esperado pelo ViewEventModal
+        // Converter os dados para o formato esperado pelo modal
         const eventDetails: EventDetailsForModal = {
-          ...event,
+          ...eventData,
           isActive: true,
-          createdAt: null,
-          coordinates: null,
-          // Garantir que os campos opcionais tenham valores corretos para satisfazer a interface EventDetails
-          timeEnd: event.timeEnd || null,
-          coverImage: event.coverImage || null,
-          capacity: event.capacity || null,
-          ticketPrice: event.ticketPrice || null,
-          eventType: validEventType,  // Usar a versão validada do eventType
-          creator: creator,
-          participants: participants
+          coordinates: eventData.coordinates || null,
+          eventType: validEventType,
+          createdAt: eventData.createdAt || null,
+          // Garantir que campos opcionais tenham valores corretos
+          timeEnd: eventData.timeEnd || null,
+          coverImage: eventData.coverImage || null,
+          capacity: eventData.capacity || null,
+          ticketPrice: eventData.ticketPrice || null
         };
+        
         return eventDetails;
       } catch (error) {
         console.error("Erro ao buscar detalhes do evento:", error);
