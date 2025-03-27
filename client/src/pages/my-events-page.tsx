@@ -224,16 +224,16 @@ function EventCard({ event, isCreator = false, participation = null, onApprove, 
           <div className="flex-shrink-0">
             <Eneagon className="w-10 h-10">
               <Avatar>
-                <AvatarImage src={event.creator.profileImage || undefined} />
+                <AvatarImage src={event.creator?.profileImage || undefined} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                  {event.creator.firstName.charAt(0)}{event.creator.lastName.charAt(0)}
+                  {event.creator?.firstName?.charAt(0) || ""}{event.creator?.lastName?.charAt(0) || ""}
                 </AvatarFallback>
               </Avatar>
             </Eneagon>
           </div>
           <div className="ml-3">
             <p className="text-sm font-medium">
-              {getUserDisplayName({ firstName: event.creator.firstName, lastName: event.creator.lastName })}
+              {getUserDisplayName({ firstName: event.creator?.firstName || "", lastName: event.creator?.lastName || "" })}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {event.eventType === 'public' ? 'Evento público' : 
@@ -318,15 +318,15 @@ function EventCard({ event, isCreator = false, participation = null, onApprove, 
                   >
                     <Eneagon className="w-10 h-10">
                       <Avatar>
-                        <AvatarImage src={participant.user.profileImage || undefined} />
+                        <AvatarImage src={participant.user?.profileImage || undefined} />
                         <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                          {participant.user.firstName.charAt(0)}{participant.user.lastName.charAt(0)}
+                          {participant.user?.firstName?.charAt(0) || ""}{participant.user?.lastName?.charAt(0) || ""}
                         </AvatarFallback>
                       </Avatar>
                     </Eneagon>
                     <div className="ml-3">
                       <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-primary">
-                        {getUserDisplayName({ firstName: participant.user.firstName, lastName: participant.user.lastName })}
+                        {getUserDisplayName({ firstName: participant.user?.firstName || "", lastName: participant.user?.lastName || "" })}
                       </p>
                       <Badge className={`${statusColors[participant.status]} text-xs mt-1`}>
                         {statusText[participant.status]}
