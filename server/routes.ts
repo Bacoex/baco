@@ -213,6 +213,211 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   /**
+   * API de Eventos do Usuário
+   */
+  
+  // Obtém eventos criados pelo usuário autenticado
+  app.get("/api/user/events/created", ensureAuthenticated, async (req, res) => {
+    try {
+      const events = await storage.getEventsByCreator(req.user!.id);
+      
+      // Obtém os detalhes das categorias e criador para cada evento
+      const eventsWithDetails = await Promise.all(
+        events.map(async (event) => {
+          const categoriasArray = await storage.getCategories();
+          const categoria = categoriasArray.find(cat => cat.id === event.categoryId);
+          
+          // Adiciona participantes
+          const participants = await storage.getParticipants(event.id);
+          const participantsWithUsers = await Promise.all(
+            participants.map(async (participant) => {
+              const user = await storage.getUser(participant.userId);
+              return {
+                ...participant,
+                user: user ? {
+                  id: user.id,
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  profileImage: user.profileImage
+                } : null
+              };
+            })
+          );
+          
+          return {
+            ...event,
+            category: categoria,
+            creator: {
+              id: req.user!.id,
+              firstName: req.user!.firstName,
+              lastName: req.user!.lastName,
+              profileImage: req.user!.profileImage
+            },
+            participants: participantsWithUsers
+          };
+        })
+      );
+      
+      console.log("Eventos criados pelo usuário:", eventsWithDetails);
+      res.json(eventsWithDetails);
+    } catch (err) {
+      console.error("Erro ao buscar eventos criados:", err);
+      res.status(500).json({ message: "Erro ao buscar eventos criados" });
+    }
+  });
+  
+  // Obtém eventos que o usuário está participando
+  app.get("/api/user/events/participating", ensureAuthenticated, async (req, res) => {
+    try {
+      // Obtém todos os eventos
+      const allEvents = await storage.getEvents();
+      const categories = await storage.getCategories();
+      
+      // Para cada evento, verifica se o usuário está participando
+      const participations = [];
+      
+      for (const event of allEvents) {
+        const participation = await storage.getParticipation(event.id, req.user!.id);
+        
+        if (participation) {
+          // Obtém o criador do evento
+          const creator = await storage.getUser(event.creatorId);
+          
+          // Adiciona categoria ao evento
+          const category = categories.find(cat => cat.id === event.categoryId);
+          
+          participations.push({
+            id: participation.id,
+            status: participation.status,
+            event: {
+              ...event,
+              category,
+              creator: creator ? {
+                id: creator.id,
+                firstName: creator.firstName,
+                lastName: creator.lastName,
+                profileImage: creator.profileImage
+              } : null
+            }
+          });
+        }
+      }
+      
+      console.log("Participações do usuário:", participations);
+      res.json(participations);
+    } catch (err) {
+      console.error("Erro ao buscar participações:", err);
+      res.status(500).json({ message: "Erro ao buscar eventos que você está participando" });
+    }
+  });
+  
+  // Obtém eventos que o usuário está seguindo
+  app.get("/api/user/events/following", ensureAuthenticated, async (req, res) => {
+    try {
+      // Simulação - na versão atual, os eventos seguidos são apenas os que o usuário é participante
+      // Num sistema real, teria uma tabela à parte para eventos seguidos
+      
+      // Obtém todos os eventos
+      const allEvents = await storage.getEvents();
+      const categories = await storage.getCategories();
+      
+      // Para cada evento, cria uma lista de seguidos (atualmente são os mesmos que participa)
+      const followedEvents = [];
+      
+      for (const event of allEvents) {
+        const participation = await storage.getParticipation(event.id, req.user!.id);
+        
+        // Se está participando, considera como seguindo
+        if (participation && participation.status === "approved") {
+          // Obtém o criador do evento
+          const creator = await storage.getUser(event.creatorId);
+          
+          // Adiciona categoria ao evento
+          const category = categories.find(cat => cat.id === event.categoryId);
+          
+          followedEvents.push({
+            ...event,
+            category,
+            creator: creator ? {
+              id: creator.id,
+              firstName: creator.firstName,
+              lastName: creator.lastName,
+              profileImage: creator.profileImage
+            } : null
+          });
+        }
+      }
+      
+      console.log("Eventos seguidos pelo usuário:", followedEvents);
+      res.json(followedEvents);
+    } catch (err) {
+      console.error("Erro ao buscar eventos seguidos:", err);
+      res.status(500).json({ message: "Erro ao buscar eventos seguidos" });
+    }
+  });
+  
+  // Seguir um evento
+  app.post("/api/events/:id/follow", ensureAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      
+      // Verifica se o evento existe
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      // Na versão atual, seguir é o mesmo que participar com status approved
+      // Se já estiver participando, atualiza o status para approved
+      const existingParticipation = await storage.getParticipation(eventId, req.user!.id);
+      
+      if (existingParticipation) {
+        // Atualiza para approved se não estiver
+        if (existingParticipation.status !== "approved") {
+          await storage.updateParticipationStatus(existingParticipation.id, "approved");
+        }
+        
+        return res.status(200).json({ message: "Agora você está seguindo este evento" });
+      }
+      
+      // Se não estiver participando, cria uma participação com status approved
+      const participationData = {
+        eventId,
+        userId: req.user!.id,
+        status: "approved"
+      };
+      
+      await storage.createParticipation(participationData);
+      
+      res.status(200).json({ message: "Agora você está seguindo este evento" });
+    } catch (err) {
+      console.error("Erro ao seguir evento:", err);
+      res.status(500).json({ message: "Erro ao seguir evento" });
+    }
+  });
+  
+  // Deixar de seguir um evento
+  app.delete("/api/events/:id/follow", ensureAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      
+      // Verifica se existe a participação
+      const participation = await storage.getParticipation(eventId, req.user!.id);
+      if (!participation) {
+        return res.status(404).json({ message: "Você não está seguindo este evento" });
+      }
+      
+      // Remove a participação (deixa de seguir)
+      await storage.removeParticipation(participation.id);
+      
+      res.status(200).json({ message: "Você deixou de seguir este evento" });
+    } catch (err) {
+      console.error("Erro ao deixar de seguir evento:", err);
+      res.status(500).json({ message: "Erro ao deixar de seguir evento" });
+    }
+  });
+  
+  /**
    * API de Participação em Eventos
    */
   

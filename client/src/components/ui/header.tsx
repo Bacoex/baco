@@ -48,7 +48,7 @@ export function Header() {
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link href="/events" className="flex items-center px-4 py-2">
+              <Link href="/" className="flex items-center px-4 py-2">
                 <Calendar className="mr-2 h-4 w-4" />
                 Eventos
               </Link>

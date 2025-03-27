@@ -36,6 +36,14 @@ import { Link } from "wouter";
 import CreateEventModal from "@/components/ui/create-event-modal";
 import NetworkBackground from "../components/ui/network-background";
 
+// Tipo para categoria de evento
+interface EventCategory {
+  id: number;
+  name: string;
+  slug: string;
+  color: string;
+}
+
 // Tipos para os eventos e participantes
 interface EventParticipant {
   id: number;
@@ -427,7 +435,9 @@ export default function MyEventsPage() {
     queryKey: ["/api/user/events/created"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/user/events/created");
-      return res.json();
+      const data = await res.json();
+      console.log("Eventos criados:", data);
+      return data;
     },
     enabled: !!user,
   });
@@ -437,7 +447,9 @@ export default function MyEventsPage() {
     queryKey: ["/api/user/events/participating"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/user/events/participating");
-      return res.json();
+      const data = await res.json();
+      console.log("Eventos participando:", data);
+      return data;
     },
     enabled: !!user,
   });
@@ -447,7 +459,9 @@ export default function MyEventsPage() {
     queryKey: ["/api/user/events/following"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/user/events/following");
-      return res.json();
+      const data = await res.json();
+      console.log("Eventos seguindo:", data);
+      return data;
     },
     enabled: !!user,
   });
@@ -594,7 +608,14 @@ export default function MyEventsPage() {
   // Verificar se um evento está sendo seguido pelo usuário
   const isEventFollowed = (eventId: number) => {
     if (!followingEventsQuery.data) return false;
-    return followingEventsQuery.data.some((e: Event) => e.id === eventId);
+    console.log("Verificando se evento está sendo seguido:", eventId, followingEventsQuery.data);
+    // Verificar se followingEventsQuery.data é um array
+    if (!Array.isArray(followingEventsQuery.data)) {
+      console.error("followingEventsQuery.data não é um array:", followingEventsQuery.data);
+      return false;
+    }
+    // Verificar se algum evento na lista tem o ID procurado
+    return followingEventsQuery.data.some((e: any) => e && typeof e === 'object' && e.id === eventId);
   };
   
   if (!user) {
