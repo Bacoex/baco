@@ -961,7 +961,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `${user?.firstName} ${user?.lastName} se candidatou ao seu evento "${event.name}"`,
           type: "event_application",
           eventId: event.id,
-          userId: user?.id
+          userId: event.creatorId // ID do criador do evento que receberá esta notificação
         };
         
         // Notificação para o participante
@@ -970,7 +970,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `Sua candidatura para o evento "${event.name}" foi enviada com sucesso. Aguarde a aprovação.`,
           type: "event_application",
           eventId: event.id,
-          userId: creator?.id
+          userId: userId // ID do usuário que se candidatou e receberá esta notificação
         };
         
         // Retornar notificações junto com a resposta para o frontend tratar
@@ -993,7 +993,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `Você está confirmado no evento "${event.name}". Compareça no dia e hora marcados.`,
           type: "event_approval",
           eventId: event.id,
-          userId: creator?.id
+          userId: userId // ID do usuário atual, que está se inscrevendo no evento
+        };
+        
+        // Notificação para o criador do evento
+        const notificationForCreator = {
+          title: "Novo Participante",
+          message: `${user?.firstName} ${user?.lastName} se inscreveu no seu evento "${event.name}"`,
+          type: "event_approval",
+          eventId: event.id,
+          userId: event.creatorId // ID do criador do evento
         };
         
         res.status(201).json({
@@ -1004,7 +1013,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             profileImage: user.profileImage
           } : null,
           notification: {
-            forCreator: null,
+            forCreator: notificationForCreator,
             forParticipant: notificationForParticipant
           }
         });
