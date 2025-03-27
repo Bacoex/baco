@@ -527,6 +527,63 @@ export default function EventCard({
             <p className="text-gray-700 text-sm">{formatDate(event.date)}, {event.timeStart}</p>
           </div>
           
+          {/* Participantes pendentes (somente para o criador) */}
+          {isCreator && event.participants && event.participants.some(p => p.status === 'pending') && (
+            <div className="bg-amber-50 border border-amber-200 rounded-md p-2 mb-3">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <InfoIcon className="h-4 w-4 text-amber-500 mr-1" />
+                  <span className="text-amber-700 text-sm font-medium">
+                    {event.participants.filter(p => p.status === 'pending').length} candidatura(s) pendente(s)
+                  </span>
+                </div>
+                <div onClick={(e) => e.stopPropagation()}>
+                  <Button 
+                    size="sm" 
+                    variant="ghost"
+                    className="h-7 text-amber-600 hover:text-amber-700 hover:bg-amber-100 p-0 px-2"
+                    onClick={openEventDetails}
+                  >
+                    Revisar
+                  </Button>
+                </div>
+              </div>
+              {/* Lista de até 2 primeiros participantes pendentes com botões de ação */}
+              {event.participants.filter(p => p.status === 'pending').slice(0, 2).map(participant => (
+                <div key={participant.id} className="mt-2 flex items-center justify-between text-sm border-t border-amber-200 pt-2">
+                  <span className="text-gray-700">{participant.user.firstName} {participant.user.lastName}</span>
+                  <div className="flex space-x-1" onClick={(e) => e.stopPropagation()}>
+                    {onApprove && (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-7 text-green-500 border-green-500 hover:bg-green-500 hover:text-white px-2"
+                        onClick={() => onApprove(participant.id)}
+                      >
+                        <CheckIcon className="h-3 w-3" />
+                      </Button>
+                    )}
+                    {onReject && (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-7 text-red-500 border-red-500 hover:bg-red-500 hover:text-white px-2"
+                        onClick={() => onReject(participant.id)}
+                      >
+                        <XIcon className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {event.participants.filter(p => p.status === 'pending').length > 2 && (
+                <div className="text-xs text-center mt-1 text-amber-600">
+                  + {event.participants.filter(p => p.status === 'pending').length - 2} candidatura(s)
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex justify-between items-center mt-4">
             <span className="text-primary font-semibold text-lg">{formatPrice(event.ticketPrice || 0)}</span>
             
