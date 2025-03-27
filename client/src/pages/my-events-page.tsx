@@ -641,8 +641,28 @@ export default function MyEventsPage() {
           addNotification(data.notification.forCreator);
         }
         
-        // Notificação para o participante (será mostrada quando o participante fizer login)
-        // Não precisa exibir ambas notificações para o usuário atual
+        // Notificação para o participante - importante salvar para o participante
+        if (data.notification.forParticipant) {
+          // Criar a notificação para o participante no localStorage
+          // A notificação será armazenada e ficará visível quando o participante fizer login
+          const userStorageKey = `baco-notifications-${data.userId}`;
+          try {
+            // Recupera notificações existentes ou cria um array vazio
+            const existingNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
+            // Cria a nova notificação com formato completo
+            const newNotification = {
+              ...data.notification.forParticipant,
+              id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+              date: new Date(),
+              read: false
+            };
+            // Adiciona ao início do array e salva de volta no localStorage
+            existingNotifications.unshift(newNotification);
+            localStorage.setItem(userStorageKey, JSON.stringify(existingNotifications));
+          } catch (error) {
+            console.error("Erro ao salvar notificação para participante:", error);
+          }
+        }
       }
     },
     onError: (error: Error) => {
@@ -676,8 +696,28 @@ export default function MyEventsPage() {
           addNotification(data.notification.forCreator);
         }
         
-        // Notificação para o participante (será mostrada quando o participante fizer login)
-        // Não precisa exibir ambas notificações para o usuário atual
+        // Notificação para o participante - importante salvar para o participante
+        if (data.notification.forParticipant) {
+          // Criar a notificação para o participante no localStorage
+          // A notificação será armazenada e ficará visível quando o participante fizer login
+          const userStorageKey = `baco-notifications-${data.userId}`;
+          try {
+            // Recupera notificações existentes ou cria um array vazio
+            const existingNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
+            // Cria a nova notificação com formato completo
+            const newNotification = {
+              ...data.notification.forParticipant,
+              id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+              date: new Date(),
+              read: false
+            };
+            // Adiciona ao início do array e salva de volta no localStorage
+            existingNotifications.unshift(newNotification);
+            localStorage.setItem(userStorageKey, JSON.stringify(existingNotifications));
+          } catch (error) {
+            console.error("Erro ao salvar notificação para participante:", error);
+          }
+        }
       }
     },
     onError: (error: Error) => {
