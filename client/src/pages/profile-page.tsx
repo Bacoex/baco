@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Phone, Instagram, MessageSquare, Lock, ExternalLink, Camera, X, Check } from "lucide-react";
+import { Loader2, Mail, Phone, Instagram, MessageSquare, Lock, ExternalLink, Camera, X, Check, ChevronLeft, Home } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { updateUserProfileSchema, User } from "@shared/schema";
@@ -298,6 +298,14 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto py-6 max-w-4xl">
+      <div className="mb-4">
+        <Link to="/">
+          <Button variant="ghost" size="sm" className="flex items-center gap-1 text-white">
+            <ChevronLeft className="h-4 w-4" />
+            <span>Voltar à página inicial</span>
+          </Button>
+        </Link>
+      </div>
       <div className="flex flex-col md:flex-row gap-6">
         <aside className="w-full md:w-1/3">
           <Card>
