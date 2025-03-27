@@ -454,6 +454,7 @@ export default function ViewEventModal({
                             <div className="font-medium">{getUserDisplayName(participant.user)}</div>
                             <div className="text-xs text-muted-foreground">
                               {participant.status === 'confirmed' && 'Confirmado'}
+                              {participant.status === 'approved' && 'Aprovado'}
                               {participant.status === 'pending' && 'Pendente'}
                               {participant.status === 'rejected' && 'Rejeitado'}
                             </div>
@@ -485,7 +486,7 @@ export default function ViewEventModal({
                               </Button>
                             )}
                             
-                            {participant.status === 'confirmed' && onRemoveParticipant && (
+                            {(participant.status === 'confirmed' || participant.status === 'approved') && onRemoveParticipant && (
                               <Button 
                                 size="sm" 
                                 variant="outline" 
@@ -529,8 +530,8 @@ export default function ViewEventModal({
                 </div>
               ) : (
                 <>
-                  {/* Verificar se o usuário é participante aprovado */}
-                  {isCreator || (event.participants && event.participants.some(p => p.userId === user?.id && p.status === 'approved')) ? (
+                  {/* Verificar se o usuário é participante aprovado ou confirmado */}
+                  {isCreator || (event.participants && event.participants.some(p => p.userId === user?.id && (p.status === 'approved' || p.status === 'confirmed'))) ? (
                     <div className="space-y-4">
                       <div className="h-64 overflow-y-auto border rounded-md p-3 mb-4 bg-gray-50 dark:bg-gray-900">
                         <div className="text-center text-gray-500 italic py-10">

@@ -716,20 +716,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(participation.userId);
       const event = await storage.getEvent(participation.eventId);
       
+      // Busca o criador do evento para a notificação
+      const creator = await storage.getUser(event?.creatorId || 0);
+      
       // Retorna informações adicionais para exibição de notificação
       res.json({
         ...participation,
         notification: {
           title: "Candidatura Aprovada!",
-          message: `Candidatura para o evento "${event?.name}" foi aprovada.`,
+          message: `Candidatura para o evento "${event?.name}" foi aprovada. O usuário agora aparecerá na lista de participantes.`,
           user: user ? {
+            id: user.id,
             firstName: user.firstName,
             lastName: user.lastName,
-            email: user.email
+            email: user.email,
+            profileImage: user.profileImage
           } : null,
           event: event ? {
+            id: event.id,
             name: event.name,
-            date: event.date
+            date: event.date,
+            creator: creator ? {
+              id: creator.id,
+              firstName: creator.firstName,
+              lastName: creator.lastName
+            } : null
           } : null
         }
       });
