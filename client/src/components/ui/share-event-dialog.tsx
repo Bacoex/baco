@@ -1,32 +1,31 @@
-import { useState } from "react";
-import { 
-  Dialog, DialogContent, DialogHeader, 
-  DialogTitle, DialogDescription, DialogClose 
-} from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/hooks/use-toast";
+import { Copy, Facebook, Linkedin, Twitter, MessageSquare, Mail } from "lucide-react";
+import { SiWhatsapp } from "react-icons/si";
 import { 
   FacebookShareButton, 
-  TwitterShareButton,
-  WhatsappShareButton,
-  TelegramShareButton,
-  EmailShareButton,
-  FacebookIcon, 
-  TwitterIcon,
-  WhatsappIcon,
-  TelegramIcon,
-  EmailIcon
-} from 'react-share';
-import { apiRequest } from "@/lib/queryClient";
-import { Loader2, Copy, X } from "lucide-react";
+  TwitterShareButton, 
+  LinkedinShareButton, 
+  WhatsappShareButton, 
+  EmailShareButton 
+} from "react-share";
 
+/**
+ * Interface para as propriedades do componente
+ */
 interface ShareEventDialogProps {
+  eventId: number;
   isOpen: boolean;
   onClose: () => void;
-  eventId: number;
 }
 
+/**
+ * Interface para os dados de compartilhamento
+ */
 interface ShareData {
   link: string;
   title: string;
@@ -43,140 +42,169 @@ interface ShareData {
   };
 }
 
-export function ShareEventDialog({ isOpen, onClose, eventId }: ShareEventDialogProps) {
+/**
+ * Componente de diálogo para compartilhar evento
+ * Permite gerar links para compartilhar o evento em redes sociais
+ */
+export function ShareEventDialog({ 
+  eventId,
+  isOpen,
+  onClose
+}: ShareEventDialogProps) {
+  const { toast } = useToast();
   const [shareData, setShareData] = useState<ShareData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Carrega os dados de compartilhamento quando o diálogo abrir
-  useState(() => {
+  // Buscar dados de compartilhamento
+  useEffect(() => {
     if (isOpen && eventId) {
       setIsLoading(true);
-      apiRequest("GET", `/api/events/${eventId}/share`)
-        .then(res => res.json())
+      
+      fetch(`/api/events/${eventId}/share`)
+        .then(res => {
+          if (!res.ok) throw new Error("Erro ao gerar link de compartilhamento");
+          return res.json();
+        })
         .then(data => {
           setShareData(data);
           setIsLoading(false);
         })
         .catch(error => {
-          console.error("Erro ao carregar dados de compartilhamento:", error);
           toast({
             title: "Erro ao gerar link de compartilhamento",
-            description: "Ocorreu um erro ao tentar gerar o link para compartilhar este evento.",
-            variant: "destructive"
+            description: error.message || "Não foi possível gerar o link de compartilhamento. Tente novamente.",
+            variant: "destructive",
           });
           setIsLoading(false);
+          onClose();
         });
     }
-  });
+  }, [isOpen, eventId, toast, onClose]);
 
-  // Função para copiar o link para a área de transferência
+  // Copiar link para a área de transferência
   const copyToClipboard = () => {
-    if (shareData?.link) {
+    if (shareData) {
       navigator.clipboard.writeText(shareData.link)
         .then(() => {
-          setCopied(true);
           toast({
             title: "Link copiado!",
-            description: "O link foi copiado para a área de transferência.",
+            description: "O link do evento foi copiado para a área de transferência.",
           });
-          setTimeout(() => setCopied(false), 3000); // Reset após 3 segundos
         })
         .catch(() => {
           toast({
             title: "Erro ao copiar",
-            description: "Não foi possível copiar o link para a área de transferência.",
-            variant: "destructive"
+            description: "Não foi possível copiar o link. Tente copiar manualmente.",
+            variant: "destructive",
           });
         });
     }
   };
 
+  // Texto para compartilhamento
+  const shareText = shareData 
+    ? `Participe do evento: ${shareData.event.name} em ${shareData.event.date} às ${shareData.event.time}. ${shareData.event.location}`
+    : "";
+    
+  const emailSubject = shareData ? `Convite para o evento: ${shareData.event.name}` : "";
+  const emailBody = shareData 
+    ? `Olá,\n\nGostaria de convidar você para o evento ${shareData.event.name} que acontecerá em ${shareData.event.date} às ${shareData.event.time}, em ${shareData.event.location}.\n\nPara mais informações e para se inscrever, acesse: ${shareData.link}\n\nEspero te ver lá!`
+    : "";
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-600 text-transparent bg-clip-text">
-            Compartilhar Evento
-          </DialogTitle>
+          <DialogTitle>Compartilhar Evento</DialogTitle>
           <DialogDescription>
-            Compartilhe este evento com seus amigos e convide-os a participar!
+            Compartilhe este evento com seus amigos e redes sociais.
           </DialogDescription>
         </DialogHeader>
-        
-        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-          <X className="h-4 w-4" />
-          <span className="sr-only">Fechar</span>
-        </DialogClose>
-        
+
         {isLoading ? (
-          <div className="flex justify-center items-center h-40">
-            <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+          <div className="py-6 flex justify-center">
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent"></div>
           </div>
         ) : shareData ? (
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <h3 className="font-medium">Detalhes do Evento</h3>
-              <div className="text-sm rounded-md bg-muted p-4">
-                <p className="font-semibold">{shareData.event.name}</p>
-                <p>Data: {shareData.event.date} às {shareData.event.time}</p>
-                <p>Local: {shareData.event.location}</p>
-                <p>Categoria: {shareData.event.category}</p>
-                <p>Criado por: {shareData.event.creator}</p>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <h3 className="font-medium">Link para compartilhar</h3>
-              <div className="flex items-center space-x-2">
+          <>
+            <div className="py-4">
+              <div className="flex items-center gap-2 mb-4">
                 <Input 
-                  readOnly 
                   value={shareData.link} 
-                  className="text-sm font-mono"
+                  readOnly 
+                  className="flex-1"
                 />
-                <Button 
-                  size="icon" 
-                  variant="outline" 
-                  onClick={copyToClipboard}
-                  className={copied ? "bg-green-100 text-green-700" : ""}
-                >
+                <Button onClick={copyToClipboard} variant="outline" className="flex items-center gap-1">
                   <Copy className="h-4 w-4" />
+                  Copiar
                 </Button>
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <h3 className="font-medium">Compartilhar em redes sociais</h3>
-              <div className="flex flex-wrap gap-3 justify-center">
-                <FacebookShareButton url={shareData.link} quote={shareData.title}>
-                  <FacebookIcon size={40} round />
-                </FacebookShareButton>
-                
-                <TwitterShareButton url={shareData.link} title={shareData.title}>
-                  <TwitterIcon size={40} round />
-                </TwitterShareButton>
-                
-                <WhatsappShareButton url={shareData.link} title={shareData.title}>
-                  <WhatsappIcon size={40} round />
-                </WhatsappShareButton>
-                
-                <TelegramShareButton url={shareData.link} title={shareData.title}>
-                  <TelegramIcon size={40} round />
-                </TelegramShareButton>
-                
-                <EmailShareButton 
-                  url={shareData.link} 
-                  subject={`Convite para o evento: ${shareData.event.name}`}
-                  body={`Olá, gostaria de convidar você para o evento ${shareData.event.name} que acontecerá em ${shareData.event.date} às ${shareData.event.time}.\n\n${shareData.description}\n\nLocal: ${shareData.event.location}\n\nPara mais informações e confirmar sua presença, acesse o link: ${shareData.link}`}
-                >
-                  <EmailIcon size={40} round />
-                </EmailShareButton>
+              
+              <Separator className="my-4" />
+              
+              <div>
+                <h3 className="text-sm font-medium mb-3 text-muted-foreground">Compartilhar nas redes sociais</h3>
+                <div className="flex gap-3 flex-wrap">
+                  <FacebookShareButton url={shareData.link} hashtag="#BacoExperiencias">
+                    <Button variant="outline" size="icon" className="h-12 w-12 rounded-full">
+                      <Facebook className="h-5 w-5 text-blue-600" />
+                    </Button>
+                  </FacebookShareButton>
+                  
+                  <TwitterShareButton url={shareData.link} title={shareText}>
+                    <Button variant="outline" size="icon" className="h-12 w-12 rounded-full">
+                      <Twitter className="h-5 w-5 text-sky-500" />
+                    </Button>
+                  </TwitterShareButton>
+                  
+                  <LinkedinShareButton url={shareData.link} title={shareData.event.name}>
+                    <Button variant="outline" size="icon" className="h-12 w-12 rounded-full">
+                      <Linkedin className="h-5 w-5 text-blue-700" />
+                    </Button>
+                  </LinkedinShareButton>
+                  
+                  <WhatsappShareButton url={shareData.link} title={shareText}>
+                    <Button variant="outline" size="icon" className="h-12 w-12 rounded-full">
+                      <SiWhatsapp className="h-5 w-5 text-green-500" />
+                    </Button>
+                  </WhatsappShareButton>
+                  
+                  <EmailShareButton url={shareData.link} subject={emailSubject} body={emailBody}>
+                    <Button variant="outline" size="icon" className="h-12 w-12 rounded-full">
+                      <Mail className="h-5 w-5 text-orange-500" />
+                    </Button>
+                  </EmailShareButton>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="h-12 w-12 rounded-full"
+                    onClick={() => {
+                      // Abrir cliente de mensagens nativo (SMS/iMessage/etc)
+                      window.location.href = `sms:?body=${encodeURIComponent(shareText + ' ' + shareData.link)}`;
+                    }}
+                  >
+                    <MessageSquare className="h-5 w-5 text-purple-500" />
+                  </Button>
+                </div>
+              </div>
+              
+              <Separator className="my-4" />
+              
+              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-md">
+                <h3 className="text-sm font-medium mb-2">Detalhes do evento</h3>
+                <p className="text-sm"><strong>Nome:</strong> {shareData.event.name}</p>
+                <p className="text-sm"><strong>Data:</strong> {shareData.event.date}</p>
+                <p className="text-sm"><strong>Horário:</strong> {shareData.event.time}</p>
+                <p className="text-sm"><strong>Local:</strong> {shareData.event.location}</p>
+                <p className="text-sm"><strong>Categoria:</strong> {shareData.event.category}</p>
+                <p className="text-sm"><strong>Criado por:</strong> {shareData.event.creator}</p>
               </div>
             </div>
-          </div>
+          </>
         ) : (
-          <div className="h-40 flex items-center justify-center">
-            <p className="text-red-500">Não foi possível carregar os dados do evento.</p>
+          <div className="py-6 text-center text-muted-foreground">
+            Não foi possível carregar os dados de compartilhamento.
           </div>
         )}
       </DialogContent>

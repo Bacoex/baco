@@ -685,6 +685,248 @@ export class MemStorage implements IStorage {
     this.participantsMap.set(id, updatedParticipation);
     return updatedParticipation;
   }
+
+  // Mapa para co-organizadores e convites
+  private coOrganizerInvitesMap: Map<number, EventCoOrganizerInvite> = new Map();
+  private coOrganizersMap: Map<string, number> = new Map(); // Formato: `${eventId}-${userId}`
+  private inviteIdCounter: number = 1;
+
+  /**
+   * Busca os co-organizadores de um evento
+   * @param eventId ID do evento
+   * @returns Lista de usuários que são co-organizadores
+   */
+  async getEventCoOrganizers(eventId: number): Promise<User[]> {
+    const coOrganizerIds: number[] = [];
+    
+    // Filtrar as entradas que começam com o eventId
+    for (const [key, userId] of this.coOrganizersMap.entries()) {
+      if (key.startsWith(`${eventId}-`)) {
+        coOrganizerIds.push(userId);
+      }
+    }
+    
+    // Buscar os usuários correspondentes
+    const coOrganizers: User[] = [];
+    for (const userId of coOrganizerIds) {
+      const user = await this.getUser(userId);
+      if (user) {
+        coOrganizers.push(user);
+      }
+    }
+    
+    return coOrganizers;
+  }
+
+  /**
+   * Busca os convites de co-organizador para um evento
+   * @param eventId ID do evento
+   * @returns Lista de convites
+   */
+  async getEventCoOrganizerInvites(eventId: number): Promise<EventCoOrganizerInvite[]> {
+    const invites: EventCoOrganizerInvite[] = [];
+    
+    for (const invite of this.coOrganizerInvitesMap.values()) {
+      if (invite.eventId === eventId) {
+        // Se o convite tiver um inviteeId, busca os dados do usuário convidado
+        if (invite.inviteeId) {
+          const invitee = await this.getUser(invite.inviteeId);
+          if (invitee) {
+            invites.push({
+              ...invite,
+              invitee: {
+                id: invitee.id,
+                firstName: invitee.firstName,
+                lastName: invitee.lastName,
+                profileImage: invitee.profileImage
+              }
+            });
+            continue;
+          }
+        }
+        
+        // Se não tiver inviteeId ou não encontrar o usuário, retorna o convite sem o invitee
+        invites.push(invite);
+      }
+    }
+    
+    return invites;
+  }
+
+  /**
+   * Busca um convite específico pelo ID
+   * @param id ID do convite
+   * @returns O convite encontrado ou undefined
+   */
+  async getEventCoOrganizerInvite(id: number): Promise<EventCoOrganizerInvite | undefined> {
+    return this.coOrganizerInvitesMap.get(id);
+  }
+
+  /**
+   * Busca um convite específico pelo token
+   * @param token Token do convite
+   * @returns O convite encontrado ou undefined
+   */
+  async getEventCoOrganizerInviteByToken(token: string): Promise<EventCoOrganizerInvite | undefined> {
+    for (const invite of this.coOrganizerInvitesMap.values()) {
+      if (invite.token === token) {
+        return invite;
+      }
+    }
+    return undefined;
+  }
+
+  /**
+   * Cria um novo convite de co-organizador
+   * @param invite Dados do convite
+   * @param inviterId ID do usuário que está enviando o convite
+   * @param eventId ID do evento
+   * @returns O convite criado
+   */
+  async createEventCoOrganizerInvite(
+    invite: InsertEventCoOrganizerInvite, 
+    inviterId: number, 
+    eventId: number
+  ): Promise<EventCoOrganizerInvite> {
+    // Verificar se o evento existe
+    const event = await this.getEvent(eventId);
+    if (!event) {
+      throw new Error(`Evento com ID ${eventId} não encontrado`);
+    }
+    
+    // Verificar se o usuário existe
+    const inviter = await this.getUser(inviterId);
+    if (!inviter) {
+      throw new Error(`Usuário com ID ${inviterId} não encontrado`);
+    }
+
+    // Verificar se o e-mail já foi convidado para este evento
+    for (const existingInvite of this.coOrganizerInvitesMap.values()) {
+      if (existingInvite.eventId === eventId && existingInvite.email === invite.email && existingInvite.status === 'pending') {
+        throw new Error(`Já existe um convite pendente para ${invite.email} neste evento`);
+      }
+    }
+    
+    // Verificar se já é co-organizador pelo e-mail
+    const userByEmail = await this.getUserByEmail(invite.email);
+    if (userByEmail) {
+      const isAlreadyCoOrganizer = this.coOrganizersMap.has(`${eventId}-${userByEmail.id}`);
+      if (isAlreadyCoOrganizer) {
+        throw new Error(`O usuário ${invite.email} já é co-organizador deste evento`);
+      }
+    }
+    
+    // Gerar token único para o convite
+    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    
+    // Criar o convite
+    const id = this.inviteIdCounter++;
+    const newInvite: EventCoOrganizerInvite = {
+      id,
+      eventId,
+      inviterId,
+      email: invite.email,
+      message: invite.message,
+      token,
+      status: 'pending',
+      invitedAt: new Date().toISOString(),
+      respondedAt: null,
+      inviteeId: null
+    };
+    
+    this.coOrganizerInvitesMap.set(id, newInvite);
+    return newInvite;
+  }
+
+  /**
+   * Atualiza o status de um convite
+   * @param id ID do convite
+   * @param status Novo status (accepted ou rejected)
+   * @param inviteeId ID do usuário que está respondendo ao convite (opcional)
+   * @returns O convite atualizado
+   */
+  async updateEventCoOrganizerInviteStatus(
+    id: number, 
+    status: string, 
+    inviteeId?: number
+  ): Promise<EventCoOrganizerInvite> {
+    const invite = await this.getEventCoOrganizerInvite(id);
+    if (!invite) {
+      throw new Error(`Convite com ID ${id} não encontrado`);
+    }
+    
+    // Atualizar o convite
+    const updatedInvite: EventCoOrganizerInvite = {
+      ...invite,
+      status,
+      respondedAt: new Date().toISOString(),
+      inviteeId: inviteeId || invite.inviteeId
+    };
+    
+    this.coOrganizerInvitesMap.set(id, updatedInvite);
+    
+    // Se o convite foi aceito, adicionar como co-organizador
+    if (status === 'accepted' && inviteeId) {
+      await this.addEventCoOrganizer(invite.eventId, inviteeId);
+    }
+    
+    return updatedInvite;
+  }
+
+  /**
+   * Remove um convite
+   * @param id ID do convite
+   */
+  async removeEventCoOrganizerInvite(id: number): Promise<void> {
+    const invite = await this.getEventCoOrganizerInvite(id);
+    if (!invite) {
+      throw new Error(`Convite com ID ${id} não encontrado`);
+    }
+    
+    this.coOrganizerInvitesMap.delete(id);
+  }
+
+  /**
+   * Adiciona um co-organizador ao evento
+   * @param eventId ID do evento
+   * @param userId ID do usuário
+   */
+  async addEventCoOrganizer(eventId: number, userId: number): Promise<void> {
+    // Verificar se o evento existe
+    const event = await this.getEvent(eventId);
+    if (!event) {
+      throw new Error(`Evento com ID ${eventId} não encontrado`);
+    }
+    
+    // Verificar se o usuário existe
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error(`Usuário com ID ${userId} não encontrado`);
+    }
+    
+    // Evitar adicionar o próprio criador como co-organizador
+    if (event.creatorId === userId) {
+      throw new Error(`O criador do evento não pode ser adicionado como co-organizador`);
+    }
+    
+    // Adicionar à lista de co-organizadores
+    const key = `${eventId}-${userId}`;
+    this.coOrganizersMap.set(key, userId);
+  }
+
+  /**
+   * Remove um co-organizador de um evento
+   * @param eventId ID do evento
+   * @param userId ID do usuário
+   */
+  async removeEventCoOrganizer(eventId: number, userId: number): Promise<void> {
+    const key = `${eventId}-${userId}`;
+    if (!this.coOrganizersMap.has(key)) {
+      throw new Error(`Usuário com ID ${userId} não é co-organizador do evento com ID ${eventId}`);
+    }
+    
+    this.coOrganizersMap.delete(key);
+  }
 }
 
 // Exporta a instância de armazenamento

@@ -848,6 +848,274 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Obtém o criador do evento
       const creator = await storage.getUser(event.creatorId);
       
+  /**
+   * API de co-organizadores de eventos
+   */
+  
+  // Middleware para verificar se o usuário é criador ou co-organizador do evento
+  const checkEventPermission = async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Não autorizado" });
+    }
+    
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "ID de evento inválido" });
+      }
+      
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      const userId = req.user!.id;
+      
+      // Verifica se é o criador do evento
+      if (event.creatorId === userId) {
+        return next();
+      }
+      
+      // Verifica se é co-organizador do evento
+      const coOrganizers = await storage.getEventCoOrganizers(eventId);
+      const isCoOrganizer = coOrganizers.some(coOrg => coOrg.id === userId);
+      
+      if (isCoOrganizer) {
+        return next();
+      }
+      
+      // Não é criador nem co-organizador
+      return res.status(403).json({ message: "Você não tem permissão para gerenciar este evento" });
+    } catch (err) {
+      console.error("Erro ao verificar permissões do evento:", err);
+      return res.status(500).json({ message: "Erro ao verificar permissões do evento" });
+    }
+  };
+  
+  // Lista co-organizadores de um evento
+  app.get("/api/events/:eventId/co-organizers", async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      if (isNaN(eventId)) {
+        return res.status(400).json({ message: "ID de evento inválido" });
+      }
+      
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      const coOrganizers = await storage.getEventCoOrganizers(eventId);
+      res.json(coOrganizers);
+    } catch (err) {
+      console.error("Erro ao buscar co-organizadores:", err);
+      res.status(500).json({ message: "Erro ao buscar co-organizadores" });
+    }
+  });
+  
+  // Lista convites de co-organizadores para um evento
+  app.get("/api/events/:eventId/co-organizer-invites", checkEventPermission, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const invites = await storage.getEventCoOrganizerInvites(eventId);
+      res.json(invites);
+    } catch (err) {
+      console.error("Erro ao buscar convites de co-organizadores:", err);
+      res.status(500).json({ message: "Erro ao buscar convites de co-organizadores" });
+    }
+  });
+  
+  // Envia um convite para co-organizador
+  app.post("/api/events/:eventId/co-organizer-invites", checkEventPermission, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const { email, message } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "E-mail é obrigatório" });
+      }
+      
+      // Criar o convite
+      const invite = await storage.createEventCoOrganizerInvite(
+        { email, message },
+        req.user!.id,
+        eventId
+      );
+      
+      // Em uma implementação real, enviaríamos um e-mail aqui
+      // Aqui estamos apenas simulando o envio
+      console.log(`Simulando envio de e-mail para ${email} com token ${invite.token}`);
+      
+      res.status(201).json(invite);
+    } catch (err) {
+      console.error("Erro ao criar convite de co-organizador:", err);
+      if (err instanceof Error) {
+        res.status(400).json({ message: err.message });
+      } else {
+        res.status(500).json({ message: "Erro ao criar convite de co-organizador" });
+      }
+    }
+  });
+  
+  // Reenvia um convite para co-organizador
+  app.post("/api/events/:eventId/co-organizer-invites/:id/resend", checkEventPermission, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const inviteId = parseInt(req.params.id);
+      
+      const invite = await storage.getEventCoOrganizerInvite(inviteId);
+      if (!invite) {
+        return res.status(404).json({ message: "Convite não encontrado" });
+      }
+      
+      if (invite.eventId !== eventId) {
+        return res.status(403).json({ message: "Convite não pertence a este evento" });
+      }
+      
+      if (invite.status !== 'pending') {
+        return res.status(400).json({ message: "Apenas convites pendentes podem ser reenviados" });
+      }
+      
+      // Em uma implementação real, enviaríamos o e-mail novamente aqui
+      // Aqui estamos apenas simulando o reenvio
+      console.log(`Simulando reenvio de e-mail para ${invite.email} com token ${invite.token}`);
+      
+      res.json({ message: "Convite reenviado com sucesso" });
+    } catch (err) {
+      console.error("Erro ao reenviar convite:", err);
+      res.status(500).json({ message: "Erro ao reenviar convite" });
+    }
+  });
+  
+  // Cancela um convite de co-organizador
+  app.delete("/api/events/:eventId/co-organizer-invites/:id", checkEventPermission, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const inviteId = parseInt(req.params.id);
+      
+      const invite = await storage.getEventCoOrganizerInvite(inviteId);
+      if (!invite) {
+        return res.status(404).json({ message: "Convite não encontrado" });
+      }
+      
+      if (invite.eventId !== eventId) {
+        return res.status(403).json({ message: "Convite não pertence a este evento" });
+      }
+      
+      await storage.removeEventCoOrganizerInvite(inviteId);
+      res.json({ message: "Convite removido com sucesso" });
+    } catch (err) {
+      console.error("Erro ao remover convite:", err);
+      res.status(500).json({ message: "Erro ao remover convite" });
+    }
+  });
+  
+  // Aceita um convite de co-organizador
+  app.post("/api/events/:eventId/co-organizer-invites/:id/accept", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Não autorizado" });
+    }
+    
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const inviteId = parseInt(req.params.id);
+      
+      const invite = await storage.getEventCoOrganizerInvite(inviteId);
+      if (!invite) {
+        return res.status(404).json({ message: "Convite não encontrado" });
+      }
+      
+      if (invite.eventId !== eventId) {
+        return res.status(403).json({ message: "Convite não pertence a este evento" });
+      }
+      
+      if (invite.status !== 'pending') {
+        return res.status(400).json({ message: "Este convite já foi respondido" });
+      }
+      
+      // Verificar se o e-mail do convite corresponde ao e-mail do usuário
+      const user = req.user!;
+      if (user.email.toLowerCase() !== invite.email.toLowerCase()) {
+        return res.status(403).json({ message: "Este convite foi enviado para outro e-mail" });
+      }
+      
+      // Aceitar o convite
+      await storage.updateEventCoOrganizerInviteStatus(inviteId, 'accepted', user.id);
+      
+      res.json({ message: "Convite aceito com sucesso" });
+    } catch (err) {
+      console.error("Erro ao aceitar convite:", err);
+      res.status(500).json({ message: "Erro ao aceitar convite" });
+    }
+  });
+  
+  // Rejeita um convite de co-organizador
+  app.post("/api/events/:eventId/co-organizer-invites/:id/reject", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Não autorizado" });
+    }
+    
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const inviteId = parseInt(req.params.id);
+      
+      const invite = await storage.getEventCoOrganizerInvite(inviteId);
+      if (!invite) {
+        return res.status(404).json({ message: "Convite não encontrado" });
+      }
+      
+      if (invite.eventId !== eventId) {
+        return res.status(403).json({ message: "Convite não pertence a este evento" });
+      }
+      
+      if (invite.status !== 'pending') {
+        return res.status(400).json({ message: "Este convite já foi respondido" });
+      }
+      
+      // Verificar se o e-mail do convite corresponde ao e-mail do usuário
+      const user = req.user!;
+      if (user.email.toLowerCase() !== invite.email.toLowerCase()) {
+        return res.status(403).json({ message: "Este convite foi enviado para outro e-mail" });
+      }
+      
+      // Rejeitar o convite
+      await storage.updateEventCoOrganizerInviteStatus(inviteId, 'rejected', user.id);
+      
+      res.json({ message: "Convite rejeitado com sucesso" });
+    } catch (err) {
+      console.error("Erro ao rejeitar convite:", err);
+      res.status(500).json({ message: "Erro ao rejeitar convite" });
+    }
+  });
+  
+  // Remove um co-organizador do evento
+  app.delete("/api/events/:eventId/co-organizers/:userId", checkEventPermission, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const userId = parseInt(req.params.userId);
+      
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      // Apenas o criador pode remover co-organizadores
+      if (event.creatorId !== req.user!.id) {
+        return res.status(403).json({ message: "Apenas o criador do evento pode remover co-organizadores" });
+      }
+      
+      await storage.removeEventCoOrganizer(eventId, userId);
+      res.json({ message: "Co-organizador removido com sucesso" });
+    } catch (err) {
+      console.error("Erro ao remover co-organizador:", err);
+      if (err instanceof Error) {
+        res.status(400).json({ message: err.message });
+      } else {
+        res.status(500).json({ message: "Erro ao remover co-organizador" });
+      }
+    }
+  });
+      
       // URL base da aplicação (em produção seria o domínio real)
       const baseUrl = req.protocol + '://' + req.get('host');
       
