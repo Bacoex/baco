@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { useNotifications } from "@/hooks/use-notifications";
 import { getUserDisplayName, cn } from "@/lib/utils";
 import { useLocation } from "wouter";
 import { ManageCoOrganizersDialog } from "@/components/ui/manage-co-organizers-dialog";
@@ -98,6 +99,7 @@ export default function ViewEventModal({
 }: ViewEventModalProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { addNotification } = useNotifications();
   const [_location, navigate] = useLocation(); 
   const [activeTab, setActiveTab] = useState("details");
   
@@ -190,6 +192,21 @@ export default function ViewEventModal({
       
       // Adicionar o novo participante à lista de participantes
       const participationData = await response.json();
+      
+      // Processar notificações que vêm do backend
+      if (participationData.notification) {
+        // Notificação para o criador do evento (se existir)
+        if (participationData.notification.forCreator) {
+          // Adiciona a notificação no estado global
+          addNotification(participationData.notification.forCreator);
+        }
+        
+        // Notificação para o participante (se existir)
+        if (participationData.notification.forParticipant) {
+          // Adiciona a notificação no estado global
+          addNotification(participationData.notification.forParticipant);
+        }
+      }
       
       // Atualizar o estado do componente para refletir a participação
       const updatedEvent = {
