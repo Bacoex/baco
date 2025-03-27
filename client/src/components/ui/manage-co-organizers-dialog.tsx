@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -55,17 +56,18 @@ export function ManageCoOrganizersDialog({ eventId, isOpen, onClose }: ManageCoO
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Gerenciar Co-organizadores</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <Button 
+          <div className="mt-4">
+            <Button
+              variant="outline"
               onClick={() => setIsInviteDialogOpen(true)}
-              className="w-full"
+              className="w-full mb-4"
             >
-              <UserPlus className="mr-2 h-4 w-4" />
+              <UserPlus className="h-4 w-4 mr-2" />
               Convidar Co-organizador
             </Button>
 
@@ -87,7 +89,7 @@ export function ManageCoOrganizersDialog({ eventId, isOpen, onClose }: ManageCoO
               </div>
             ) : (
               <div className="space-y-2">
-                {coOrganizersQuery.data.map((coOrg: any) => (
+                {coOrganizersQuery.data.map((coOrg) => (
                   <div key={coOrg.id} className="flex justify-between items-center p-3 border rounded-md">
                     <div className="flex items-center gap-3">
                       <Avatar>
