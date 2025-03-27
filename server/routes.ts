@@ -368,8 +368,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const user = await storage.getUser(participant.userId);
           console.log(`Detalhes do participante ${participant.id}, usuário ${participant.userId}:`, 
                       user ? `${user.firstName} ${user.lastName}` : 'Usuário não encontrado');
-          return {
-            ...participant,
+          
+          const participantDetails = {
+            id: participant.id,
+            userId: participant.userId,
+            status: participant.status,
+            eventId: participant.eventId,
+            createdAt: participant.createdAt,
             user: user ? {
               id: user.id,
               firstName: user.firstName,
@@ -377,6 +382,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               profileImage: user.profileImage
             } : null
           };
+
+          console.log("Detalhes completos do participante:", participantDetails);
+          return participantDetails;
         })
       );
 
