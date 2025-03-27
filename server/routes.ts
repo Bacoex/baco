@@ -527,11 +527,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Obtém eventos criados pelo usuário autenticado
   app.get("/api/user/events/created", ensureAuthenticated, async (req, res) => {
     try {
+      // Busca os eventos criados pelo usuário atual
       console.log("Buscando eventos para o usuário", req.user!.id, req.user!.firstName, req.user!.lastName);
       const userId = req.user!.id;
       const events = await storage.getEventsByCreator(userId);
       console.log(`Encontrados ${events.length} eventos criados pelo usuário ${userId}`);
       console.log("Resumo de eventos criados pelo usuário:", events);
+
+      // Log adicional para debug dos participantes
+      for (const event of events) {
+        const participants = await storage.getParticipants(event.id);
+        console.log(`Evento ${event.id} - ${event.name} tem ${participants.length} participantes:`);
+        console.log("Participantes:", participants.map(p => ({ id: p.id, userId: p.userId, status: p.status })));
+      }
 
       // Obtém os detalhes das categorias e criador para cada evento
       const eventsWithDetails = await Promise.all(
@@ -863,7 +871,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         });
       } else {
-        // Para eventos normais (public ou private_ticket), também incluir uma notificação de confirmação
+                // Para eventos normais (public ou private_ticket), também incluir uma notificação de confirmação
         const notificationForParticipant = {
           title: "Participação Confirmada",
           message: `Você está confirmado no evento "${event.name}". Compareça no dia e hora marcados.`,
