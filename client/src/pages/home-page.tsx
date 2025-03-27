@@ -24,12 +24,24 @@ export default function HomePage() {
   const categoriesQuery = useQuery<EventCategory[]>({
     queryKey: ["/api/categories"],
     initialData: [],
+    onSuccess: (data) => {
+      console.log("Categorias disponíveis:", data);
+    },
+    onError: (error) => {
+      console.error("Erro ao buscar categorias:", error);
+    }
   });
   
   // Busca todos os eventos com possível filtro de categoria
   const eventsQuery = useQuery<Event[]>({
     queryKey: ["/api/events", selectedCategory && `?category=${selectedCategory}`],
     initialData: [],
+    onSuccess: (data) => {
+      console.log("Eventos disponíveis:", data);
+    },
+    onError: (error) => {
+      console.error("Erro ao buscar eventos:", error);
+    }
   });
   
   // Função para abrir o modal de criação de evento

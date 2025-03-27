@@ -128,13 +128,16 @@ export class MemStorage implements IStorage {
       { name: "LGBT+", slug: "lgbt", color: "pride" }
     ];
     
+    console.log("Inicializando categorias...");
+    
     categories.forEach(category => {
       const id = this.categoryIdCounter++;
-      this.categoriesMap.set(id, {
-        ...category,
-        id
-      });
+      const newCategory: EventCategory = { ...category, id };
+      console.log(`Adicionando categoria: ${id} - ${category.name}`);
+      this.categoriesMap.set(id, newCategory);
     });
+    
+    console.log("Categorias inicializadas:", this.categoriesMap.size);
   }
   
   // Implementação de usuários

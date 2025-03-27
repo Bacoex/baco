@@ -82,8 +82,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/categories", async (req, res) => {
     try {
       const categories = await storage.getCategories();
+      console.log("Categorias recuperadas do storage:", categories);
       res.json(categories);
     } catch (err) {
+      console.error("Erro ao buscar categorias:", err);
       res.status(500).json({ message: "Erro ao buscar categorias" });
     }
   });
