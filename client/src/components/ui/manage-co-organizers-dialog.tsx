@@ -229,10 +229,10 @@ export function ManageCoOrganizersDialog({
                   </div>
                 ) : invitesQuery.isError || coOrganizersQuery.isError ? (
                   <div className="bg-red-50 text-red-800 rounded-md p-4">
-                    <p className="font-medium">Erro ao carregar dados</p>
-                    <p className="text-sm">
+                    <div className="font-medium">Erro ao carregar dados</div>
+                    <div className="text-sm">
                       Não foi possível carregar os co-organizadores. Por favor, tente novamente.
-                    </p>
+                    </div>
                   </div>
                 ) : (
                   <>
@@ -250,8 +250,8 @@ export function ManageCoOrganizersDialog({
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
-                                  <p className="font-medium">{coOrg.firstName} {coOrg.lastName}</p>
-                                  <p className="text-sm text-muted-foreground">{coOrg.email}</p>
+                                  <div className="font-medium">{coOrg.firstName} {coOrg.lastName}</div>
+                                  <div className="text-sm text-muted-foreground">{coOrg.email}</div>
                                 </div>
                               </div>
                               <Button 
@@ -278,7 +278,7 @@ export function ManageCoOrganizersDialog({
                             <div key={invite.id} className="p-3 border rounded-md">
                               <div className="flex justify-between items-center">
                                 <div>
-                                  <p className="font-medium">{invite.email}</p>
+                                  <div className="font-medium">{invite.email}</div>
                                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                     <span>Enviado em: {formatDate(invite.invitedAt)}</span>
                                     {renderInviteStatus(invite.status)}
@@ -322,8 +322,8 @@ export function ManageCoOrganizersDialog({
                     {(!invitesQuery.data || invitesQuery.data.length === 0) && 
                      (!coOrganizersQuery.data || coOrganizersQuery.data.length === 0) && (
                       <div className="text-center py-8 text-muted-foreground">
-                        <p>Nenhum co-organizador ou convite encontrado.</p>
-                        <p>Clique em "Convidar" para adicionar alguém para ajudar a gerenciar este evento.</p>
+                        <div>Nenhum co-organizador ou convite encontrado.</div>
+                        <div>Clique em "Convidar" para adicionar alguém para ajudar a gerenciar este evento.</div>
                       </div>
                     )}
                   </>
@@ -337,15 +337,15 @@ export function ManageCoOrganizersDialog({
                   </div>
                 ) : coOrganizersQuery.isError ? (
                   <div className="bg-red-50 text-red-800 rounded-md p-4">
-                    <p className="font-medium">Erro ao carregar dados</p>
-                    <p className="text-sm">
+                    <div className="font-medium">Erro ao carregar dados</div>
+                    <div className="text-sm">
                       Não foi possível carregar os co-organizadores. Por favor, tente novamente.
-                    </p>
+                    </div>
                   </div>
                 ) : !coOrganizersQuery.data || coOrganizersQuery.data.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    <p>Nenhum co-organizador ativo encontrado.</p>
-                    <p>Convide alguém para ajudar a gerenciar este evento.</p>
+                    <div>Nenhum co-organizador ativo encontrado.</div>
+                    <div>Convide alguém para ajudar a gerenciar este evento.</div>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -359,8 +359,8 @@ export function ManageCoOrganizersDialog({
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium">{coOrg.firstName} {coOrg.lastName}</p>
-                            <p className="text-sm text-muted-foreground">{coOrg.email}</p>
+                            <div className="font-medium">{coOrg.firstName} {coOrg.lastName}</div>
+                            <div className="text-sm text-muted-foreground">{coOrg.email}</div>
                           </div>
                         </div>
                         <Button 
@@ -386,14 +386,14 @@ export function ManageCoOrganizersDialog({
                   </div>
                 ) : invitesQuery.isError ? (
                   <div className="bg-red-50 text-red-800 rounded-md p-4">
-                    <p className="font-medium">Erro ao carregar dados</p>
-                    <p className="text-sm">
+                    <div className="font-medium">Erro ao carregar dados</div>
+                    <div className="text-sm">
                       Não foi possível carregar os convites. Por favor, tente novamente.
-                    </p>
+                    </div>
                   </div>
                 ) : !invitesQuery.data || !invitesQuery.data.filter(i => i.status === 'pending').length ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    <p>Nenhum convite pendente encontrado.</p>
+                    <div>Nenhum convite pendente encontrado.</div>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -403,7 +403,7 @@ export function ManageCoOrganizersDialog({
                         <div key={invite.id} className="p-3 border rounded-md">
                           <div className="flex justify-between items-center">
                             <div>
-                              <p className="font-medium">{invite.email}</p>
+                              <div className="font-medium">{invite.email}</div>
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <span>Enviado em: {formatDate(invite.invitedAt)}</span>
                                 {renderInviteStatus(invite.status)}
