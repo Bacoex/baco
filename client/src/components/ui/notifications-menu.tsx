@@ -21,6 +21,7 @@ export function NotificationsMenu() {
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification, removeAllNotifications } = useNotifications();
   const [_, setLocation] = useLocation();
   const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
@@ -32,7 +33,7 @@ export function NotificationsMenu() {
       storedNotifications
         .filter((n: any) => !n.read)
         .forEach((notification: any) => {
-          useToast().toast({
+          toast({
             title: notification.title,
             description: notification.message,
           });
