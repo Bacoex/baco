@@ -583,6 +583,7 @@ export default function EventCard({
           onReject={onReject}
           onRemoveParticipant={onRemoveParticipant}
           onRevertParticipant={onRevertParticipant}
+          onRemove={onRemove}
         />
       )}
     </>
