@@ -535,10 +535,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Adiciona participantes
           const participants = await storage.getParticipants(event.id);
-          console.log(`Evento ${event.id} tem ${participants.length} participantes:`, 
-                      participants.map(p => ({ id: p.id, userId: p.userId, status: p.status })));
+          console.log(`Evento ${event.id} tem ${participants.length} participantes`);
 
           const participantsWithUsers = await Promise.all(
+            participants.map(async (participant) => {
+              const user = await storage.getUser(participant.userId);
+              return {
+                ...participant,
+                user: user ? {
+                  id: user.id,
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  profileImage: user.profileImage
+                } : null
+              };
+            })
+          );
             participants.map(async (participant) => {
               const user = await storage.getUser(participant.userId);
               console.log(`Participante ${participant.id}, usuário ${participant.userId}, status ${participant.status}:`,
