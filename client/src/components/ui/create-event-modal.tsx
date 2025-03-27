@@ -65,7 +65,10 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
   const [showMapSelector, setShowMapSelector] = useState(false);
   
   // Debug log para verificar se as categorias estão sendo passadas corretamente
-  console.log("Categorias disponíveis:", categories);
+  console.log("Categorias disponíveis no CreateEventModal:", categories);
+  console.log("Tipo de categories:", typeof categories);
+  console.log("É array?", Array.isArray(categories));
+  console.log("Comprimento:", categories.length);
 
   // Inicializa o formulário com o esquema de validação
   const form = useForm<EventFormValues>({
@@ -79,7 +82,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
       location: "",
       coordinates: "",
       coverImage: "",
-      categoryId: undefined,
+      categoryId: 0,
       eventType: "public",
       importantInfo: "",
       ticketPrice: 0,
@@ -276,7 +279,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                   <FormLabel>Categoria</FormLabel>
                   <Select 
                     onValueChange={(value) => field.onChange(parseInt(value))}
-                    value={field.value ? field.value.toString() : undefined}
+                    value={field.value !== undefined ? field.value.toString() : "0"}
                   >
                     <FormControl>
                       <SelectTrigger>

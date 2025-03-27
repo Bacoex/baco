@@ -29,7 +29,10 @@ export default function HomePage() {
     },
     onError: (error) => {
       console.error("Erro ao buscar categorias:", error);
-    }
+    },
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0
   });
   
   // Busca todos os eventos com possível filtro de categoria
