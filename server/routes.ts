@@ -621,6 +621,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Remove um candidato (independente do status)
+  app.delete("/api/participants/:id/remove", ensureAuthenticated, async (req, res) => {
+    try {
+      const participationId = parseInt(req.params.id);
+      
+      // Busca a participação para obter informações do usuário
+      const existingParticipation = await storage.getParticipant(participationId);
+      if (!existingParticipation) {
+        return res.status(404).json({ message: "Participação não encontrada" });
+      }
+
+      // Obtém detalhes para a notificação antes de remover
+      const user = await storage.getUser(existingParticipation.userId);
+      const event = await storage.getEvent(existingParticipation.eventId);
+      
+      // Remove a participação
+      await storage.removeParticipation(participationId);
+      
+      // Retorna informações adicionais para exibição de notificação
+      res.json({
+        participationId,
+        notification: {
+          title: "Participante Removido",
+          message: `O participante foi removido do evento "${event?.name}".`,
+          user: user ? {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email
+          } : null,
+          event: event ? {
+            id: event.id,
+            name: event.name,
+            date: event.date
+          } : null
+        }
+      });
+    } catch (err) {
+      console.error("Erro ao remover participante:", err);
+      res.status(500).json({ message: "Erro ao remover participante" });
+    }
+  });
+  
+  // Reverte um candidato rejeitado para pendente
+  app.patch("/api/participants/:id/revert", ensureAuthenticated, async (req, res) => {
+    try {
+      const participationId = parseInt(req.params.id);
+      
+      // Busca a participação para obter informações do usuário
+      const existingParticipation = await storage.getParticipant(participationId);
+      if (!existingParticipation) {
+        return res.status(404).json({ message: "Participação não encontrada" });
+      }
+      
+      // Verifica se o status é rejeitado
+      if (existingParticipation.status !== "rejected") {
+        return res.status(400).json({ message: "Apenas candidaturas rejeitadas podem ser revertidas" });
+      }
+      
+      // Atualiza o status
+      const participation = await storage.updateParticipationStatus(participationId, "pending");
+      
+      // Busca dados do usuário para a notificação
+      const user = await storage.getUser(participation.userId);
+      const event = await storage.getEvent(participation.eventId);
+      
+      // Retorna informações adicionais para exibição de notificação
+      res.json({
+        ...participation,
+        notification: {
+          title: "Candidatura Revertida",
+          message: `A candidatura para o evento "${event?.name}" foi revertida para análise.`,
+          user: user ? {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email
+          } : null,
+          event: event ? {
+            name: event.name,
+            date: event.date
+          } : null
+        }
+      });
+    } catch (err) {
+      console.error("Erro ao reverter candidatura:", err);
+      res.status(500).json({ message: "Erro ao reverter candidatura" });
+    }
+  });
+  
   // Participa de um evento
   app.post("/api/events/:id/participate", ensureAuthenticated, async (req, res) => {
     try {
