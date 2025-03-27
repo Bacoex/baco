@@ -503,10 +503,16 @@ export default function EventCard({
     fetchEventDetails.refetch();
     setIsViewModalOpen(true);
   };
-
-  return (
-    <>
-      <Card 
+  
+  const EventCard: React.FC<EventCardProps> = ({ 
+    event, 
+    onParticipate, 
+    onView, 
+    showParticipateButton = true 
+  }) => {
+    return (
+      <>
+        <Card 
         className={`overflow-hidden hover:shadow-xl transition-all duration-300 group transform hover:scale-[1.02] cursor-pointer ${
           event.category.slug === "lgbt" 
           ? "border-0 pride-border" 
