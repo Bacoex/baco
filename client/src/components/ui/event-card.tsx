@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, MapPinIcon, CheckIcon, XIcon, InfoIcon, ShieldAlertIcon } from "lucide-react";
+import { CalendarIcon, MapPinIcon, CheckIcon, XIcon, InfoIcon, ShieldAlertIcon, Settings as SettingsIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import ViewEventModal from "@/components/ui/view-event-modal";
@@ -131,8 +131,18 @@ export default function EventCard({
     }).format(price);
   };
   
-  // Verifica a idade antes de participar (se houver restrição)
+  // Verifica se o usuário pode participar do evento
   const handleParticipation = () => {
+    // Verificar se o usuário é o criador do evento
+    if (isCreator) {
+      toast({
+        title: "Ação não permitida",
+        description: "Você não pode participar do seu próprio evento como participante.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Se não há restrição de idade ou o usuário tem idade suficiente
     if (isUserOldEnough) {
       participateMutation.mutate();
@@ -344,7 +354,16 @@ export default function EventCard({
             <span className="text-primary font-semibold text-lg">{formatPrice(event.ticketPrice || 0)}</span>
             
             <div onClick={(e) => e.stopPropagation()}>
-              {isParticipating ? (
+              {isCreator ? (
+                <Button 
+                  size="sm" 
+                  className="rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90"
+                  onClick={openEventDetails}
+                >
+                  <SettingsIcon className="h-4 w-4 mr-1" />
+                  Gerenciar
+                </Button>
+              ) : isParticipating ? (
                 <Button 
                   size="sm" 
                   variant="destructive"

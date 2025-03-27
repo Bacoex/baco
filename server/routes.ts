@@ -722,6 +722,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Evento não encontrado" });
       }
       
+      // Verifica se o usuário é o criador do evento
+      if (event.creatorId === userId) {
+        return res.status(400).json({ message: "Você não pode participar do seu próprio evento como participante" });
+      }
+      
       // Verifica se já está participando
       const existingParticipation = await storage.getParticipation(eventId, userId);
       if (existingParticipation) {

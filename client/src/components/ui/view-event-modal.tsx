@@ -153,6 +153,16 @@ export default function ViewEventModal({
   
   // Função para lidar com a ação de participar
   const handleParticipate = async () => {
+    // Verificar se o usuário é o criador do evento
+    if (user && event.creatorId === user.id) {
+      toast({
+        title: "Ação não permitida",
+        description: "Você não pode participar do seu próprio evento como participante.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Verificar restrição de idade
     if (hasAgeRestriction && !isUserOldEnough) {
       toast({
@@ -328,16 +338,10 @@ export default function ViewEventModal({
               
               {/* Botões de ação */}
               <div className="flex justify-between mt-6">
-                <div className="space-x-2">
-                  <Button variant="outline" size="sm" onClick={handleShare}>
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Compartilhar
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handleFollow}>
-                    <Heart className="h-4 w-4 mr-2" />
-                    Seguir
-                  </Button>
-                </div>
+                <Button variant="outline" size="sm" onClick={handleShare}>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Compartilhar
+                </Button>
                 
                 {!isCreator && !isParticipant && (
                   <Button onClick={handleParticipate}>
