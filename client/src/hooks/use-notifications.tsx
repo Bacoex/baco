@@ -59,12 +59,27 @@ const NotificationsContext = createContext<NotificationsContextType | null>(null
 // Converte notificação do servidor para o formato frontend
 const convertServerNotification = (serverData: ServerNotification): Notification => {
   const { notification, recipient } = serverData;
+  
+  // Verifica se a string de data é válida antes de convertê-la
+  let date: Date;
+  try {
+    date = new Date(notification.createdAt);
+    // Verifica se a data é válida (NaN indica data inválida)
+    if (isNaN(date.getTime())) {
+      date = new Date(); // Fallback para a data atual
+      console.warn("Data de notificação inválida:", notification.createdAt);
+    }
+  } catch (error) {
+    date = new Date();
+    console.error("Erro ao converter data de notificação:", notification.createdAt, error);
+  }
+  
   return {
     id: `server-${recipient.id}`,
     serverId: recipient.id, // Agora usamos o ID do recipient
     title: notification.title || "Notificação",
     message: notification.message,
-    date: new Date(notification.createdAt),
+    date: date,
     read: recipient.read,
     type: notification.type as any,
     eventId: notification.eventId,
@@ -127,10 +142,25 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
           const parsedNotifications = JSON.parse(stored);
           
           // Converter strings de data em objetos Date
-          const convertedNotifications = parsedNotifications.map((notif: any) => ({
-            ...notif,
-            date: new Date(notif.date)
-          }));
+          const convertedNotifications = parsedNotifications.map((notif: any) => {
+            let date: Date;
+            try {
+              date = new Date(notif.date);
+              // Verifica se a data é válida
+              if (isNaN(date.getTime())) {
+                date = new Date(); // Fallback para a data atual
+                console.warn("Data de notificação local inválida:", notif.date);
+              }
+            } catch (error) {
+              date = new Date();
+              console.error("Erro ao converter data de notificação local:", notif.date, error);
+            }
+            
+            return {
+              ...notif,
+              date: date
+            };
+          });
           
           setNotifications(convertedNotifications);
         }

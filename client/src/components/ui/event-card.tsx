@@ -172,21 +172,28 @@ export default function EventCard({
 
   // Atualiza o estado local quando a consulta de participação mudar ou quando recebemos props de participação
   useEffect(() => {
+    // Status da participação do usuário
+    let isParticipating = false;
+    
     // Se recebemos a informação de participação diretamente via props
     if (participation) {
-      setIsParticipating(true);
-      return;
+      isParticipating = true;
     }
-    
     // Se temos dados da consulta de participação
-    if (participationQuery.data) {
-      setIsParticipating(true);
-      return;
+    else if (participationQuery.data) {
+      isParticipating = true;
     }
     
-    // Se não temos participação
-    setIsParticipating(false);
-  }, [participationQuery.data, participation]);
+    // Atualiza o estado local com o status da participação
+    setIsParticipating(isParticipating);
+    
+    // Refaz a consulta de participação quando mudamos de rota
+    return () => {
+      if (user && event.id) {
+        queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participation`, user.id] });
+      }
+    };
+  }, [participationQuery.data, participation, user, event.id, queryClient]);
   
   // Formata a data para exibição
   const formatDate = (dateString: string) => {
