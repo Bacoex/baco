@@ -70,7 +70,7 @@ export function Header() {
                 </DropdownMenuItem>
               </Link>
               <DropdownMenuSeparator className="bg-white/10" />
-              <Link to="/about-page">
+              <Link to="/about">
                 <DropdownMenuItem className="text-white/90 hover:text-white focus:text-white">
                   <Info className="h-4 w-4 mr-2" />
                   Sobre
