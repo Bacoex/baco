@@ -925,11 +925,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rotas de notificações
   app.get("/api/notifications", ensureAuthenticated, async (req, res) => {
     try {
-      const notificationsWithRecipients = await storage.getNotificationsByUser(req.user!.id);
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      const notificationsWithRecipients = await storage.getNotificationsByUser(req.user.id);
+      console.log("Notificações encontradas:", notificationsWithRecipients);
+      
+      if (!notificationsWithRecipients) {
+        return res.json([]);
+      }
+
       res.json(notificationsWithRecipients);
     } catch (err) {
       console.error("Erro ao buscar notificações:", err);
-      res.status(500).json({ message: "Erro ao buscar notificações" });
+      res.status(500).json({ message: "Erro ao buscar notificações", error: err instanceof Error ? err.message : 'Erro desconhecido' });
     }
   });
 
