@@ -561,6 +561,68 @@ export default function MyEventsPage() {
     },
   });
   
+  // Mutação para remover participante (independente do status)
+  const removeParticipantMutation = useMutation({
+    mutationFn: async (participantId: number) => {
+      const res = await apiRequest("DELETE", `/api/participants/${participantId}/remove`);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/events/created"] });
+      
+      // Exibe a notificação customizada com as informações do backend
+      if (data.notification) {
+        toast({
+          title: data.notification.title,
+          description: data.notification.message,
+        });
+      } else {
+        toast({
+          title: "Participante removido",
+          description: "O participante foi removido com sucesso.",
+        });
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao remover participante",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Mutação para reverter candidatura rejeitada para pendente
+  const revertParticipantMutation = useMutation({
+    mutationFn: async (participantId: number) => {
+      const res = await apiRequest("PATCH", `/api/participants/${participantId}/revert`, { status: "pending" });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/events/created"] });
+      
+      // Exibe a notificação customizada com as informações do backend
+      if (data.notification) {
+        toast({
+          title: data.notification.title,
+          description: data.notification.message,
+        });
+      } else {
+        toast({
+          title: "Candidatura revertida",
+          description: "A candidatura foi revertida para análise.",
+        });
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao reverter candidatura",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
   // Mutação para seguir evento
   const followEventMutation = useMutation({
     mutationFn: async (eventId: number) => {
@@ -618,6 +680,16 @@ export default function MyEventsPage() {
   
   const handleRejectParticipant = (participantId: number) => {
     rejectParticipantMutation.mutate(participantId);
+  };
+  
+  const handleRemoveParticipant = (participantId: number) => {
+    if (window.confirm("Tem certeza que deseja remover este participante?")) {
+      removeParticipantMutation.mutate(participantId);
+    }
+  };
+  
+  const handleRevertParticipant = (participantId: number) => {
+    revertParticipantMutation.mutate(participantId);
   };
   
   const handleFollowEvent = (eventId: number) => {
@@ -715,6 +787,8 @@ export default function MyEventsPage() {
                       onRemove={handleRemoveEvent}
                       onApprove={handleApproveParticipant}
                       onReject={handleRejectParticipant}
+                      onRemoveParticipant={handleRemoveParticipant}
+                      onRevertParticipant={handleRevertParticipant}
                     />
                   ))}
                 </div>

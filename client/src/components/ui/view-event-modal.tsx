@@ -72,12 +72,24 @@ interface ViewEventModalProps {
   event: EventDetails | null;
   isOpen: boolean;
   onClose: () => void;
+  onApprove?: (participantId: number) => void;
+  onReject?: (participantId: number) => void;
+  onRemoveParticipant?: (participantId: number) => void;
+  onRevertParticipant?: (participantId: number) => void;
 }
 
 /**
  * Componente de modal para visualização de detalhes do evento
  */
-export default function ViewEventModal({ event, isOpen, onClose }: ViewEventModalProps) {
+export default function ViewEventModal({ 
+  event, 
+  isOpen, 
+  onClose,
+  onApprove,
+  onReject,
+  onRemoveParticipant,
+  onRevertParticipant
+}: ViewEventModalProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [_location, navigate] = useLocation(); 
@@ -348,23 +360,76 @@ export default function ViewEventModal({ event, isOpen, onClose }: ViewEventModa
                   {event.participants.map((participant) => (
                     <div 
                       key={participant.id} 
-                      className="flex items-center space-x-2 p-2 rounded-md border cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                      onClick={() => window.location.href = `/profile/${participant.userId}`}
+                      className="flex flex-col p-2 rounded-md border hover:bg-gray-100 dark:hover:bg-gray-800"
                     >
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={participant.user?.profileImage || undefined} />
-                        <AvatarFallback>
-                          {`${participant.user?.firstName?.charAt(0)}${participant.user?.lastName?.charAt(0)}`}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium">{getUserDisplayName(participant.user)}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {participant.status === 'confirmed' && 'Confirmado'}
-                          {participant.status === 'pending' && 'Pendente'}
-                          {participant.status === 'rejected' && 'Rejeitado'}
+                      <div 
+                        className="flex items-center space-x-2 cursor-pointer"
+                        onClick={() => window.location.href = `/profile/${participant.userId}`}
+                      >
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={participant.user?.profileImage || undefined} />
+                          <AvatarFallback>
+                            {`${participant.user?.firstName?.charAt(0)}${participant.user?.lastName?.charAt(0)}`}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{getUserDisplayName(participant.user)}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {participant.status === 'confirmed' && 'Confirmado'}
+                            {participant.status === 'pending' && 'Pendente'}
+                            {participant.status === 'rejected' && 'Rejeitado'}
+                          </div>
                         </div>
                       </div>
+                      
+                      {/* Botões de ação para cada participante (apenas para criador do evento) */}
+                      {isCreator && (
+                        <div className="mt-2 flex flex-wrap gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
+                          {participant.status === 'pending' && onApprove && (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-green-500 border-green-500 hover:bg-green-500 hover:text-white flex-1"
+                              onClick={() => onApprove(participant.id)}
+                            >
+                              Aprovar
+                            </Button>
+                          )}
+                          
+                          {participant.status === 'pending' && onReject && (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white flex-1"
+                              onClick={() => onReject(participant.id)}
+                            >
+                              Rejeitar
+                            </Button>
+                          )}
+                          
+                          {participant.status === 'confirmed' && onRemoveParticipant && (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white w-full"
+                              onClick={() => onRemoveParticipant(participant.id)}
+                            >
+                              Remover participante
+                            </Button>
+                          )}
+                          
+                          {participant.status === 'rejected' && onRevertParticipant && (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-blue-500 border-blue-500 hover:bg-blue-500 hover:text-white w-full"
+                              onClick={() => onRevertParticipant(participant.id)}
+                            >
+                              Reverter para pendente
+                            </Button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

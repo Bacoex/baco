@@ -39,14 +39,51 @@ interface EventProps {
       lastName: string;
       profileImage: string | null;
     };
+    participants?: Array<{
+      id: number;
+      userId: number;
+      status: string;
+      user: {
+        id: number;
+        firstName: string;
+        lastName: string;
+        profileImage: string | null;
+      };
+      applicationReason?: string;
+    }>;
   };
+  isCreator?: boolean;
+  participation?: {
+    id: number;
+    status: string;
+  } | null;
+  isFollowing?: boolean;
+  onRemove?: (eventId: number) => void;
+  onApprove?: (participantId: number) => void;
+  onReject?: (participantId: number) => void;
+  onRemoveParticipant?: (participantId: number) => void;
+  onRevertParticipant?: (participantId: number) => void;
+  onFollow?: (eventId: number) => void;
+  onUnfollow?: (eventId: number) => void;
 }
 
 /**
  * Componente de card de evento
  * Exibe um evento com imagem, título, local, data e preço
  */
-export default function EventCard({ event }: EventProps) {
+export default function EventCard({ 
+  event, 
+  isCreator = false,
+  participation = null,
+  isFollowing = false,
+  onRemove,
+  onApprove,
+  onReject,
+  onRemoveParticipant,
+  onRevertParticipant,
+  onFollow,
+  onUnfollow
+}: EventProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -300,6 +337,10 @@ export default function EventCard({ event }: EventProps) {
           event={fetchEventDetails.data}
           isOpen={isViewModalOpen}
           onClose={() => setIsViewModalOpen(false)}
+          onApprove={onApprove}
+          onReject={onReject}
+          onRemoveParticipant={onRemoveParticipant}
+          onRevertParticipant={onRevertParticipant}
         />
       )}
     </>
