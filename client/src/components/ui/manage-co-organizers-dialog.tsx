@@ -164,30 +164,38 @@ export function ManageCoOrganizersDialog({
     switch (status) {
       case 'pending':
         return (
-          <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
-            <Clock className="h-3 w-3 mr-1" />
-            Pendente
-          </Badge>
+          <div className="inline-flex">
+            <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+              <Clock className="h-3 w-3 mr-1" />
+              Pendente
+            </Badge>
+          </div>
         );
       case 'accepted':
         return (
-          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
-            <CheckCircle2 className="h-3 w-3 mr-1" />
-            Aceito
-          </Badge>
+          <div className="inline-flex">
+            <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+              Aceito
+            </Badge>
+          </div>
         );
       case 'rejected':
         return (
-          <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
-            <XCircle className="h-3 w-3 mr-1" />
-            Recusado
-          </Badge>
+          <div className="inline-flex">
+            <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
+              <XCircle className="h-3 w-3 mr-1" />
+              Recusado
+            </Badge>
+          </div>
         );
       default:
         return (
-          <Badge variant="outline">
-            {status}
-          </Badge>
+          <div className="inline-flex">
+            <Badge variant="outline">
+              {status}
+            </Badge>
+          </div>
         );
     }
   };
@@ -280,7 +288,7 @@ export function ManageCoOrganizersDialog({
                                 <div>
                                   <div className="font-medium">{invite.email}</div>
                                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <span>Enviado em: {formatDate(invite.invitedAt)}</span>
+                                    <div>Enviado em: {formatDate(invite.invitedAt)}</div>
                                     {renderInviteStatus(invite.status)}
                                   </div>
                                 </div>
@@ -405,7 +413,7 @@ export function ManageCoOrganizersDialog({
                             <div>
                               <div className="font-medium">{invite.email}</div>
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <span>Enviado em: {formatDate(invite.invitedAt)}</span>
+                                <div>Enviado em: {formatDate(invite.invitedAt)}</div>
                                 {renderInviteStatus(invite.status)}
                               </div>
                             </div>
