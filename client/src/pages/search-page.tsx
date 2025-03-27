@@ -25,7 +25,13 @@ export default function SearchPage() {
     queryKey: ["/api/events"],
     initialData: [],
     refetchOnMount: true,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    onSuccess: (data) => {
+      console.log("Eventos recuperados para pesquisa:", data);
+    },
+    onError: (error) => {
+      console.error("Erro ao buscar eventos para pesquisa:", error);
+    }
   });
 
   // Filtra os eventos com base na pesquisa
@@ -37,23 +43,20 @@ export default function SearchPage() {
         .replace(/[\u0300-\u036f]/g, "");
 
       const filtered = eventsQuery.data.filter((event: any) => {
-        // Normaliza o nome do evento
-        const normalizedName = event.name
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "");
+        // Normaliza o nome do evento (verificando se existe)
+        const normalizedName = event.name 
+          ? event.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          : "";
         
-        // Normaliza a descrição do evento
-        const normalizedDescription = event.description
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "");
+        // Normaliza a descrição do evento (verificando se existe)
+        const normalizedDescription = event.description 
+          ? event.description.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          : "";
         
-        // Normaliza a localização do evento
-        const normalizedLocation = event.location
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "");
+        // Normaliza a localização do evento (verificando se existe)
+        const normalizedLocation = event.location 
+          ? event.location.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          : "";
         
         // Verifica se o termo de pesquisa está presente em algum dos campos
         return (
