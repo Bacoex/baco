@@ -1,6 +1,22 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { useAuth } from './use-auth';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
+// Interface para notificações do backend
+interface ServerNotification {
+  id: number;
+  userId: number;
+  message: string;
+  read: boolean;
+  createdAt: string;
+  title: string;
+  type: string;
+  eventId?: number;
+}
+
+// Interface para notificações no frontend
 export interface Notification {
   id: string;
   title: string;
@@ -10,6 +26,8 @@ export interface Notification {
   type: "event_application" | "event_approval" | "event_rejection" | "system";
   eventId?: number;
   userId?: number;
+  // Campo para controle interno de sincronização
+  serverId?: number;
 }
 
 // Interface para o contexto de notificações
@@ -21,15 +39,69 @@ interface NotificationsContextType {
   removeAllNotifications: () => Promise<void>;
   unreadCount: number;
   addNotification: (notification: Omit<Notification, 'id' | 'date' | 'read'>) => void;
+  isLoading: boolean;
+  error: Error | null;
 }
 
 // Criação do contexto
 const NotificationsContext = createContext<NotificationsContextType | null>(null);
 
+// Converte notificação do servidor para o formato frontend
+const convertServerNotification = (serverNotif: ServerNotification): Notification => ({
+  id: `server-${serverNotif.id}`,
+  serverId: serverNotif.id,
+  title: serverNotif.title || "Notificação",
+  message: serverNotif.message,
+  date: new Date(serverNotif.createdAt),
+  read: serverNotif.read,
+  type: serverNotif.type as any,
+  eventId: serverNotif.eventId,
+  userId: serverNotif.userId
+});
+
 // Provider do contexto
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Query para buscar notificações do servidor
+  const { 
+    data: serverNotifications, 
+    isLoading,
+    error
+  } = useQuery<ServerNotification[], Error>({
+    queryKey: ['/api/notifications'],
+    queryFn: async () => {
+      if (!user) return [];
+      const response = await apiRequest('GET', '/api/notifications');
+      const data = await response.json();
+      return data;
+    },
+    enabled: !!user,
+    refetchOnWindowFocus: false
+  });
+
+  // Mutação para marcar notificação como lida no servidor
+  const markAsReadMutation = useMutation({
+    mutationFn: async (notificationId: number) => {
+      await apiRequest('PATCH', `/api/notifications/${notificationId}/read`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+    }
+  });
+
+  // Mutação para remover notificação no servidor
+  const removeNotificationMutation = useMutation({
+    mutationFn: async (notificationId: number) => {
+      await apiRequest('DELETE', `/api/notifications/${notificationId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+    }
+  });
 
   // Efeito para carregar notificações do localStorage na inicialização
   useEffect(() => {
@@ -55,6 +127,23 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
+  // Efeito para sincronizar notificações do servidor
+  useEffect(() => {
+    if (serverNotifications && user) {
+      // Converter notificações do servidor para formato frontend
+      const serverConverted = serverNotifications.map(convertServerNotification);
+      
+      // Mesclar com notificações locais (mantendo as locais que não existem no servidor)
+      setNotifications(prev => {
+        // Filtrar notificações locais que não têm serverId (não vieram do servidor)
+        const localOnly = prev.filter(notif => !notif.serverId);
+        
+        // Mesclar com notificações do servidor
+        return [...serverConverted, ...localOnly];
+      });
+    }
+  }, [serverNotifications, user]);
+
   // Efeito para salvar notificações no localStorage quando alteradas
   useEffect(() => {
     if (user && notifications.length > 0) {
@@ -70,6 +159,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   // Marcar como lida
   const markAsRead = async (id: string) => {
     try {
+      // Atualiza estado local imediatamente
       setNotifications(prev =>
         prev.map(notification =>
           notification.id === id
@@ -77,39 +167,98 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
             : notification
         )
       );
+      
+      // Encontrar a notificação
+      const notification = notifications.find(n => n.id === id);
+      
+      // Se tiver serverId, fazer a chamada à API
+      if (notification?.serverId) {
+        await markAsReadMutation.mutateAsync(notification.serverId);
+      }
     } catch (error) {
       console.error('Erro ao marcar notificação como lida:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível marcar a notificação como lida",
+        variant: "destructive"
+      });
     }
   };
 
   // Remover notificação
   const removeNotification = async (id: string) => {
     try {
+      // Encontrar a notificação antes de remover do estado
+      const notification = notifications.find(n => n.id === id);
+      
+      // Atualiza estado local imediatamente
       setNotifications(prev =>
         prev.filter(notification => notification.id !== id)
       );
+      
+      // Se tiver serverId, fazer a chamada à API
+      if (notification?.serverId) {
+        await removeNotificationMutation.mutateAsync(notification.serverId);
+      }
     } catch (error) {
       console.error('Erro ao remover notificação:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover a notificação",
+        variant: "destructive"
+      });
     }
   };
 
   // Remover todas as notificações
   const removeAllNotifications = async () => {
     try {
+      // Para cada notificação do servidor, chamar a API para remover
+      const serverIds = notifications
+        .filter(n => n.serverId)
+        .map(n => n.serverId as number);
+      
+      // Atualiza estado local imediatamente
       setNotifications([]);
+      
+      // Remover cada notificação do servidor
+      for (const serverId of serverIds) {
+        await removeNotificationMutation.mutateAsync(serverId);
+      }
     } catch (error) {
       console.error('Erro ao remover todas as notificações:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover todas as notificações",
+        variant: "destructive"
+      });
     }
   };
 
   // Marcar todas como lidas
   const markAllAsRead = async () => {
     try {
+      // Para cada notificação não lida do servidor, chamar a API para marcar como lida
+      const unreadServerIds = notifications
+        .filter(n => n.serverId && !n.read)
+        .map(n => n.serverId as number);
+      
+      // Atualiza estado local imediatamente
       setNotifications(prev =>
         prev.map(notification => ({ ...notification, read: true }))
       );
+      
+      // Marcar cada notificação como lida no servidor
+      for (const serverId of unreadServerIds) {
+        await markAsReadMutation.mutateAsync(serverId);
+      }
     } catch (error) {
       console.error('Erro ao marcar todas as notificações como lidas:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível marcar todas as notificações como lidas",
+        variant: "destructive"
+      });
     }
   };
 
@@ -117,7 +266,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const addNotification = (notificationData: Omit<Notification, 'id' | 'date' | 'read'>) => {
     const newNotification: Notification = {
       ...notificationData,
-      id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      id: `local-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       date: new Date(),
       read: false
     };
@@ -133,7 +282,9 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     removeNotification,
     removeAllNotifications,
     unreadCount: notifications.filter(n => !n.read).length,
-    addNotification
+    addNotification,
+    isLoading,
+    error: error || null
   };
 
   return (

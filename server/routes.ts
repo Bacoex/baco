@@ -1108,12 +1108,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Se for um evento do tipo candidatura, notificar o criador
       if (event?.eventType === 'private_application') {
+        // Verificar se temos os IDs necessários
+        if (!event.id || !event.creatorId || !user?.id) {
+          return res.status(500).json({ message: "Erro ao processar notificação: dados incompletos" });
+        }
+
         // Preparar notificação para o criador do evento
         const notificationForCreator = {
           title: "Candidatura Cancelada",
-          message: `${user?.firstName} ${user?.lastName} cancelou a candidatura para o evento "${event.name}"`,
+          message: `${user.firstName} ${user.lastName} cancelou a candidatura para o evento "${event.name}"`,
           type: "event_application",
-          eventId: eventId,
+          eventId: event.id,
           userId: event.creatorId
         };
         
@@ -1169,22 +1174,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Preparar notificações para criador e participante
       if (status === "approved") {
+        // Verificar se temos os IDs necessários
+        if (!event?.id || !event.creatorId || !user?.id) {
+          return res.status(500).json({ message: "Erro ao processar notificações: dados incompletos" });
+        }
+
         // Notificação para o criador quando aprova um participante
         const notificationForCreator = {
           title: "Candidatura Aprovada!",
-          message: `Você aprovou a candidatura de ${user?.firstName} ${user?.lastName} para o evento "${event?.name}".`,
+          message: `Você aprovou a candidatura de ${user.firstName} ${user.lastName} para o evento "${event.name}".`,
           type: "event_approval",
-          eventId: event?.id,
-          userId: event?.creatorId
+          eventId: event.id,
+          userId: event.creatorId
         };
         
         // Notificação para o participante que foi aprovado
         const notificationForParticipant = {
           title: "Sua Candidatura foi Aprovada!",
-          message: `Sua candidatura para o evento "${event?.name}" foi aprovada. Você pode ver os detalhes do evento agora.`,
+          message: `Sua candidatura para o evento "${event.name}" foi aprovada. Você pode ver os detalhes do evento agora.`,
           type: "event_approval",
-          eventId: event?.id,
-          userId: user?.id
+          eventId: event.id,
+          userId: user.id
         };
         
         // Salvar notificações no banco de dados
@@ -1199,22 +1209,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         });
       } else {
+        // Verificar se temos os IDs necessários
+        if (!event?.id || !event.creatorId || !user?.id) {
+          return res.status(500).json({ message: "Erro ao processar notificações: dados incompletos" });
+        }
+
         // Notificação para o criador quando rejeita um participante
         const notificationForCreator = {
           title: "Candidatura Recusada",
-          message: `Você recusou a candidatura de ${user?.firstName} ${user?.lastName} para o evento "${event?.name}".`,
+          message: `Você recusou a candidatura de ${user.firstName} ${user.lastName} para o evento "${event.name}".`,
           type: "event_rejection",
-          eventId: event?.id,
-          userId: event?.creatorId
+          eventId: event.id,
+          userId: event.creatorId
         };
         
         // Notificação para o participante que foi recusado
         const notificationForParticipant = {
           title: "Sua Candidatura foi Recusada",
-          message: `Infelizmente sua candidatura para o evento "${event?.name}" foi recusada.`,
+          message: `Infelizmente sua candidatura para o evento "${event.name}" foi recusada.`,
           type: "event_rejection",
-          eventId: event?.id,
-          userId: user?.id
+          eventId: event.id,
+          userId: user.id
         };
         
         // Salvar notificações no banco de dados
