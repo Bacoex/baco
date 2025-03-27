@@ -268,9 +268,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota alternativa para manter compatibilidade
   app.get("/api/user/events/creator", ensureAuthenticated, async (req, res) => {
     try {
+      console.log(`getEventsByCreator: Buscando eventos do criador ${req.user!.id}, encontrados 0 eventos`);
       const events = await storage.getEventsByCreator(req.user!.id);
-      res.json(events);
+      
+      const eventsWithDetails = await Promise.all(
+        events.map(async (event) => {
+          const categories = await storage.getCategories();
+          const category = categories.find(cat => cat.id === event.categoryId);
+          const creator = await storage.getUser(event.creatorId);
+          const participants = await storage.getParticipants(event.id);
+          
+          return {
+            ...event,
+            category: {
+              name: category?.name || "Sem categoria",
+              color: category?.color || "#888888",
+              slug: category?.slug || "uncategorized"
+            },
+            creator: {
+              id: creator?.id || 0,
+              firstName: creator?.firstName || "Usuário",
+              lastName: creator?.lastName || "Desconhecido",
+              profileImage: creator?.profileImage || null
+            },
+            participants: participants
+          };
+        })
+      );
+      
+      res.json(eventsWithDetails);
     } catch (err) {
+      console.error("Erro ao buscar eventos criados:", err);
       res.status(500).json({ message: "Erro ao buscar eventos criados" });
     }
   });
