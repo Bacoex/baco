@@ -193,36 +193,24 @@ export default function ViewEventModal({
       // Adicionar o novo participante à lista de participantes
       const participationData = await response.json();
       
-      // Processar notificações que vêm do backend
-      if (participationData.notification) {
-        console.log("Notificações disponíveis em view-event-modal:", participationData.notification);
-        
-        // Notificação para o criador do evento (se existir)
-        if (participationData.notification.forCreator) {
-          // Se o usuário atual é o destinatário da notificação
-          if (participationData.notification.forCreator.userId === user?.id) {
-            console.log("Adicionando notificação para o criador:", participationData.notification.forCreator);
-            // Adiciona a notificação no estado global
-            addNotification(participationData.notification.forCreator);
-          }
-        }
-        
-        // Notificação para o participante (se existir)
-        if (participationData.notification.forParticipant) {
-          // Se o usuário atual é o destinatário da notificação
-          if (participationData.notification.forParticipant.userId === user?.id) {
-            console.log("Adicionando notificação para o participante:", participationData.notification.forParticipant);
-            // Adiciona a notificação no estado global
-            addNotification(participationData.notification.forParticipant);
-          }
-        }
+      // Criar notificação para o usuário participante 
+      if (event.eventType === 'private_application') {
+        // Adiciona notificação que a candidatura está pendente de aprovação
+        addNotification({
+          title: "Candidatura enviada",
+          message: `Sua candidatura para o evento "${event.name}" foi enviada e está aguardando aprovação do organizador.`,
+          type: "participant_pending",
+          eventId: event.id
+        });
+      } else {
+        // Para eventos públicos, participação é imediata
+        addNotification({
+          title: "Participação confirmada",
+          message: `Sua participação no evento "${event.name}" foi confirmada com sucesso!`,
+          type: "participant_pending",
+          eventId: event.id
+        });
       }
-      
-      // Atualizar o estado do componente para refletir a participação
-      const updatedEvent = {
-        ...event,
-        participants: [...(event.participants || []), participationData]
-      };
       
       // Fecha o modal para forçar uma atualização
       onClose();

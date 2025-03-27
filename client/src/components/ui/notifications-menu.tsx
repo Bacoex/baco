@@ -4,63 +4,51 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Bell, Check, Calendar, X, Trash2 } from "lucide-react";
+import { Bell, Check, Calendar, X, Trash2, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNotifications, Notification } from "@/hooks/use-notifications";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useAuth } from "@/hooks/use-auth";
-import { useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
 
 export function NotificationsMenu() {
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification, removeAllNotifications } = useNotifications();
-  const { toast } = useToast();
   const [_, setLocation] = useLocation();
-  const { user } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      const userStorageKey = `baco-notifications-${user.id}`;
-      const storedNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
-      
-      storedNotifications
-        .filter((n: any) => !n.read)
-        .forEach((notification: any) => {
-          toast({
-            title: notification.title,
-            description: notification.message,
-          });
-        });
-    }
-  }, [user, toast]);
-
+  // Função para lidar com clique na notificação
   const handleNotificationClick = (notification: Notification) => {
     markAsRead(notification.id);
     
+    // Se for uma notificação relacionada a um evento, redirecionar para a página do evento
     if (notification.eventId) {
-      setLocation(`/events/${notification.eventId}`);
+      // Para notificações de solicitações pendentes, ir para a página Meus Eventos
+      if (notification.type === 'participant_request') {
+        setLocation(`/my-events`);
+      } else {
+        // Para outras notificações de eventos, ir para a página do evento específico
+        setLocation(`/events/${notification.eventId}`);
+      }
     }
   };
 
+  // Função para remover uma notificação
   const handleRemoveNotification = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     removeNotification(id);
   };
 
+  // Função para obter o ícone adequado para cada tipo de notificação
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'event_application':
-      case 'event_approval':
-      case 'event_rejection':
+      case 'participant_pending':
         return <Calendar className="h-4 w-4 mr-2" />;
+      case 'participant_request':
+        return <UserCheck className="h-4 w-4 mr-2" />;
       default:
-        return null;
+        return <Bell className="h-4 w-4 mr-2" />;
     }
   };
 

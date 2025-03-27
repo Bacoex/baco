@@ -1,30 +1,8 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { useAuth } from './use-auth';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-
-// Interface para notificações do backend
-interface ServerNotification {
-  notification: {
-    id: number;
-    message: string;
-    createdAt: string; // O servidor envia como string
-    title: string;
-    type: string;
-    eventId: number | null;
-    createdBy: number | null;
-    sourceType: string | null;
-    sourceId: number | null;
-  };
-  recipient: {
-    id: number;
-    notificationId: number;
-    userId: number;
-    read: boolean;
-    deletedAt: null | string;
-  };
-}
 
 // Interface para notificações no frontend
 export interface Notification {
@@ -33,59 +11,24 @@ export interface Notification {
   message: string;
   date: Date;
   read: boolean;
-  type: "event_application" | "event_approval" | "event_rejection" | "system";
+  type: "participant_pending" | "participant_request" | "system";
   eventId?: number | null;
-  userId?: number;
-  // Campo para controle interno de sincronização
-  serverId?: number;
 }
 
 // Interface para o contexto de notificações
 interface NotificationsContextType {
   notifications: Notification[];
-  markAsRead: (id: string) => Promise<void>;
-  markAllAsRead: () => Promise<void>;
-  removeNotification: (id: string) => Promise<void>;
-  removeAllNotifications: () => Promise<void>;
+  markAsRead: (id: string) => void;
+  markAllAsRead: () => void;
+  removeNotification: (id: string) => void;
+  removeAllNotifications: () => void;
   unreadCount: number;
   addNotification: (notification: Omit<Notification, 'id' | 'date' | 'read'>) => void;
   isLoading: boolean;
-  error: Error | null;
 }
 
 // Criação do contexto
 const NotificationsContext = createContext<NotificationsContextType | null>(null);
-
-// Converte notificação do servidor para o formato frontend
-const convertServerNotification = (serverData: ServerNotification): Notification => {
-  const { notification, recipient } = serverData;
-  
-  // Verifica se a string de data é válida antes de convertê-la
-  let date: Date;
-  try {
-    date = new Date(notification.createdAt);
-    // Verifica se a data é válida (NaN indica data inválida)
-    if (isNaN(date.getTime())) {
-      date = new Date(); // Fallback para a data atual
-      console.warn("Data de notificação inválida:", notification.createdAt);
-    }
-  } catch (error) {
-    date = new Date();
-    console.error("Erro ao converter data de notificação:", notification.createdAt, error);
-  }
-  
-  return {
-    id: `server-${recipient.id}`,
-    serverId: recipient.id, // Agora usamos o ID do recipient
-    title: notification.title || "Notificação",
-    message: notification.message,
-    date: date,
-    read: recipient.read,
-    type: notification.type as any,
-    eventId: notification.eventId,
-    userId: recipient.userId
-  };
-};
 
 // Provider do contexto
 export function NotificationsProvider({ children }: { children: ReactNode }) {
@@ -94,40 +37,41 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Query para buscar notificações do servidor
-  const { 
-    data: serverNotifications, 
-    isLoading,
-    error
-  } = useQuery<ServerNotification[], Error>({
-    queryKey: ['/api/notifications'],
+  // Query para buscar informações do usuário e seus eventos
+  const { isLoading: isUserEventsLoading } = useQuery({
+    queryKey: ['/api/user/events/creator'],
+    enabled: !!user,
     queryFn: async () => {
       if (!user) return [];
-      const response = await apiRequest('GET', '/api/notifications');
+      const response = await apiRequest('GET', '/api/user/events/creator');
       const data = await response.json();
+      
+      // Filtrar eventos com participantes pendentes
+      const eventsWithPendingParticipants = data.filter((event: any) => 
+        event.pendingCount && event.pendingCount > 0
+      );
+      
+      // Criar notificações para eventos com participantes pendentes
+      if (eventsWithPendingParticipants.length > 0) {
+        const newNotifications: Notification[] = eventsWithPendingParticipants.map((event: any) => ({
+          id: `event-${event.id}-pending-${Date.now()}`,
+          title: "Solicitações pendentes",
+          message: `Você tem ${event.pendingCount} solicitação(ões) pendente(s) para o evento "${event.name}"`,
+          date: new Date(),
+          read: false,
+          type: "participant_request",
+          eventId: event.id
+        }));
+        
+        // Adicionar novas notificações, evitando duplicatas (verificando pelo eventId)
+        setNotifications(prev => {
+          const eventIds = new Set(prev.filter(n => n.type === "participant_request").map(n => n.eventId));
+          const uniqueNewNotifications = newNotifications.filter(n => !eventIds.has(n.eventId));
+          return [...uniqueNewNotifications, ...prev];
+        });
+      }
+      
       return data;
-    },
-    enabled: !!user,
-    refetchOnWindowFocus: false
-  });
-
-  // Mutação para marcar notificação como lida no servidor
-  const markAsReadMutation = useMutation({
-    mutationFn: async (recipientId: number) => {
-      await apiRequest('PATCH', `/api/notifications/${recipientId}/read`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-    }
-  });
-
-  // Mutação para remover notificação no servidor
-  const removeNotificationMutation = useMutation({
-    mutationFn: async (recipientId: number) => {
-      await apiRequest('DELETE', `/api/notifications/${recipientId}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     }
   });
 
@@ -142,25 +86,10 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
           const parsedNotifications = JSON.parse(stored);
           
           // Converter strings de data em objetos Date
-          const convertedNotifications = parsedNotifications.map((notif: any) => {
-            let date: Date;
-            try {
-              date = new Date(notif.date);
-              // Verifica se a data é válida
-              if (isNaN(date.getTime())) {
-                date = new Date(); // Fallback para a data atual
-                console.warn("Data de notificação local inválida:", notif.date);
-              }
-            } catch (error) {
-              date = new Date();
-              console.error("Erro ao converter data de notificação local:", notif.date, error);
-            }
-            
-            return {
-              ...notif,
-              date: date
-            };
-          });
+          const convertedNotifications = parsedNotifications.map((notif: any) => ({
+            ...notif,
+            date: new Date(notif.date)
+          }));
           
           setNotifications(convertedNotifications);
         }
@@ -169,35 +98,6 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [user]);
-
-  // Efeito para sincronizar notificações do servidor
-  useEffect(() => {
-    if (serverNotifications && user) {
-      // Converter notificações do servidor para formato frontend
-      const serverConverted = serverNotifications.map(convertServerNotification);
-      
-      // Substituir todas as notificações do servidor, mantendo apenas as locais
-      setNotifications(prev => {
-        // Filtrar notificações locais que NÃO vieram do servidor e NÃO estão marcadas para remover
-        const localOnly = prev.filter(notif => notif.id.startsWith('local-'));
-        
-        // Se não houver notificações do servidor, não mescle com as locais
-        if (serverConverted.length === 0 && localOnly.length === 0) {
-          // Limpar localStorage para evitar persistência de notificações removidas
-          try {
-            const storageKey = `baco-notifications-${user.id}`;
-            localStorage.removeItem(storageKey);
-          } catch (error) {
-            console.error('Erro ao limpar localStorage:', error);
-          }
-          return [];
-        }
-        
-        // Mesclar com notificações do servidor
-        return [...serverConverted, ...localOnly];
-      });
-    }
-  }, [serverNotifications, user]);
 
   // Efeito para salvar notificações no localStorage quando alteradas
   useEffect(() => {
@@ -212,165 +112,77 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   }, [notifications, user]);
 
   // Marcar como lida
-  const markAsRead = async (id: string) => {
-    try {
-      // Atualiza estado local imediatamente
-      const updatedNotifications = notifications.map(notification =>
-        notification.id === id
-          ? { ...notification, read: true }
-          : notification
-      );
-      setNotifications(updatedNotifications);
-      
-      // Atualiza localStorage manualmente
-      if (user) {
-        try {
-          const storageKey = `baco-notifications-${user.id}`;
-          localStorage.setItem(storageKey, JSON.stringify(updatedNotifications));
-        } catch (error) {
-          console.error('Erro ao atualizar localStorage:', error);
-        }
+  const markAsRead = (id: string) => {
+    const updatedNotifications = notifications.map(notification =>
+      notification.id === id
+        ? { ...notification, read: true }
+        : notification
+    );
+    setNotifications(updatedNotifications);
+    
+    // Atualiza localStorage manualmente
+    if (user) {
+      try {
+        const storageKey = `baco-notifications-${user.id}`;
+        localStorage.setItem(storageKey, JSON.stringify(updatedNotifications));
+      } catch (error) {
+        console.error('Erro ao atualizar localStorage:', error);
       }
-      
-      // Encontrar a notificação
-      const notification = notifications.find(n => n.id === id);
-      
-      // Se tiver serverId, fazer a chamada à API
-      if (notification?.serverId) {
-        await markAsReadMutation.mutateAsync(notification.serverId);
-        // Invalidar a query para forçar atualização dos dados
-        queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-      }
-    } catch (error) {
-      console.error('Erro ao marcar notificação como lida:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível marcar a notificação como lida",
-        variant: "destructive"
-      });
     }
   };
 
   // Remover notificação
-  const removeNotification = async (id: string) => {
-    try {
-      // Encontrar a notificação antes de remover do estado
-      const notification = notifications.find(n => n.id === id);
-      
-      // Atualiza estado local imediatamente
-      const updatedNotifications = notifications.filter(notification => notification.id !== id);
-      setNotifications(updatedNotifications);
-      
-      // Atualiza localStorage manualmente para evitar dependência do efeito
-      if (user && updatedNotifications.length > 0) {
-        try {
-          const storageKey = `baco-notifications-${user.id}`;
-          localStorage.setItem(storageKey, JSON.stringify(updatedNotifications));
-        } catch (error) {
-          console.error('Erro ao atualizar localStorage:', error);
-        }
-      } else if (user) {
-        // Se não há mais notificações, limpar o localStorage
-        try {
-          const storageKey = `baco-notifications-${user.id}`;
-          localStorage.removeItem(storageKey);
-        } catch (error) {
-          console.error('Erro ao limpar localStorage:', error);
-        }
+  const removeNotification = (id: string) => {
+    const updatedNotifications = notifications.filter(notification => notification.id !== id);
+    setNotifications(updatedNotifications);
+    
+    // Atualiza localStorage manualmente
+    if (user && updatedNotifications.length > 0) {
+      try {
+        const storageKey = `baco-notifications-${user.id}`;
+        localStorage.setItem(storageKey, JSON.stringify(updatedNotifications));
+      } catch (error) {
+        console.error('Erro ao atualizar localStorage:', error);
       }
-      
-      // Se tiver serverId, fazer a chamada à API
-      if (notification?.serverId) {
-        await removeNotificationMutation.mutateAsync(notification.serverId);
-        // Invalidar a query para forçar atualização dos dados
-        queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+    } else if (user) {
+      // Se não há mais notificações, limpar o localStorage
+      try {
+        const storageKey = `baco-notifications-${user.id}`;
+        localStorage.removeItem(storageKey);
+      } catch (error) {
+        console.error('Erro ao limpar localStorage:', error);
       }
-    } catch (error) {
-      console.error('Erro ao remover notificação:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível remover a notificação",
-        variant: "destructive"
-      });
     }
   };
 
   // Remover todas as notificações
-  const removeAllNotifications = async () => {
-    try {
-      // Para cada notificação do servidor, chamar a API para remover
-      const serverIds = notifications
-        .filter(n => n.serverId)
-        .map(n => n.serverId as number);
-      
-      // Atualiza estado local imediatamente
-      setNotifications([]);
-      
-      // Limpar localStorage
-      if (user) {
-        try {
-          const storageKey = `baco-notifications-${user.id}`;
-          localStorage.removeItem(storageKey);
-        } catch (error) {
-          console.error('Erro ao limpar localStorage:', error);
-        }
+  const removeAllNotifications = () => {
+    setNotifications([]);
+    
+    // Limpar localStorage
+    if (user) {
+      try {
+        const storageKey = `baco-notifications-${user.id}`;
+        localStorage.removeItem(storageKey);
+      } catch (error) {
+        console.error('Erro ao limpar localStorage:', error);
       }
-      
-      // Remover cada notificação do servidor
-      for (const serverId of serverIds) {
-        await removeNotificationMutation.mutateAsync(serverId);
-      }
-      
-      // Invalidar a query para forçar atualização dos dados
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-    } catch (error) {
-      console.error('Erro ao remover todas as notificações:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível remover todas as notificações",
-        variant: "destructive"
-      });
     }
   };
 
   // Marcar todas como lidas
-  const markAllAsRead = async () => {
-    try {
-      // Para cada notificação não lida do servidor, chamar a API para marcar como lida
-      const unreadServerIds = notifications
-        .filter(n => n.serverId && !n.read)
-        .map(n => n.serverId as number);
-      
-      // Atualiza estado local imediatamente
-      const updatedNotifications = notifications.map(notification => ({ ...notification, read: true }));
-      setNotifications(updatedNotifications);
-      
-      // Atualiza localStorage manualmente
-      if (user && updatedNotifications.length > 0) {
-        try {
-          const storageKey = `baco-notifications-${user.id}`;
-          localStorage.setItem(storageKey, JSON.stringify(updatedNotifications));
-        } catch (error) {
-          console.error('Erro ao atualizar localStorage:', error);
-        }
+  const markAllAsRead = () => {
+    const updatedNotifications = notifications.map(notification => ({ ...notification, read: true }));
+    setNotifications(updatedNotifications);
+    
+    // Atualiza localStorage manualmente
+    if (user && updatedNotifications.length > 0) {
+      try {
+        const storageKey = `baco-notifications-${user.id}`;
+        localStorage.setItem(storageKey, JSON.stringify(updatedNotifications));
+      } catch (error) {
+        console.error('Erro ao atualizar localStorage:', error);
       }
-      
-      // Marcar cada notificação como lida no servidor
-      for (const serverId of unreadServerIds) {
-        await markAsReadMutation.mutateAsync(serverId);
-      }
-      
-      // Se houve alguma alteração no servidor, invalidar a query
-      if (unreadServerIds.length > 0) {
-        queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-      }
-    } catch (error) {
-      console.error('Erro ao marcar todas as notificações como lidas:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível marcar todas as notificações como lidas",
-        variant: "destructive"
-      });
     }
   };
 
@@ -384,6 +196,12 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     };
 
     setNotifications(prev => [newNotification, ...prev]);
+    
+    // Exibir um toast para a nova notificação
+    toast({
+      title: newNotification.title,
+      description: newNotification.message,
+    });
   };
 
   // Valor do contexto
@@ -395,8 +213,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     removeAllNotifications,
     unreadCount: notifications.filter(n => !n.read).length,
     addNotification,
-    isLoading,
-    error: error || null
+    isLoading: isUserEventsLoading
   };
 
   return (

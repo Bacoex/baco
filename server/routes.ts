@@ -672,32 +672,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(participation.userId);
       const event = await storage.getEvent(participation.eventId);
       
-      // Busca o criador do evento para a notificação
-      const creator = await storage.getUser(event?.creatorId || 0);
-      
-      // Retorna informações adicionais para exibição de notificação
-      // Preparamos notificações para ambos: o criador do evento e o participante
-      res.json({
-        ...participation,
-        notification: {
-          // Notificação para o criador do evento
-          forCreator: {
-            title: "Você Aprovou a Candidatura",
-            message: `Você aprovou a candidatura de ${user?.firstName} ${user?.lastName} para o evento "${event?.name}". O participante foi notificado.`,
-            type: "event_approval",
-            eventId: event?.id,
-            userId: user?.id
-          },
-          // Notificação para o participante
-          forParticipant: {
-            title: "Sua Candidatura foi Aprovada!",
-            message: `${creator?.firstName} ${creator?.lastName} aprovou sua candidatura para o evento "${event?.name}". Você pode ver os detalhes completos agora.`,
-            type: "event_approval",
-            eventId: event?.id,
-            userId: creator?.id
-          }
-        }
-      });
+      // Retorna apenas os dados da participação
+      res.json(participation);
     } catch (err) {
       console.error("Erro ao aprovar candidatura:", err);
       res.status(500).json({ message: "Erro ao aprovar candidatura" });
@@ -721,32 +697,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(participation.userId);
       const event = await storage.getEvent(participation.eventId);
       
-      // Busca o criador do evento para a notificação
-      const creator = await storage.getUser(event?.creatorId || 0);
-      
-      // Retorna informações adicionais para exibição de notificação
-      // Preparamos notificações para ambos: o criador do evento e o participante
-      res.json({
-        ...participation,
-        notification: {
-          // Notificação para o criador do evento
-          forCreator: {
-            title: "Você Recusou uma Candidatura",
-            message: `Você recusou a candidatura de ${user?.firstName} ${user?.lastName} para o evento "${event?.name}".`,
-            type: "event_rejection",
-            eventId: event?.id,
-            userId: user?.id
-          },
-          // Notificação para o participante
-          forParticipant: {
-            title: "Sua Candidatura foi Recusada",
-            message: `${creator?.firstName} ${creator?.lastName} recusou sua candidatura para o evento "${event?.name}".`,
-            type: "event_rejection",
-            eventId: event?.id,
-            userId: creator?.id
-          }
-        }
-      });
+      // Retorna apenas os dados da participação
+      res.json(participation);
     } catch (err) {
       console.error("Erro ao rejeitar candidatura:", err);
       res.status(500).json({ message: "Erro ao rejeitar candidatura" });
@@ -764,38 +716,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Participação não encontrada" });
       }
 
-      // Obtém detalhes para a notificação antes de remover
+      // Obtém detalhes antes de remover
       const user = await storage.getUser(existingParticipation.userId);
       const event = await storage.getEvent(existingParticipation.eventId);
-      
-      // Busca o criador do evento para a notificação
-      const creator = await storage.getUser(event?.creatorId || 0);
       
       // Remove a participação
       await storage.removeParticipation(participationId);
       
-      // Retorna informações adicionais para exibição de notificação
-      res.json({
-        participationId,
-        notification: {
-          // Notificação para o criador do evento
-          forCreator: {
-            title: "Você Removeu um Participante",
-            message: `Você removeu ${user?.firstName} ${user?.lastName} do evento "${event?.name}".`,
-            type: "event_removal",
-            eventId: event?.id,
-            userId: user?.id
-          },
-          // Notificação para o participante
-          forParticipant: {
-            title: "Sua Participação foi Removida",
-            message: `${creator?.firstName} ${creator?.lastName} removeu você do evento "${event?.name}".`,
-            type: "event_removal",
-            eventId: event?.id,
-            userId: creator?.id
-          }
-        }
-      });
+      // Retorna apenas o ID da participação removida
+      res.json({ participationId });
     } catch (err) {
       console.error("Erro ao remover participante:", err);
       res.status(500).json({ message: "Erro ao remover participante" });
@@ -821,36 +750,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Atualiza o status
       const participation = await storage.updateParticipationStatus(participationId, "pending");
       
-      // Busca dados do usuário para a notificação
-      const user = await storage.getUser(participation.userId);
-      const event = await storage.getEvent(participation.eventId);
-      
-      // Busca o criador do evento para a notificação
-      const creator = await storage.getUser(event?.creatorId || 0);
-      
-      // Retorna informações adicionais para exibição de notificação
-      // Preparamos notificações para ambos: o criador do evento e o participante
-      res.json({
-        ...participation,
-        notification: {
-          // Notificação para o criador do evento
-          forCreator: {
-            title: "Você Reativou uma Candidatura",
-            message: `Você reativou a candidatura de ${user?.firstName} ${user?.lastName} para o evento "${event?.name}". Agora você pode aprová-la ou rejeitá-la novamente.`,
-            type: "event_revert",
-            eventId: event?.id,
-            userId: user?.id
-          },
-          // Notificação para o participante
-          forParticipant: {
-            title: "Sua Candidatura foi Reativada",
-            message: `${creator?.firstName} ${creator?.lastName} reativou sua candidatura para o evento "${event?.name}". Aguarde a nova avaliação.`,
-            type: "event_revert",
-            eventId: event?.id,
-            userId: creator?.id
-          }
-        }
-      });
+      // Retorna apenas os dados da participação
+      res.json(participation);
     } catch (err) {
       console.error("Erro ao reverter candidatura:", err);
       res.status(500).json({ message: "Erro ao reverter candidatura" });
@@ -1119,87 +1020,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(participation.userId);
       const event = await storage.getEvent(participation.eventId);
       
-      // Obter o criador do evento para a notificação
-      const creator = await storage.getUser(event?.creatorId || 0);
-      
-      // Preparar notificações para criador e participante
-      if (status === "approved") {
-        // Verificar se temos os IDs necessários
-        if (!event?.id || !event.creatorId || !user?.id) {
-          return res.status(500).json({ message: "Erro ao processar notificações: dados incompletos" });
-        }
-
-        // Notificação para o criador quando aprova um participante
-        const notificationForCreator = {
-          title: "Candidatura Aprovada!",
-          message: `Você aprovou a candidatura de ${user.firstName} ${user.lastName} para o evento "${event.name}".`,
-          type: "event_approval",
-          eventId: event.id,
-          userId: event.creatorId
-        };
-        
-        // Notificação para o participante que foi aprovado
-        const notificationForParticipant = {
-          title: "Sua Candidatura foi Aprovada!",
-          message: `Sua candidatura para o evento "${event.name}" foi aprovada. Você pode ver os detalhes do evento agora.`,
-          type: "event_approval",
-          eventId: event.id,
-          userId: user.id
-        };
-        
-        // Salvar notificações no banco de dados e adicionar destinatários específicos
-        const savedCreatorNotification = await storage.createNotification(notificationForCreator);
-        await storage.addNotificationRecipients(savedCreatorNotification.id, [event.creatorId]);
-        
-        const savedParticipantNotification = await storage.createNotification(notificationForParticipant);
-        await storage.addNotificationRecipients(savedParticipantNotification.id, [user.id]);
-        
-        res.json({
-          ...participation,
-          notification: {
-            forCreator: savedCreatorNotification,
-            forParticipant: savedParticipantNotification
-          }
-        });
-      } else {
-        // Verificar se temos os IDs necessários
-        if (!event?.id || !event.creatorId || !user?.id) {
-          return res.status(500).json({ message: "Erro ao processar notificações: dados incompletos" });
-        }
-
-        // Notificação para o criador quando rejeita um participante
-        const notificationForCreator = {
-          title: "Candidatura Recusada",
-          message: `Você recusou a candidatura de ${user.firstName} ${user.lastName} para o evento "${event.name}".`,
-          type: "event_rejection",
-          eventId: event.id,
-          userId: event.creatorId
-        };
-        
-        // Notificação para o participante que foi recusado
-        const notificationForParticipant = {
-          title: "Sua Candidatura foi Recusada",
-          message: `Infelizmente sua candidatura para o evento "${event.name}" foi recusada.`,
-          type: "event_rejection",
-          eventId: event.id,
-          userId: user.id
-        };
-        
-        // Salvar notificações no banco de dados e adicionar destinatários específicos
-        const savedCreatorNotification = await storage.createNotification(notificationForCreator);
-        await storage.addNotificationRecipients(savedCreatorNotification.id, [event.creatorId]);
-        
-        const savedParticipantNotification = await storage.createNotification(notificationForParticipant);
-        await storage.addNotificationRecipients(savedParticipantNotification.id, [user.id]);
-        
-        res.json({
-          ...participation,
-          notification: {
-            forCreator: savedCreatorNotification,
-            forParticipant: savedParticipantNotification
-          }
-        });
+      // Verificar se temos os IDs necessários
+      if (!event?.id || !event.creatorId || !user?.id) {
+        return res.status(500).json({ message: "Erro ao processar notificações: dados incompletos" });
       }
+
+      // Determinar os detalhes da notificação com base no status
+      const notificationData = {
+        approved: {
+          forCreator: {
+            title: "Candidatura Aprovada!",
+            message: `Você aprovou a candidatura de ${user.firstName} ${user.lastName} para o evento "${event.name}".`,
+            type: "event_approval"
+          },
+          forParticipant: {
+            title: "Sua Candidatura foi Aprovada!",
+            message: `Sua candidatura para o evento "${event.name}" foi aprovada. Você pode ver os detalhes do evento agora.`,
+            type: "event_approval"
+          }
+        },
+        rejected: {
+          forCreator: {
+            title: "Candidatura Recusada",
+            message: `Você recusou a candidatura de ${user.firstName} ${user.lastName} para o evento "${event.name}".`,
+            type: "event_rejection"
+          },
+          forParticipant: {
+            title: "Sua Candidatura foi Recusada",
+            message: `Infelizmente sua candidatura para o evento "${event.name}" foi recusada.`,
+            type: "event_rejection"
+          }
+        }
+      };
+      
+      // Selecionar a configuração de notificação correta
+      const notifications = notificationData[status];
+      
+      // Criar e salvar notificações
+      const notificationForCreator = {
+        ...notifications.forCreator,
+        eventId: event.id,
+        userId: event.creatorId
+      };
+      
+      const notificationForParticipant = {
+        ...notifications.forParticipant,
+        eventId: event.id,
+        userId: user.id
+      };
+      
+      // Salvar notificações no banco de dados
+      const savedCreatorNotification = await storage.createNotification(notificationForCreator);
+      await storage.addNotificationRecipients(savedCreatorNotification.id, [event.creatorId]);
+      
+      const savedParticipantNotification = await storage.createNotification(notificationForParticipant);
+      await storage.addNotificationRecipients(savedParticipantNotification.id, [user.id]);
+      
+      // Retorna a participação atualizada
+      res.json(participation);
     } catch (err) {
       console.error("Erro ao atualizar status de participação:", err);
       res.status(500).json({ message: "Erro ao atualizar status de participação" });
