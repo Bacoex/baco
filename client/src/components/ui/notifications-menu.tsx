@@ -16,7 +16,7 @@ import { ptBR } from 'date-fns/locale';
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Fragment } from "react";
+import { Fragment, useEffect } from "react";
 
 export function NotificationsMenu() {
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification, removeAllNotifications } = useNotifications();
@@ -25,8 +25,12 @@ export function NotificationsMenu() {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user && notifications.length > 0) {
-      const storedNotifications = notifications;
+    if (user) {
+      // Buscar notificações do localStorage
+      const userStorageKey = `baco-notifications-${user.id}`;
+      const storedNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
+      
+      // Mostrar notificações não lidas usando toast
       storedNotifications
         .filter((n: any) => !n.read)
         .forEach((notification: any) => {
