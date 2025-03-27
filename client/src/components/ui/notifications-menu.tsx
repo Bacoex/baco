@@ -16,7 +16,6 @@ import { ptBR } from 'date-fns/locale';
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
-import { useNotifications } from "@/hooks/use-notifications";
 
 export function NotificationsMenu() {
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification, removeAllNotifications } = useNotifications();
