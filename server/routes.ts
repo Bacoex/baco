@@ -331,6 +331,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Atualiza um evento existente
+  app.put("/api/events/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      
+      // Verifica se o evento existe
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      // Verifica se o usuário é o criador do evento
+      if (event.creatorId !== req.user!.id) {
+        return res.status(403).json({ message: "Você não tem permissão para editar este evento" });
+      }
+      
+      // Valida os dados do evento
+      const eventData = insertEventSchema.partial().parse(req.body);
+      
+      // Atualiza o evento
+      const updatedEvent = await storage.updateEvent(eventId, eventData);
+      
+      // Obtém os detalhes da categoria
+      const categoriasArray = await storage.getCategories();
+      const categoria = categoriasArray.find(cat => cat.id === updatedEvent.categoryId);
+      
+      res.json({
+        ...updatedEvent,
+        category: categoria
+      });
+    } catch (err) {
+      if (err instanceof ZodError) {
+        const validationError = fromZodError(err);
+        return res.status(400).json({ message: validationError.message });
+      }
+      res.status(500).json({ message: "Erro ao atualizar evento" });
+    }
+  });
+  
   /**
    * API de Eventos do Usuário
    */

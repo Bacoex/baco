@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Calendar, MapPin, Clock, Users, Tag, User, Share2, Heart, 
-         MessageSquare, MessageSquareX, LockKeyhole, UserPlus } from "lucide-react";
+         MessageSquare, MessageSquareX, LockKeyhole, UserPlus, Pencil } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -22,6 +22,7 @@ import { getUserDisplayName, cn } from "@/lib/utils";
 import { useLocation } from "wouter";
 import { ManageCoOrganizersDialog } from "@/components/ui/manage-co-organizers-dialog";
 import { ShareEventDialog } from "@/components/ui/share-event-dialog";
+import { EditEventModal } from "@/components/ui/edit-event-modal";
 
 /**
  * Interface do evento com todos os dados necessários para exibição
@@ -224,6 +225,9 @@ export default function ViewEventModal({
   // Verifica se o usuário já é participante do evento
   const isParticipant = event.participants?.some(p => p.userId === user?.id) || false;
   
+  // Estado para controlar o modal de edição
+  const [isEditEventModalOpen, setIsEditEventModalOpen] = useState(false);
+  
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -351,8 +355,12 @@ export default function ViewEventModal({
                 
                 {isCreator && (
                   <div className="space-x-2">
-                    <Button variant="secondary">
-                      Gerenciar Evento
+                    <Button 
+                      variant="secondary"
+                      onClick={() => setIsEditEventModalOpen(true)}
+                    >
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Editar Evento
                     </Button>
                     <Button 
                       variant="outline" 
@@ -560,6 +568,22 @@ export default function ViewEventModal({
           eventId={event.id}
           isOpen={isShareDialogOpen}
           onClose={() => setIsShareDialogOpen(false)}
+        />
+      )}
+      
+      {/* Modal de edição de evento */}
+      {isEditEventModalOpen && (
+        <EditEventModal
+          isOpen={isEditEventModalOpen}
+          onClose={() => {
+            setIsEditEventModalOpen(false);
+            // Fechar o modal principal e recarregar para mostrar as atualizações
+            onClose();
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          }}
+          eventId={event.id}
         />
       )}
     </>

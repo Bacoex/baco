@@ -34,6 +34,7 @@ export interface IStorage {
   getEventsByCategory(categoryId: number): Promise<Event[]>;
   getEventsByCreator(creatorId: number): Promise<Event[]>;
   createEvent(event: InsertEvent, creatorId: number): Promise<Event>;
+  updateEvent(id: number, eventData: Partial<InsertEvent>): Promise<Event>;
   
   // Participantes
   getParticipants(eventId: number): Promise<EventParticipant[]>;
@@ -638,6 +639,23 @@ export class MemStorage implements IStorage {
     };
     this.eventsMap.set(id, newEvent);
     return newEvent;
+  }
+  
+  async updateEvent(id: number, eventData: Partial<InsertEvent>): Promise<Event> {
+    const existingEvent = await this.getEvent(id);
+    
+    if (!existingEvent) {
+      throw new Error(`Evento com ID ${id} não encontrado`);
+    }
+    
+    // Atualiza apenas os campos fornecidos, mantendo os valores existentes para os demais
+    const updatedEvent: Event = {
+      ...existingEvent,
+      ...eventData,
+    };
+    
+    this.eventsMap.set(id, updatedEvent);
+    return updatedEvent;
   }
   
   // Implementação de participantes
