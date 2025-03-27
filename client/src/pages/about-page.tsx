@@ -1,11 +1,71 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useState } from "react";
+import { 
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
 
 /**
  * Página Sobre - Informações sobre o aplicativo e seu criador
  */
 export default function AboutPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [feedbackForm, setFeedbackForm] = useState({
+    name: user?.firstName || "",
+    email: user?.email || "",
+    message: ""
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFeedbackForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmitFeedback = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validação básica
+    if (!feedbackForm.name || !feedbackForm.email || !feedbackForm.message) {
+      toast({
+        title: "Formulário incompleto",
+        description: "Por favor, preencha todos os campos do formulário",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    // Simular envio (em um cenário real, isso seria uma chamada à API)
+    setTimeout(() => {
+      toast({
+        title: "Sugestão enviada!",
+        description: "Agradecemos sua contribuição para melhorar o Baco",
+      });
+      
+      // Resetar o formulário mantendo o nome e email
+      setFeedbackForm(prev => ({
+        ...prev,
+        message: ""
+      }));
+      
+      setIsSubmitting(false);
+    }, 1000);
+  };
 
   return (
     <div className="min-h-screen bg-black flex flex-col">
@@ -99,6 +159,67 @@ export default function AboutPage() {
               ✧ ONDE VOCÊ SE CONECTA À EXPERIÊNCIA ✧
             </p>
           </div>
+          
+          {/* Formulário de Sugestões de Melhorias */}
+          <section className="mt-16 pt-8 border-t border-white/10">
+            <Card className="bg-black/40 backdrop-blur-sm border-white/10">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-400 bg-clip-text text-transparent">
+                  Sugestões de Melhorias
+                </CardTitle>
+                <CardDescription className="text-white/70">
+                  Compartilhe suas ideias para tornar o Baco ainda melhor
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmitFeedback} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name" className="text-white/80">Nome</Label>
+                      <Input 
+                        id="name" 
+                        name="name" 
+                        placeholder="Seu nome" 
+                        value={feedbackForm.name}
+                        onChange={handleInputChange}
+                        className="bg-black/40 border-white/20 text-white"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-white/80">E-mail</Label>
+                      <Input 
+                        id="email" 
+                        name="email" 
+                        type="email" 
+                        placeholder="Seu e-mail" 
+                        value={feedbackForm.email}
+                        onChange={handleInputChange}
+                        className="bg-black/40 border-white/20 text-white"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="message" className="text-white/80">Sua sugestão</Label>
+                    <Textarea 
+                      id="message" 
+                      name="message" 
+                      placeholder="Compartilhe suas ideias para melhorar o Baco" 
+                      value={feedbackForm.message}
+                      onChange={handleInputChange}
+                      className="min-h-[120px] bg-black/40 border-white/20 text-white"
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="w-full md:w-auto bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white"
+                  >
+                    {isSubmitting ? "Enviando..." : "Enviar Sugestão"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </section>
         </div>
       </main>
     </div>
