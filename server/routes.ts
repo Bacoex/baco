@@ -908,10 +908,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           });
         }
-    } catch (err) {
-      if (err instanceof ZodError) {
-        const validationError = fromZodError(err);
-        return res.status(400).json({ message: validationError.message });
+      } catch (err) {
+        if (err instanceof ZodError) {
+          const validationError = fromZodError(err);
+          return res.status(400).json({ message: validationError.message });
       }
       res.status(500).json({ message: "Erro ao participar do evento" });
     }
