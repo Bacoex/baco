@@ -7,6 +7,7 @@ import HomePage from "@/pages/home-page";
 import AuthPage from "@/pages/auth-page";
 import ProfilePage from "@/pages/profile-page";
 import MyEventsPage from "@/pages/my-events-page";
+import SearchPage from "@/pages/search-page";
 import PrivacyPolicyPage from "@/pages/privacy-policy-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
@@ -22,6 +23,7 @@ function Router() {
       <ProtectedRoute path="/" component={HomePage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/my-events" component={MyEventsPage} />
+      <ProtectedRoute path="/search" component={SearchPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/privacy-policy" component={PrivacyPolicyPage} />
       <Route component={NotFound} />
