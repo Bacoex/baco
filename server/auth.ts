@@ -1,11 +1,12 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { User as SelectUser } from "@shared/schema";
+import { User as SelectUser, InsertUser } from "@shared/schema";
 
 declare global {
   namespace Express {
@@ -91,6 +92,85 @@ export function setupAuth(app: Express) {
       done(err);
     }
   });
+  
+  // Configura a estratégia de autenticação Google
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    passport.use(
+      new GoogleStrategy(
+        {
+          clientID: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          callbackURL: "/api/auth/google/callback",
+        },
+        async (accessToken, refreshToken, profile, done) => {
+          try {
+            // Verifica se o usuário já existe pelo googleId
+            let user = await storage.getUserByGoogleId(profile.id);
+            
+            if (user) {
+              // Se o usuário já existe, retorna-o
+              return done(null, user);
+            }
+            
+            // Se o usuário não existe, verifica se já existe um usuário com o mesmo email
+            if (profile.emails && profile.emails.length > 0) {
+              const email = profile.emails[0].value;
+              user = await storage.getUserByEmail(email);
+              
+              if (user) {
+                // Atualiza o usuário existente com o googleId
+                user = await storage.updateUserGoogleId(user.id, profile.id);
+                return done(null, user);
+              }
+            }
+            
+            // Se não encontrou usuário, cria um novo
+            const firstName = profile.name?.givenName || '';
+            const lastName = profile.name?.familyName || '';
+            const email = profile.emails?.[0]?.value || '';
+            
+            // Gera uma senha temporária aleatória
+            const tempPassword = await hashPassword(randomBytes(16).toString('hex'));
+            
+            // Encontra um username único baseado no perfil do Google
+            // Para o Baco, o username seria o CPF, mas para contas Google usamos um valor temporário
+            // que depois o usuário pode atualizar
+            const tempUsername = `google_${profile.id}`;
+            
+            // Cria o usuário com dados do perfil Google
+            const newUser: InsertUser = {
+              username: tempUsername,
+              password: tempPassword,
+              firstName,
+              lastName,
+              email,
+              phone: '',
+              rg: '',
+              tituloEleitor: null,
+              birthDate: new Date().toISOString().split('T')[0], // Data atual como placeholder
+              zodiacSign: '',
+              city: '',
+              state: '',
+              biography: '',
+              instagramUsername: '',
+              threadsUsername: '',
+              googleId: profile.id,
+              profileImage: profile.photos?.[0]?.value || null,
+              termsAccepted: true,
+              privacyPolicyAccepted: true,
+              dataProcessingConsent: true,
+              marketingConsent: true,
+            };
+            
+            const createdUser = await storage.createUser(newUser);
+            return done(null, createdUser);
+          } catch (err) {
+            return done(err as Error);
+          }
+        }
+      )
+    );
+  }
 
   // Rota de registro
   app.post("/api/register", async (req, res, next) => {
@@ -152,4 +232,27 @@ export function setupAuth(app: Express) {
     const { password, ...userWithoutPassword } = req.user as SelectUser;
     res.json(userWithoutPassword);
   });
+  
+  // Rotas de autenticação com Google
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    // Rota para iniciar o fluxo de autenticação Google
+    app.get("/api/auth/google", 
+      passport.authenticate("google", { 
+        scope: ["profile", "email"],
+        // Pedir permissão mesmo se o usuário já autorizou antes
+        prompt: "select_account",
+      })
+    );
+    
+    // Rota de callback do Google após autenticação
+    app.get("/api/auth/google/callback", 
+      passport.authenticate("google", { 
+        failureRedirect: "/auth?error=google-auth-failed",
+      }),
+      (req, res) => {
+        // Sucesso - redireciona para a página inicial
+        res.redirect("/");
+      }
+    );
+  }
 }

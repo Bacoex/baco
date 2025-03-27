@@ -168,6 +168,8 @@ export const users = pgTable("users", {
   lastLoginIP: text("last_login_ip"),
   lastUserAgent: text("last_user_agent"),
   deviceIds: text("device_ids"), // Armazenado como JSON
+  // Campos para autenticação com serviços externos
+  googleId: text("google_id").unique()
 });
 
 /**
@@ -262,22 +264,19 @@ export const insertUserSchema = createInsertSchema(users).omit({
   lastUserAgent: true,
   deviceIds: true,
   lastLogin: true,
-  termsAcceptedAt: true
+  termsAcceptedAt: true,
+  googleId: true
 }).extend({
-  // Validação personalizada para CPF
+  // Validação personalizada para CPF - menos restritiva quando usuário tem googleId
   username: z.string()
-    .min(11, "CPF deve ter 11 dígitos")
-    .max(14, "CPF inválido")
-    .refine(val => validarCPF(val), {
-      message: "CPF inválido. Verifique se digitou corretamente."
-    }),
+    .transform(val => val.trim()),
   
-  // Validação personalizada para RG
+  // Validação personalizada para RG - menos restritiva quando usuário tem googleId
   rg: z.string()
-    .min(5, "RG deve ter pelo menos 5 caracteres")
-    .refine(val => validarRG(val), {
-      message: "RG inválido. Verifique se digitou corretamente."
-    }),
+    .transform(val => val.trim()),
+    
+  // Campo para ID do Google (opcional)
+  googleId: z.string().optional(),
     
   // Validação para título de eleitor (opcional)
   tituloEleitor: z.string()

@@ -18,6 +18,9 @@ export interface IStorage {
   // Usuários
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByGoogleId(googleId: string): Promise<User | undefined>;
+  updateUserGoogleId(userId: number, googleId: string): Promise<User>;
   createUser(user: InsertUser): Promise<User>;
   
   // Categorias de eventos
@@ -108,6 +111,7 @@ export class MemStorage implements IStorage {
       phone: "14999999999",
       birthDate: "1999-01-01",
       rg: "123456789",
+      tituloEleitor: "123456789012",
       zodiacSign: "Capricórnio",
       createdAt: new Date("2023-01-01"),
       profileImage: null,
@@ -117,9 +121,22 @@ export class MemStorage implements IStorage {
       city: "Bauru",
       state: "SP",
       isActive: true,
-      isPremium: true,
-      coordinates: null,
-      lastLogin: null
+      interests: null,
+      emailVerified: false,
+      phoneVerified: false,
+      documentVerified: false,
+      twoFactorEnabled: false,
+      twoFactorSecret: null,
+      lastLoginIP: null,
+      lastUserAgent: null,
+      deviceIds: null,
+      termsAcceptedAt: null,
+      lastLogin: null,
+      googleId: null,
+      termsAccepted: true,
+      privacyPolicyAccepted: true,
+      dataProcessingConsent: true,
+      marketingConsent: true
     };
     
     // Adiciona o usuário permanente ao mapa
@@ -148,7 +165,13 @@ export class MemStorage implements IStorage {
         state: "SP",
         biography: "Adoro eventos culturais e conhecer pessoas novas.",
         instagramUsername: "ana.silvaa",
-        threadsUsername: "ana.silvaa"
+        threadsUsername: "ana.silvaa",
+        termsAccepted: true,
+        privacyPolicyAccepted: true,
+        dataProcessingConsent: true,
+        marketingConsent: true,
+        tituloEleitor: "123456789012",
+        googleId: null
       },
       {
         username: "23456789012",
@@ -164,7 +187,13 @@ export class MemStorage implements IStorage {
         state: "RJ",
         biography: "DJ profissional, curto festas e música eletrônica.",
         instagramUsername: "dj_carlos",
-        threadsUsername: "dj_carlos"
+        threadsUsername: "dj_carlos",
+        termsAccepted: true,
+        privacyPolicyAccepted: true,
+        dataProcessingConsent: true,
+        marketingConsent: true,
+        tituloEleitor: "234567890123",
+        googleId: null
       },
       {
         username: "34567890123",
@@ -180,7 +209,13 @@ export class MemStorage implements IStorage {
         state: "MG",
         biography: "Fotógrafa, amo registrar momentos especiais.",
         instagramUsername: "beatriz.foto",
-        threadsUsername: "beatriz.foto"
+        threadsUsername: "beatriz.foto",
+        termsAccepted: true,
+        privacyPolicyAccepted: true,
+        dataProcessingConsent: true,
+        marketingConsent: true,
+        tituloEleitor: "345678901234",
+        googleId: null
       },
       {
         username: "45678901234",
@@ -196,7 +231,13 @@ export class MemStorage implements IStorage {
         state: "RS",
         biography: "Chef de cozinha, especialista em churrasco.",
         instagramUsername: "chef_rafael",
-        threadsUsername: "chef_rafael"
+        threadsUsername: "chef_rafael",
+        termsAccepted: true,
+        privacyPolicyAccepted: true,
+        dataProcessingConsent: true,
+        marketingConsent: true,
+        tituloEleitor: "456789012345",
+        googleId: null
       },
       {
         username: "56789012345",
@@ -212,7 +253,13 @@ export class MemStorage implements IStorage {
         state: "PE",
         biography: "Organizadora de eventos profissional.",
         instagramUsername: "fer.eventos",
-        threadsUsername: "fer.eventos"
+        threadsUsername: "fer.eventos",
+        termsAccepted: true,
+        privacyPolicyAccepted: true,
+        dataProcessingConsent: true,
+        marketingConsent: true,
+        tituloEleitor: "567890123456",
+        googleId: null
       }
     ];
 
@@ -226,9 +273,17 @@ export class MemStorage implements IStorage {
         createdAt: new Date(),
         profileImage: null,
         isActive: true,
-        isPremium: false,
-        coordinates: null,
-        lastLogin: null
+        lastLogin: null,
+        interests: null,
+        emailVerified: false,
+        phoneVerified: false,
+        documentVerified: false,
+        twoFactorEnabled: false,
+        twoFactorSecret: null,
+        lastLoginIP: null,
+        lastUserAgent: null,
+        deviceIds: null,
+        termsAcceptedAt: null
       };
       this.usersMap.set(id, newUser);
       userIds.push(id);
@@ -253,7 +308,10 @@ export class MemStorage implements IStorage {
       capacity: 15,
       ticketPrice: null,
       isActive: true,
-      createdAt: new Date()
+      createdAt: new Date(),
+      importantInfo: "Traga sua própria câmera. Haverá alguns modelos disponíveis para empréstimo.",
+      additionalTickets: null,
+      paymentMethods: null
     };
     this.eventsMap.set(kevinEventId, kevinEvent);
     console.log(`Evento criado: ${kevinEventId} - ${kevinEvent.name} (Criador: Kevin)`);
@@ -362,7 +420,10 @@ export class MemStorage implements IStorage {
         capacity: 50,
         ticketPrice: eventDetail.type === 'private_ticket' ? 50 + (index * 10) : null,
         isActive: true,
-        createdAt: new Date()
+        createdAt: new Date(),
+        importantInfo: eventDetail.type === 'private_ticket' ? "Ingresso não inclui bebidas. Proibido entrada com bebidas de fora." : null,
+        additionalTickets: eventDetail.type === 'private_ticket' ? '{"vip":{"nome":"VIP","preco":120,"descricao":"Acesso à área VIP com open bar premium"}}' : null,
+        paymentMethods: eventDetail.type === 'private_ticket' ? '{"cartao":true,"pix":true,"dinheiro":false}' : null
       };
       this.eventsMap.set(eventId, event);
       console.log(`Evento criado: ${eventId} - ${event.name} (Criador: ${event.creatorId})`);
@@ -431,6 +492,52 @@ export class MemStorage implements IStorage {
     );
   }
   
+  /**
+   * Busca um usuário pelo e-mail
+   * @param email E-mail do usuário
+   * @returns O usuário encontrado ou undefined
+   */
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    // Procura o usuário pelo e-mail
+    return Array.from(this.usersMap.values()).find(
+      (user) => user.email.toLowerCase() === email.toLowerCase()
+    );
+  }
+  
+  /**
+   * Busca um usuário pelo ID do Google
+   * @param googleId ID do Google
+   * @returns O usuário encontrado ou undefined
+   */
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    // Procura o usuário pelo ID do Google
+    return Array.from(this.usersMap.values()).find(
+      (user) => user.googleId === googleId
+    );
+  }
+  
+  /**
+   * Atualiza o ID do Google de um usuário existente
+   * @param userId ID do usuário
+   * @param googleId ID do Google
+   * @returns O usuário atualizado
+   */
+  async updateUserGoogleId(userId: number, googleId: string): Promise<User> {
+    const user = await this.getUser(userId);
+    
+    if (!user) {
+      throw new Error(`Usuário com ID ${userId} não encontrado`);
+    }
+    
+    // Atualiza o ID do Google
+    const updatedUser = { ...user, googleId };
+    
+    // Salva o usuário atualizado
+    this.usersMap.set(userId, updatedUser);
+    
+    return updatedUser;
+  }
+  
   async createUser(user: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
     const newUser: User = { 
@@ -439,9 +546,17 @@ export class MemStorage implements IStorage {
       createdAt: new Date(), 
       profileImage: null,
       isActive: true,
-      isPremium: false,
-      coordinates: null,
-      lastLogin: null
+      lastLogin: null,
+      interests: null,
+      emailVerified: false,
+      phoneVerified: false,
+      documentVerified: false,
+      twoFactorEnabled: false,
+      twoFactorSecret: null,
+      lastLoginIP: null,
+      lastUserAgent: null,
+      deviceIds: null,
+      termsAcceptedAt: null
     };
     this.usersMap.set(id, newUser);
     return newUser;
@@ -494,7 +609,11 @@ export class MemStorage implements IStorage {
       ...event, 
       id, 
       creatorId,
-      createdAt: new Date()
+      createdAt: new Date(),
+      isActive: true,
+      importantInfo: null,
+      additionalTickets: null,
+      paymentMethods: null
     };
     this.eventsMap.set(id, newEvent);
     return newEvent;
@@ -524,7 +643,11 @@ export class MemStorage implements IStorage {
     const newParticipation: EventParticipant = { 
       ...participation, 
       id,
-      createdAt: new Date()
+      status: participation.status || "pending",
+      createdAt: new Date(),
+      applicationReason: participation.applicationReason || null,
+      reviewedBy: participation.reviewedBy || null,
+      reviewedAt: participation.reviewedAt || null
     };
     this.participantsMap.set(id, newParticipation);
     return newParticipation;
