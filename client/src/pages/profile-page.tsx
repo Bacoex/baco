@@ -335,7 +335,7 @@ export default function ProfilePage() {
                 </div>
               </div>
               <CardTitle className="text-2xl font-bold">{getUserDisplayName(user)}</CardTitle>
-              <CardDescription>{user.city}, {user.state}</CardDescription>
+              <CardDescription>{user.city && user.state ? `${user.city}, ${user.state}` : ''}</CardDescription>
               
               <div className="flex gap-2 mt-2 justify-center">
                 {user.instagramUsername && (
@@ -343,7 +343,7 @@ export default function ProfilePage() {
                     href={`https://instagram.com/${user.instagramUsername}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-pink-500 hover:text-pink-600"
+                    className="text-white hover:text-gray-300"
                   >
                     <Instagram className="h-5 w-5" />
                   </a>
@@ -353,7 +353,7 @@ export default function ProfilePage() {
                     href={`https://threads.net/@${user.threadsUsername}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-black hover:text-gray-700 dark:text-white dark:hover:text-gray-300"
+                    className="text-white hover:text-gray-300"
                   >
                     <MessageSquare className="h-5 w-5" />
                   </a>
