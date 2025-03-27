@@ -71,7 +71,11 @@ export function ConsentBanner() {
                   Utilizamos cookies e tecnologias similares para melhorar sua experiência. 
                   Conforme a Lei Geral de Proteção de Dados (LGPD), precisamos do seu consentimento.
                   <Link to="/privacy-policy" className="text-primary hover:underline ml-1">
-                    Ver Política de Privacidade
+                    Política de Privacidade
+                  </Link>
+                  <span className="mx-1">|</span>
+                  <Link to="/terms-of-service" className="text-primary hover:underline">
+                    Termos de Serviço
                   </Link>
                 </p>
               </div>
@@ -98,9 +102,14 @@ export function ConsentBanner() {
             <DialogTitle>Configurações de Privacidade</DialogTitle>
             <DialogDescription>
               Personalize como coletamos e utilizamos seus dados. Você pode modificar estas configurações a qualquer momento.
-              <Link to="/privacy-policy" className="text-primary hover:underline block mt-1">
-                Ver nossa Política de Privacidade completa
-              </Link>
+              <div className="flex flex-wrap gap-x-3 mt-1">
+                <Link to="/privacy-policy" className="text-primary hover:underline">
+                  Política de Privacidade
+                </Link>
+                <Link to="/terms-of-service" className="text-primary hover:underline">
+                  Termos de Serviço
+                </Link>
+              </div>
             </DialogDescription>
           </DialogHeader>
           

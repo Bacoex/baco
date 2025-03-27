@@ -49,8 +49,78 @@ function validarRG(rg: string): boolean {
   // Remove caracteres não alfanuméricos
   const rgLimpo = rg.replace(/[^\w]/g, '');
   
-  // Verifica se tem pelo menos 5 caracteres (padrão mínimo para RGs no Brasil)
-  return rgLimpo.length >= 5;
+  // Verifica se tem entre 8 e 10 caracteres (padrão para RGs no Brasil)
+  if (rgLimpo.length < 8 || rgLimpo.length > 10) return false;
+  
+  // Verificação do formato para RGs de São Paulo (mais comum no Brasil)
+  // Formato básico: XX.XXX.XXX-X
+  const regexSP = /^[0-9]{2}\.?[0-9]{3}\.?[0-9]{3}-?[0-9xX]{1}$/;
+  
+  // Se for um RG de SP, faz validação mais rigorosa do dígito verificador
+  if (regexSP.test(rg.replace(/[^\dxX]/g, ''))) {
+    const rgDigits = rg.replace(/[^\dxX]/g, '');
+    const digits = rgDigits.slice(0, -1).split('').map(d => parseInt(d));
+    const verifier = rgDigits.slice(-1).toLowerCase();
+    
+    // Calcula dígito verificador (algoritmo para SP)
+    let sum = 0;
+    for (let i = 0; i < digits.length; i++) {
+      sum += digits[i] * (2 + i);
+    }
+    
+    const remainder = sum % 11;
+    const expectedVerifier = remainder === 0 ? '0' : remainder === 1 ? 'x' : (11 - remainder).toString();
+    
+    // Verifica se o dígito verificador é válido
+    if (verifier !== expectedVerifier) return false;
+  }
+  
+  return true;
+}
+
+/**
+ * Função para validar Título de Eleitor
+ * @param titulo Título de eleitor a ser validado
+ * @returns true se o título for válido, false caso contrário
+ */
+function validarTituloEleitor(titulo: string): boolean {
+  // Remove caracteres não numéricos
+  const tituloLimpo = titulo.replace(/[^\d]/g, '');
+  
+  // Verifica se tem 12 dígitos
+  if (tituloLimpo.length !== 12) return false;
+  
+  // Extrai os dígitos verificadores
+  const dv1 = parseInt(tituloLimpo.charAt(10));
+  const dv2 = parseInt(tituloLimpo.charAt(11));
+  
+  // Validação do primeiro dígito verificador
+  let soma = 0;
+  for (let i = 0; i < 8; i++) {
+    soma += parseInt(tituloLimpo.charAt(i)) * (i + 2);
+  }
+  let resto = soma % 11;
+  if (resto === 0) resto = 1;
+  
+  // Se o resto for 10, o DV deve ser 0
+  const digitoVerificador1 = resto === 10 ? 0 : resto;
+  
+  if (digitoVerificador1 !== dv1) return false;
+  
+  // Validação do segundo dígito verificador
+  soma = 0;
+  for (let i = 8; i < 10; i++) {
+    soma += parseInt(tituloLimpo.charAt(i)) * (i - 1);
+  }
+  
+  soma += digitoVerificador1 * 9;
+  resto = soma % 11;
+  if (resto === 0) resto = 1;
+  
+  // Se o resto for 10, o DV deve ser 0
+  const digitoVerificador2 = resto === 10 ? 0 : resto;
+  
+  return digitoVerificador2 === dv2;
 }
 
 /**
@@ -68,6 +138,7 @@ export const users = pgTable("users", {
   email: text("email").notNull(),
   phone: text("phone").notNull(),
   rg: text("rg").notNull(),
+  tituloEleitor: text("titulo_eleitor"), // Título de eleitor
   zodiacSign: text("zodiac_sign").notNull(),
   // Campos adicionais para perfil
   profileImage: text("profile_image"),
@@ -81,6 +152,22 @@ export const users = pgTable("users", {
   isActive: boolean("is_active").notNull().default(true),
   lastLogin: timestamp("last_login"),
   createdAt: timestamp("created_at").defaultNow(),
+  // Campos para segurança
+  emailVerified: boolean("email_verified").notNull().default(false), 
+  phoneVerified: boolean("phone_verified").notNull().default(false),
+  documentVerified: boolean("document_verified").notNull().default(false),
+  twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
+  twoFactorSecret: text("two_factor_secret"),
+  // Campos para conformidade com privacidade
+  termsAccepted: boolean("terms_accepted").notNull().default(false),
+  privacyPolicyAccepted: boolean("privacy_policy_accepted").notNull().default(false),
+  marketingConsent: boolean("marketing_consent").notNull().default(false),
+  dataProcessingConsent: boolean("data_processing_consent").notNull().default(false),
+  termsAcceptedAt: timestamp("terms_accepted_at"),
+  // Campos para registro de dispositivos e segurança
+  lastLoginIP: text("last_login_ip"),
+  lastUserAgent: text("last_user_agent"),
+  deviceIds: text("device_ids"), // Armazenado como JSON
 });
 
 /**
@@ -164,7 +251,18 @@ const senhaForteRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
-  profileImage: true
+  profileImage: true,
+  // Campos de segurança que não devem ser preenchidos no cadastro
+  emailVerified: true,
+  phoneVerified: true,
+  documentVerified: true,
+  twoFactorEnabled: true,
+  twoFactorSecret: true,
+  lastLoginIP: true,
+  lastUserAgent: true,
+  deviceIds: true,
+  lastLogin: true,
+  termsAcceptedAt: true
 }).extend({
   // Validação personalizada para CPF
   username: z.string()
@@ -180,13 +278,40 @@ export const insertUserSchema = createInsertSchema(users).omit({
     .refine(val => validarRG(val), {
       message: "RG inválido. Verifique se digitou corretamente."
     }),
+    
+  // Validação para título de eleitor (opcional)
+  tituloEleitor: z.string()
+    .optional()
+    .refine(val => !val || validarTituloEleitor(val), {
+      message: "Título de eleitor inválido. Verifique se digitou corretamente."
+    }),
   
   // Validação personalizada para senha forte
   password: z.string()
     .min(8, "Senha deve ter pelo menos 8 caracteres")
     .refine(val => senhaForteRegex.test(val), {
       message: "Senha deve conter pelo menos 1 caractere especial, 1 letra maiúscula, 1 letra minúscula e 1 número"
-    })
+    }),
+    
+  // Validação para aceitação dos termos e políticas
+  termsAccepted: z.boolean()
+    .refine(val => val === true, {
+      message: "Você precisa aceitar os termos de uso para se cadastrar."
+    }),
+    
+  privacyPolicyAccepted: z.boolean()
+    .refine(val => val === true, {
+      message: "Você precisa aceitar a política de privacidade para se cadastrar."
+    }),
+    
+  // Consentimento para processamento de dados (obrigatório pela LGPD)
+  dataProcessingConsent: z.boolean()
+    .refine(val => val === true, {
+      message: "Você precisa consentir com o processamento dos seus dados para se cadastrar."
+    }),
+    
+  // Consentimento para marketing (opcional)
+  marketingConsent: z.boolean().optional()
 });
 
 /**

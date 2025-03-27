@@ -10,6 +10,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -20,8 +21,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/use-auth";
 import { insertUserSchema } from "@shared/schema";
+import { Link } from "wouter";
 
 // Lista de signos para o dropdown
 const zodiacSigns = [
@@ -114,6 +117,10 @@ export default function RegisterForm({
       phone: "",
       rg: "",
       zodiacSign: "",
+      termsAccepted: false,
+      privacyPolicyAccepted: false,
+      dataProcessingConsent: false,
+      marketingConsent: false,
     },
   });
 
@@ -319,10 +326,95 @@ export default function RegisterForm({
                 </FormItem>
               )}
             />
+
+            <div className="space-y-4 pt-2">
+              <FormField
+                control={form.control}
+                name="termsAccepted"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm font-normal">
+                        Eu concordo com os <Link href="/terms-of-service" className="text-primary hover:underline">Termos de Serviço</Link>
+                      </FormLabel>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="privacyPolicyAccepted"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm font-normal">
+                        Eu concordo com a <Link href="/privacy-policy" className="text-primary hover:underline">Política de Privacidade</Link>
+                      </FormLabel>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="dataProcessingConsent"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm font-normal">
+                        Eu autorizo o processamento dos meus dados pessoais conforme a LGPD
+                      </FormLabel>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="marketingConsent"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm font-normal">
+                        Eu quero receber notificações sobre eventos e novidades (opcional)
+                      </FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </div>
             
             <Button 
               type="submit" 
-              className="w-full hover:bg-baco-blue"
+              className="w-full hover:bg-baco-blue mt-6"
               disabled={registerMutation.isPending}
             >
               {registerMutation.isPending ? (
