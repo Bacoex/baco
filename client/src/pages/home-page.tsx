@@ -68,17 +68,20 @@ export default function HomePage() {
       {/* Cabeçalho com barra de pesquisa e perfil */}
       <Header />
       
-      {/* Conteúdo principal com eventos */}
-      <main className="flex-grow px-4 pb-20 pt-28 relative z-10">
+      {/* Filtro de categorias - posicionado logo abaixo da navbar */}
+      <div className="sticky top-14 z-40 w-full border-b border-gray-800 bg-black/90 backdrop-blur-sm">
         <div className="container mx-auto">
-          {/* Filtro de categorias */}
-          <div className="mb-6 bg-black border border-gray-800 rounded-lg overflow-hidden">
-            <CategoryFilter
-              categories={categoriesQuery.data || []}
-              selectedCategory={selectedCategory}
-              onSelectCategory={handleCategorySelect}
-            />
-          </div>
+          <CategoryFilter
+            categories={categoriesQuery.data || []}
+            selectedCategory={selectedCategory}
+            onSelectCategory={handleCategorySelect}
+          />
+        </div>
+      </div>
+      
+      {/* Conteúdo principal com eventos */}
+      <main className="flex-grow px-4 pb-20 pt-8 relative z-10">
+        <div className="container mx-auto">
           
           {/* Título da seção */}
           <div className="text-center py-4">

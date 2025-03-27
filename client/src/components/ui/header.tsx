@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "@/components/ui/navigation-menu";
-import { Search, Plus, Calendar, Star } from "lucide-react";
+import { Search, Calendar, Star } from "lucide-react";
 import { useState } from "react";
 
 export function Header() {
@@ -44,12 +44,6 @@ export function Header() {
 
         <NavigationMenu>
           <NavigationMenuList>
-            <NavigationMenuItem>
-              <Link href="/events/new" className="flex items-center px-4 py-2">
-                <Plus className="mr-2 h-4 w-4" />
-                Criar Evento
-              </Link>
-            </NavigationMenuItem>
             <NavigationMenuItem>
               <Link href="/" className="flex items-center px-4 py-2">
                 <Calendar className="mr-2 h-4 w-4" />

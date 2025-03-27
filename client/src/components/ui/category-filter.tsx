@@ -31,16 +31,16 @@ export default function CategoryFilter({
   onSelectCategory,
 }: CategoryFilterProps) {
   return (
-    <div className="bg-black border-b border-gray-800 py-1">
+    <div className="bg-black/60 py-1">
       <ScrollArea className="w-full whitespace-nowrap">
-        <div className="flex p-3 space-x-2">
+        <div className="flex p-2 space-x-2">
           <Button
             variant={selectedCategory === null ? "default" : "outline"}
             size="sm"
             onClick={() => onSelectCategory(null)}
             className={cn(
               "rounded-full",
-              selectedCategory === null ? "bg-primary text-primary-foreground hover:bg-primary/90" : "text-gray-300 hover:text-white border-gray-700 hover:bg-gray-900"
+              selectedCategory === null ? "bg-primary text-primary-foreground hover:bg-primary/90" : "text-gray-300 hover:text-white border-blue-900/40 hover:bg-gray-900"
             )}
           >
             Todos
@@ -55,7 +55,7 @@ export default function CategoryFilter({
               className={cn(
                 "rounded-full",
                 category.slug === "lgbt" && selectedCategory === category.slug ? "pride-gradient" : "",
-                selectedCategory === category.slug && category.slug !== "lgbt" ? "bg-primary text-primary-foreground hover:bg-primary/90" : "text-gray-300 hover:text-white border-gray-700 hover:bg-gray-900"
+                selectedCategory === category.slug && category.slug !== "lgbt" ? "bg-primary text-primary-foreground hover:bg-primary/90" : "text-gray-300 hover:text-white border-blue-900/40 hover:bg-gray-900"
               )}
               style={(category.slug === "lgbt" && category.color === "pride" && selectedCategory === category.slug) 
                 ? { 
