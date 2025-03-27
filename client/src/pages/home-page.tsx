@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation, useSearch } from "wouter";
 import { Header } from "@/components/ui/header";
 import EventCard from "@/components/ui/event-card";
 import CategoryFilter from "@/components/ui/category-filter";
 import CreateEventModal from "@/components/ui/create-event-modal";
+import ViewEventModal from "@/components/ui/view-event-modal";
 import NetworkBackground from "@/components/ui/network-background";
 import { Button } from "@/components/ui/button";
 import { PlusIcon, Loader2 } from "lucide-react";
@@ -19,6 +21,44 @@ export default function HomePage() {
   
   // Estado para controlar a categoria selecionada
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  
+  // Estado para controlar o modal de visualização de evento via compartilhamento
+  const [sharedEventId, setSharedEventId] = useState<number | null>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [sharedEvent, setSharedEvent] = useState<Event | null>(null);
+  
+  // Usar o hook useLocation para obter a URL atual
+  const [location] = useLocation();
+  
+  // Processar parâmetros de URL para abrir eventos compartilhados
+  useEffect(() => {
+    // Extrair parâmetros da URL
+    const params = new URLSearchParams(window.location.search);
+    const modal = params.get('modal');
+    const eventId = params.get('eventId');
+    
+    // Se houver um modal de evento para exibir
+    if (modal === 'event' && eventId) {
+      const id = parseInt(eventId);
+      if (!isNaN(id)) {
+        setSharedEventId(id);
+        
+        // Buscar os detalhes do evento
+        fetch(`/api/events/${id}`)
+          .then(res => {
+            if (!res.ok) throw new Error("Evento não encontrado");
+            return res.json();
+          })
+          .then(data => {
+            setSharedEvent(data);
+            setViewModalOpen(true);
+          })
+          .catch(error => {
+            console.error("Erro ao buscar evento compartilhado:", error);
+          });
+      }
+    }
+  }, [location]);
   
   // Busca todas as categorias
   const categoriesQuery = useQuery<EventCategory[]>({
@@ -137,6 +177,24 @@ export default function HomePage() {
         onClose={closeCreateModal}
         categories={categoriesQuery.data || []}
       />
+      
+      {/* Modal para visualizar evento compartilhado */}
+      {sharedEvent && (
+        <ViewEventModal
+          event={sharedEvent}
+          isOpen={viewModalOpen}
+          onClose={() => {
+            setViewModalOpen(false);
+            setSharedEvent(null);
+            
+            // Remover parâmetros da URL para evitar que o modal reabra
+            const url = new URL(window.location.href);
+            url.searchParams.delete('modal');
+            url.searchParams.delete('eventId');
+            window.history.replaceState({}, '', url.toString());
+          }}
+        />
+      )}
     </div>
   );
 }
