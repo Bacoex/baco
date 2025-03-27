@@ -359,13 +359,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Obtém os participantes
       const participants = await storage.getParticipants(event.id);
       
+      // Log para debug
+      console.log(`Participantes do evento ${event.id}:`, participants);
+      
       // Obtém detalhes de usuário para cada participante
       const participantsWithDetails = await Promise.all(
         participants.map(async (participant) => {
           const user = await storage.getUser(participant.userId);
+          console.log(`Detalhes do participante ${participant.id}, usuário ${participant.userId}:`, 
+                      user ? `${user.firstName} ${user.lastName}` : 'Usuário não encontrado');
           return {
             ...participant,
             user: user ? {
+              id: user.id,
               firstName: user.firstName,
               lastName: user.lastName,
               profileImage: user.profileImage
@@ -513,19 +519,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Obtém eventos criados pelo usuário autenticado
   app.get("/api/user/events/created", ensureAuthenticated, async (req, res) => {
     try {
+      console.log("Buscando eventos para o usuário", req.user!.id, req.user!.firstName, req.user!.lastName);
       const events = await storage.getEventsByCreator(req.user!.id);
+      console.log(`Encontrados ${events.length} eventos criados pelo usuário ${req.user!.id}`);
       
       // Obtém os detalhes das categorias e criador para cada evento
       const eventsWithDetails = await Promise.all(
         events.map(async (event) => {
+          console.log(`Processando evento ${event.id}: ${event.name}`);
+          
           const categoriasArray = await storage.getCategories();
           const categoria = categoriasArray.find(cat => cat.id === event.categoryId);
           
           // Adiciona participantes
           const participants = await storage.getParticipants(event.id);
+          console.log(`Evento ${event.id} tem ${participants.length} participantes:`, 
+                      participants.map(p => ({ id: p.id, userId: p.userId, status: p.status })));
+          
           const participantsWithUsers = await Promise.all(
             participants.map(async (participant) => {
               const user = await storage.getUser(participant.userId);
+              console.log(`Participante ${participant.id}, usuário ${participant.userId}, status ${participant.status}:`,
+                         user ? `${user.firstName} ${user.lastName}` : 'Usuário não encontrado');
+              
               return {
                 ...participant,
                 user: user ? {
@@ -537,6 +553,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
               };
             })
           );
+          
+          // Agrupa participantes por status para facilitar a depuração
+          const pendingCount = participants.filter(p => p.status === 'pending').length;
+          const approvedCount = participants.filter(p => p.status === 'approved').length;
+          const rejectedCount = participants.filter(p => p.status === 'rejected').length;
+          const confirmedCount = participants.filter(p => p.status === 'confirmed').length;
+          
+          console.log(`Estatísticas do evento ${event.id}: 
+                      Pendentes: ${pendingCount}, 
+                      Aprovados: ${approvedCount}, 
+                      Rejeitados: ${rejectedCount}, 
+                      Confirmados: ${confirmedCount}`);
           
           return {
             ...event,
@@ -552,7 +580,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       );
       
-      console.log("Eventos criados pelo usuário:", eventsWithDetails);
+      // Log resumido dos eventos com o número de participantes
+      console.log("Resumo de eventos criados pelo usuário:", 
+                 eventsWithDetails.map(e => ({ 
+                   id: e.id, 
+                   name: e.name, 
+                   participantCount: e.participants?.length || 0,
+                   pendingCount: e.participants?.filter(p => p.status === 'pending').length || 0
+                 })));
+      
       res.json(eventsWithDetails);
     } catch (err) {
       console.error("Erro ao buscar eventos criados:", err);

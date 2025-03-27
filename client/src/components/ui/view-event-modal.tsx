@@ -459,13 +459,17 @@ export default function ViewEventModal({
             <TabsContent value="participants">
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">
-                  Participantes ({event.participants?.filter(p => p.status === 'approved' || p.status === 'confirmed' || isCreator).length || 0})
+                  {isCreator 
+                    ? `Participantes (${event.participants?.length || 0})` 
+                    : `Participantes (${event.participants?.filter(p => p.status === 'approved' || p.status === 'confirmed').length || 0})`
+                  }
                 </h3>
                 
                 {event.participants && event.participants.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {/* Se o usuário for o criador, mostra todos os participantes, caso contrário, apenas aprovados e confirmados */}
                     {event.participants
-                      .filter(participant => participant.status === 'approved' || participant.status === 'confirmed' || isCreator)
+                      .filter(participant => isCreator || participant.status === 'approved' || participant.status === 'confirmed')
                       .map((participant) => (
                       <div 
                         key={participant.id} 
