@@ -943,6 +943,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao marcar notificação como lida" });
     }
   });
+  
+  // Marca todas as notificações do usuário como lidas
+  app.patch("/api/notifications/all/read", ensureAuthenticated, async (req, res) => {
+    try {
+      // Busca todas as notificações do usuário
+      const userNotifications = await storage.getNotificationsByUser(req.user!.id);
+      
+      // Para cada notificação, marca como lida
+      for (const { recipient } of userNotifications) {
+        await storage.markNotificationAsRead(recipient.id);
+      }
+      
+      res.json({ message: "Todas as notificações marcadas como lidas", count: userNotifications.length });
+    } catch (err) {
+      console.error("Erro ao marcar todas as notificações como lidas:", err);
+      res.status(500).json({ message: "Erro ao marcar todas as notificações como lidas" });
+    }
+  });
 
   app.delete("/api/notifications/:id", ensureAuthenticated, async (req, res) => {
     try {

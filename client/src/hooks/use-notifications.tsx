@@ -298,7 +298,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     if (apiNotifications.length > 0) {
       try {
         console.log(`Marcando todas as ${apiNotifications.length} notificações como lidas no backend`);
-        await apiRequest('PATCH', `/api/notifications/read-all`);
+        await apiRequest('PATCH', `/api/notifications/all/read`);
         // Invalidar a query para que seja buscada novamente
         queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
       } catch (error) {
