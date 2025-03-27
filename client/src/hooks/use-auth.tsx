@@ -54,8 +54,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
       toast({
-        title: "Login realizado com sucesso",
-        description: `Bem-vindo, ${user.firstName}!`,
+        title: `Bem-vindo, ${user.firstName}!`,
+        description: "",
+        className: "bg-green-500 text-white font-medium",
+        duration: 2000, // 2 segundos
       });
       navigate("/");
     },
@@ -77,8 +79,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
       toast({
-        title: "Cadastro realizado com sucesso",
-        description: `Bem-vindo ao Baco, ${user.firstName}!`,
+        title: `Bem-vindo ao Baco, ${user.firstName}!`,
+        description: "",
+        className: "bg-green-500 text-white font-medium",
+        duration: 2000, // 2 segundos
       });
       navigate("/");
     },
@@ -87,6 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Falha no cadastro",
         description: error.message,
         variant: "destructive",
+        duration: 2000, // 2 segundos
       });
     },
   });
@@ -99,7 +104,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: () => {
       queryClient.setQueryData(["/api/user"], null);
       toast({
-        title: "Logout realizado com sucesso",
+        title: "Logout realizado",
+        className: "bg-blue-500 text-white font-medium",
+        duration: 2000, // 2 segundos
       });
       navigate("/auth");
     },
@@ -108,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Falha ao sair",
         description: error.message,
         variant: "destructive",
+        duration: 2000, // 2 segundos
       });
     },
   });
