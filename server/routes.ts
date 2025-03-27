@@ -826,6 +826,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(existingParticipation.userId);
       const event = await storage.getEvent(existingParticipation.eventId);
       
+      // Busca o criador do evento para a notificação
+      const creator = await storage.getUser(event?.creatorId || 0);
+      
       // Remove a participação
       await storage.removeParticipation(participationId);
       
@@ -833,19 +836,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         participationId,
         notification: {
-          title: "Participante Removido",
-          message: `O participante foi removido do evento "${event?.name}".`,
-          user: user ? {
-            id: user.id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email
-          } : null,
-          event: event ? {
-            id: event.id,
-            name: event.name,
-            date: event.date
-          } : null
+          // Notificação para o criador do evento
+          forCreator: {
+            title: "Participante Removido",
+            message: `${user?.firstName} ${user?.lastName} foi removido do evento "${event?.name}".`,
+            type: "event_removal",
+            eventId: event?.id,
+            userId: user?.id
+          },
+          // Notificação para o participante
+          forParticipant: {
+            title: "Sua Participação foi Removida",
+            message: `Você foi removido do evento "${event?.name}".`,
+            type: "event_removal",
+            eventId: event?.id,
+            userId: creator?.id
+          }
         }
       });
     } catch (err) {
@@ -877,21 +883,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(participation.userId);
       const event = await storage.getEvent(participation.eventId);
       
+      // Busca o criador do evento para a notificação
+      const creator = await storage.getUser(event?.creatorId || 0);
+      
       // Retorna informações adicionais para exibição de notificação
+      // Preparamos notificações para ambos: o criador do evento e o participante
       res.json({
         ...participation,
         notification: {
-          title: "Candidatura Revertida",
-          message: `A candidatura para o evento "${event?.name}" foi revertida para análise.`,
-          user: user ? {
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email
-          } : null,
-          event: event ? {
-            name: event.name,
-            date: event.date
-          } : null
+          // Notificação para o criador do evento
+          forCreator: {
+            title: "Candidatura Revertida",
+            message: `A candidatura de ${user?.firstName} ${user?.lastName} para o evento "${event?.name}" foi revertida para análise.`,
+            type: "event_revert",
+            eventId: event?.id,
+            userId: user?.id
+          },
+          // Notificação para o participante
+          forParticipant: {
+            title: "Sua Candidatura foi Reativada",
+            message: `Sua candidatura para o evento "${event?.name}" foi revertida para análise. Aguarde a aprovação.`,
+            type: "event_revert",
+            eventId: event?.id,
+            userId: creator?.id
+          }
         }
       });
     } catch (err) {

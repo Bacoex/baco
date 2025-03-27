@@ -525,8 +525,14 @@ export default function MyEventsPage() {
       });
       
       // Processa as notificações retornadas pela API
-      if (data.notification && data.notification.forCreator) {
-        addNotification(data.notification.forCreator);
+      if (data.notification) {
+        // Notificação para o criador do evento
+        if (data.notification.forCreator) {
+          addNotification(data.notification.forCreator);
+        }
+        
+        // Notificação para o participante (será mostrada quando o participante fizer login)
+        // Não precisa exibir ambas notificações para o usuário atual
       }
     },
     onError: (error: Error) => {
@@ -554,8 +560,14 @@ export default function MyEventsPage() {
       });
       
       // Processa as notificações retornadas pela API
-      if (data.notification && data.notification.forCreator) {
-        addNotification(data.notification.forCreator);
+      if (data.notification) {
+        // Notificação para o criador do evento
+        if (data.notification.forCreator) {
+          addNotification(data.notification.forCreator);
+        }
+        
+        // Notificação para o participante (será mostrada quando o participante fizer login)
+        // Não precisa exibir ambas notificações para o usuário atual
       }
     },
     onError: (error: Error) => {
@@ -583,8 +595,14 @@ export default function MyEventsPage() {
       });
       
       // Processa as notificações retornadas pela API
-      if (data.notification && data.notification.forCreator) {
-        addNotification(data.notification.forCreator);
+      if (data.notification) {
+        // Notificação para o criador do evento
+        if (data.notification.forCreator) {
+          addNotification(data.notification.forCreator);
+        }
+        
+        // Notificação para o participante (será mostrada quando o participante fizer login)
+        // Não precisa exibir ambas notificações para o usuário atual
       }
     },
     onError: (error: Error) => {
@@ -612,8 +630,14 @@ export default function MyEventsPage() {
       });
       
       // Processa as notificações retornadas pela API
-      if (data.notification && data.notification.forCreator) {
-        addNotification(data.notification.forCreator);
+      if (data.notification) {
+        // Notificação para o criador do evento
+        if (data.notification.forCreator) {
+          addNotification(data.notification.forCreator);
+        }
+        
+        // Notificação para o participante (será mostrada quando o participante fizer login)
+        // Não precisa exibir ambas notificações para o usuário atual
       }
     },
     onError: (error: Error) => {
