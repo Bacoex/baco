@@ -347,7 +347,7 @@ export default function ViewEventModal({ event, isOpen, onClose }: ViewEventModa
                     <div 
                       key={participant.id} 
                       className="flex items-center space-x-2 p-2 rounded-md border cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                      onClick={() => navigate(`/profile/${participant.userId}`)}
+                      onClick={() => window.location.href = `/profile/${participant.userId}`}
                     >
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={participant.user?.profileImage || undefined} />

@@ -337,7 +337,7 @@ function EventCard({ event, isCreator = false, participation = null, onApprove, 
                 <div key={participant.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg group">
                   <div 
                     className="flex items-center flex-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-md transition-colors" 
-                    onClick={() => navigate(`/profile/${participant.userId}`)}
+                    onClick={() => window.location.href = `/profile/${participant.userId}`}
                   >
                     <Eneagon className="w-10 h-10">
                       <Avatar>
