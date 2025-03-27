@@ -1,8 +1,9 @@
+
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { LogOut, Menu, User, HelpCircle } from "lucide-react";
+import { LogOut, Menu, User, HelpCircle, Info } from "lucide-react";
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -11,7 +12,11 @@ export function Header() {
     <div className="fixed w-full z-50 flex justify-between items-center px-4 py-2">
       {/* Logo Baco */}
       <Link href="/" className="hover:opacity-80 transition-opacity">
-        <img src="/baco-logo.png" alt="Baco" className="h-12 w-auto animate-float" />
+        <div className="relative h-40 flex justify-center items-center">
+          <div className="relative z-10 flex flex-col items-center">
+            <img src="/baco-logo.png" alt="Baco" className="h-32 w-auto animate-float" />
+          </div>
+        </div>
       </Link>
 
       {/* Mini Menu */}
@@ -36,9 +41,15 @@ export function Header() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/support">
+              <a href="mailto:baco.suporte@gmail.com" target="_blank" rel="noopener noreferrer">
                 <HelpCircle className="mr-2 h-4 w-4" />
                 Suporte
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/about">
+                <Info className="mr-2 h-4 w-4" />
+                Sobre
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={logout}>
