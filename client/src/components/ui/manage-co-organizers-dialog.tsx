@@ -20,22 +20,20 @@ export function ManageCoOrganizersDialog({ eventId, isOpen, onClose }: ManageCoO
   const queryClient = useQueryClient();
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 
-  // Buscar lista de co-organizadores atuais
   const coOrganizersQuery = useQuery({
     queryKey: [`/api/events/${eventId}/co-organizers`],
     queryFn: async () => {
       const res = await fetch(`/api/events/${eventId}/co-organizers`);
       if (!res.ok) throw new Error("Erro ao buscar co-organizadores");
-      return await res.json();
+      return res.json();
     },
     enabled: isOpen,
   });
 
-  // Mutation para remover um co-organizador
   const removeCoOrganizerMutation = useMutation({
     mutationFn: async (userId: number) => {
       const res = await apiRequest("DELETE", `/api/events/${eventId}/co-organizers/${userId}`);
-      return await res.json();
+      return res.json();
     },
     onSuccess: () => {
       toast({
@@ -81,11 +79,6 @@ export function ManageCoOrganizersDialog({ eventId, isOpen, onClose }: ManageCoO
                 <div className="text-sm">
                   Não foi possível carregar os co-organizadores. Por favor, tente novamente.
                 </div>
-              </div>
-            ) : !coOrganizersQuery.data || coOrganizersQuery.data.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <div>Nenhum co-organizador encontrado.</div>
-                <div>Convide alguém para ajudar a gerenciar este evento.</div>
               </div>
             ) : !coOrganizersQuery.data || coOrganizersQuery.data.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
