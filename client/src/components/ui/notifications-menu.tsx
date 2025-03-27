@@ -13,6 +13,7 @@ import { useNotifications, Notification } from "@/hooks/use-notifications";
 import { Link, useLocation } from "wouter";
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useAuth } from "@/hooks/use-auth"; // Added import
 
 export function NotificationsMenu() {
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification, removeAllNotifications } = useNotifications();
@@ -24,7 +25,7 @@ export function NotificationsMenu() {
       // Carregar notificações do localStorage
       const userStorageKey = `baco-notifications-${user.id}`;
       const storedNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
-      
+
       // Mostrar notificações não lidas
       storedNotifications
         .filter((n: any) => !n.read)
@@ -40,7 +41,7 @@ export function NotificationsMenu() {
   const handleNotificationClick = (notification: Notification) => {
     // Marcar como lida
     markAsRead(notification.id);
-    
+
     // Redirecionar para o evento se houver um eventId
     if (notification.eventId) {
       // Fechar dropdown e abrir modal de evento
@@ -52,7 +53,7 @@ export function NotificationsMenu() {
       }, 100);
     }
   };
-  
+
   // Função para remover uma notificação e evitar propagação do evento
   const handleRemoveNotification = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -114,7 +115,7 @@ export function NotificationsMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        
+
         {notifications.length === 0 ? (
           <div className="py-4 px-2 text-center text-muted-foreground text-sm">
             Nenhuma notificação no momento.
