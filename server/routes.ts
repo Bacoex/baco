@@ -527,21 +527,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Obtém eventos criados pelo usuário autenticado
   app.get("/api/user/events/created", ensureAuthenticated, async (req, res) => {
     try {
-      // Busca os eventos criados pelo usuário atual
-      console.log("Buscando eventos para o usuário", req.user!.id, req.user!.firstName, req.user!.lastName);
       const userId = req.user!.id;
       const events = await storage.getEventsByCreator(userId);
-      console.log(`Encontrados ${events.length} eventos criados pelo usuário ${userId}`);
-      console.log("Resumo de eventos criados pelo usuário:", events);
 
-      // Log adicional para debug dos participantes
-      for (const event of events) {
-        const participants = await storage.getParticipants(event.id);
-        console.log(`Evento ${event.id} - ${event.name} tem ${participants.length} participantes:`);
-        console.log("Participantes:", participants.map(p => ({ id: p.id, userId: p.userId, status: p.status })));
-      }
-
-      // Obtém os detalhes das categorias e criador para cada evento
+      // Obtém os detalhes das categorias, criador e participantes para cada evento
       const eventsWithDetails = await Promise.all(
         events.map(async (event) => {
           console.log(`Processando evento ${event.id}: ${event.name}`);
@@ -554,14 +543,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`Evento ${event.id} tem ${participants.length} participantes:`, 
                       participants.map(p => ({ id: p.id, userId: p.userId, status: p.status })));
 
-          const participantsWithUsers = await Promise.all(
+          // Busca participantes e adiciona dados do usuário
+          const participants = await storage.getParticipants(event.id);
+          const participantsWithDetails = await Promise.all(
             participants.map(async (participant) => {
               const user = await storage.getUser(participant.userId);
-              console.log(`Participante ${participant.id}, usuário ${participant.userId}, status ${participant.status}:`,
-                         user ? `${user.firstName} ${user.lastName}` : 'Usuário não encontrado');
-
               return {
-                ...participant,
+                id: participant.id,
+                userId: participant.userId,
+                status: participant.status,
+                createdAt: participant.createdAt,
                 user: user ? {
                   id: user.id,
                   firstName: user.firstName,
@@ -571,6 +562,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               };
             })
           );
+
+          // Agrupa participantes por status para facilitar o frontend
+          const participantsByStatus = {
+            pending: participantsWithDetails.filter(p => p.status === 'pending'),
+            approved: participantsWithDetails.filter(p => p.status === 'approved'),
+            confirmed: participantsWithDetails.filter(p => p.status === 'confirmed'),
+            rejected: participantsWithDetails.filter(p => p.status === 'rejected')
+          };
 
           // Agrupa participantes por status para facilitar a depuração
           const pendingCount = participants.filter(p => p.status === 'pending').length;
@@ -593,7 +592,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               lastName: req.user!.lastName,
               profileImage: req.user!.profileImage
             },
-            participants: participantsWithUsers
+            participants: participantsByStatus,
+            participantCounts: {
+              total: participantsWithDetails.length,
+              pending: participantsByStatus.pending.length,
+              approved: participantsByStatus.approved.length,
+              confirmed: participantsByStatus.confirmed.length,
+              rejected: participantsByStatus.rejected.length
+            }
           };
         })
       );
