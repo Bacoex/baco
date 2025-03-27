@@ -14,8 +14,16 @@ import { Card } from "@/components/ui/card";
 export default function SearchPage() {
   // Obtém a localização atual e o parâmetro de pesquisa
   const [location] = useLocation();
-  const queryParams = new URLSearchParams(location.split("?")[1] || "");
-  const searchQuery = queryParams.get("q") || "";
+  console.log("SearchPage: URL completa:", location);
+  
+  // O location vem apenas como "/search", então precisamos pegar a URL completa
+  const urlCompleta = window.location.href;
+  console.log("SearchPage: URL completa com janela:", urlCompleta);
+  
+  // Extrai o parâmetro de pesquisa da URL completa
+  const url = new URL(urlCompleta);
+  const searchQuery = url.searchParams.get("q") || "";
+  console.log("SearchPage: Parâmetro de pesquisa:", searchQuery);
   
   // Para debugging
   useEffect(() => {
