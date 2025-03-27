@@ -176,17 +176,28 @@ export default function EventCard({
     },
     onSuccess: () => {
       setIsParticipating(true);
-      toast({
-        title: "Sucesso!",
-        description: "Sua participação no evento foi confirmada.",
-      });
+      
+      if (event.eventType === 'private_application') {
+        toast({
+          title: "Candidatura enviada!",
+          description: "Sua candidatura foi recebida. Você será notificado quando for aprovado.",
+        });
+      } else {
+        toast({
+          title: "Sucesso!",
+          description: "Sua participação no evento foi confirmada.",
+        });
+      }
+      
       // Atualiza as consultas relevantes
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participation`] });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao participar do evento",
+        title: event.eventType === 'private_application' 
+          ? "Erro ao enviar candidatura" 
+          : "Erro ao participar do evento",
         description: error.message,
         variant: "destructive",
       });
@@ -200,17 +211,28 @@ export default function EventCard({
     },
     onSuccess: () => {
       setIsParticipating(false);
-      toast({
-        title: "Participação cancelada",
-        description: "Você não está mais participando deste evento.",
-      });
+      
+      if (event.eventType === 'private_application') {
+        toast({
+          title: "Candidatura cancelada",
+          description: "Sua candidatura para este evento foi cancelada.",
+        });
+      } else {
+        toast({
+          title: "Participação cancelada",
+          description: "Você não está mais participando deste evento.",
+        });
+      }
+      
       // Atualiza as consultas relevantes
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participation`] });
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao cancelar participação",
+        title: event.eventType === 'private_application' 
+          ? "Erro ao cancelar candidatura" 
+          : "Erro ao cancelar participação",
         description: error.message,
         variant: "destructive",
       });
@@ -389,7 +411,7 @@ export default function EventCard({
                   ) : (
                     <>
                       <XIcon className="h-4 w-4 mr-1" />
-                      Não irei mais
+                      {event.eventType === 'private_application' ? 'Cancelar candidatura' : 'Não irei mais'}
                     </>
                   )}
                 </Button>
@@ -422,7 +444,7 @@ export default function EventCard({
                   ) : (
                     <>
                       <CheckIcon className="h-4 w-4 mr-1" />
-                      Participar
+                      {event.eventType === 'private_application' ? 'Candidatar-se' : 'Participar'}
                     </>
                   )}
                 </Button>
