@@ -4,9 +4,10 @@ import { Card } from "@/components/ui/card";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, MapPinIcon, CheckIcon, XIcon } from "lucide-react";
+import { CalendarIcon, MapPinIcon, CheckIcon, XIcon, InfoIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import ViewEventModal from "@/components/ui/view-event-modal";
 
 /**
  * Interface para os dados do evento
@@ -50,6 +51,7 @@ export default function EventCard({ event }: EventProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isParticipating, setIsParticipating] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   
   // Verifica se o usuário já está participando do evento
   const participationQuery = useQuery({
@@ -141,94 +143,137 @@ export default function EventCard({ event }: EventProps) {
   // Imagem de fallback se não houver imagem do evento
   const imageSrc = event.coverImage || "https://via.placeholder.com/500x250?text=Evento";
   
+  // Função para buscar detalhes completos do evento
+  const fetchEventDetails = useQuery({
+    queryKey: [`/api/events/${event.id}`, user?.id],
+    queryFn: async () => {
+      try {
+        // Converte o evento atual para o formato esperado pelo ViewEventModal
+        const eventDetails = {
+          ...event,
+          isActive: true,
+          createdAt: null,
+          coordinates: null,
+        };
+        return eventDetails;
+      } catch (error) {
+        console.error("Erro ao buscar detalhes do evento:", error);
+        return null;
+      }
+    },
+    enabled: false, // Não executa automaticamente
+  });
+  
+  // Abre o modal com os detalhes do evento
+  const openEventDetails = () => {
+    fetchEventDetails.refetch();
+    setIsViewModalOpen(true);
+  };
+
   return (
-    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-primary/10 hover:border-primary/30 group transform hover:scale-[1.02]">
-      <div className="relative h-48">
-        <img 
-          src={imageSrc}
-          alt={event.name} 
-          className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-50 group-hover:opacity-80 transition-all duration-300"></div>
-        <div 
-          className={cn(
-            "absolute top-3 right-3 text-white text-xs font-bold px-3 py-1 rounded-full",
-            event.category.slug === "lgbt" ? "pride-badge" : ""
-          )}
-          style={
-            event.category.slug === "lgbt" && event.category.color === "pride"
-            ? {} // O estilo vem direto da classe CSS pride-badge
-            : { backgroundColor: event.category.color }
-          }
-        >
-          {event.category.name}
-        </div>
-        <div className="absolute bottom-3 left-3 right-3">
-          <h3 className="text-lg font-bold text-white mb-1 drop-shadow-md line-clamp-2">{event.name}</h3>
-          <div className="flex items-center">
-            <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-300 mr-2">
-              <img 
-                src={event.creator?.profileImage || undefined} 
-                alt={event.creator?.firstName || "Criador"}
-                className="w-full h-full object-cover"
-              />
+    <>
+      <Card 
+        className="overflow-hidden hover:shadow-xl transition-all duration-300 border-primary/10 hover:border-primary/30 group transform hover:scale-[1.02] cursor-pointer"
+        onClick={openEventDetails}
+      >
+        <div className="relative h-48">
+          <img 
+            src={imageSrc}
+            alt={event.name} 
+            className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-50 group-hover:opacity-80 transition-all duration-300"></div>
+          <div 
+            className={cn(
+              "absolute top-3 right-3 text-white text-xs font-bold px-3 py-1 rounded-full",
+              event.category.slug === "lgbt" ? "pride-badge" : ""
+            )}
+            style={
+              event.category.slug === "lgbt" && event.category.color === "pride"
+              ? {} // O estilo vem direto da classe CSS pride-badge
+              : { backgroundColor: event.category.color }
+            }
+          >
+            {event.category.name}
+          </div>
+          <div className="absolute bottom-3 left-3 right-3">
+            <h3 className="text-lg font-bold text-white mb-1 drop-shadow-md line-clamp-2">{event.name}</h3>
+            <div className="flex items-center">
+              <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-300 mr-2">
+                <img 
+                  src={event.creator?.profileImage || undefined} 
+                  alt={event.creator?.firstName || "Criador"}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <span className="text-sm text-white drop-shadow-md">
+                {event.creator?.firstName || "Usuário"} {event.creator?.lastName || ""}
+              </span>
             </div>
-            <span className="text-sm text-white drop-shadow-md">
-              {event.creator?.firstName || "Usuário"} {event.creator?.lastName || ""}
-            </span>
           </div>
         </div>
-      </div>
-      <div className="p-4">
-        <div className="flex items-center mb-2">
-          <MapPinIcon className="text-primary h-4 w-4 mr-1" />
-          <p className="text-gray-700 text-sm line-clamp-1">{event.location}</p>
-        </div>
-        
-        <div className="flex items-center mb-3">
-          <CalendarIcon className="text-primary h-4 w-4 mr-1" />
-          <p className="text-gray-700 text-sm">{formatDate(event.date)}, {event.timeStart}</p>
-        </div>
-        
-        <div className="flex justify-between items-center mt-4">
-          <span className="bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent font-semibold text-lg">{formatPrice(event.ticketPrice || 0)}</span>
+        <div className="p-4">
+          <div className="flex items-center mb-2">
+            <MapPinIcon className="text-primary h-4 w-4 mr-1" />
+            <p className="text-gray-700 text-sm line-clamp-1">{event.location}</p>
+          </div>
           
-          {isParticipating ? (
-            <Button 
-              size="sm" 
-              variant="destructive"
-              className="rounded-full"
-              onClick={() => cancelParticipationMutation.mutate()}
-              disabled={cancelParticipationMutation.isPending}
-            >
-              {cancelParticipationMutation.isPending ? (
-                "Aguarde..."
+          <div className="flex items-center mb-3">
+            <CalendarIcon className="text-primary h-4 w-4 mr-1" />
+            <p className="text-gray-700 text-sm">{formatDate(event.date)}, {event.timeStart}</p>
+          </div>
+          
+          <div className="flex justify-between items-center mt-4">
+            <span className="bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent font-semibold text-lg">{formatPrice(event.ticketPrice || 0)}</span>
+            
+            <div onClick={(e) => e.stopPropagation()}>
+              {isParticipating ? (
+                <Button 
+                  size="sm" 
+                  variant="destructive"
+                  className="rounded-full"
+                  onClick={() => cancelParticipationMutation.mutate()}
+                  disabled={cancelParticipationMutation.isPending}
+                >
+                  {cancelParticipationMutation.isPending ? (
+                    "Aguarde..."
+                  ) : (
+                    <>
+                      <XIcon className="h-4 w-4 mr-1" />
+                      Cancelar
+                    </>
+                  )}
+                </Button>
               ) : (
-                <>
-                  <XIcon className="h-4 w-4 mr-1" />
-                  Cancelar
-                </>
+                <Button 
+                  size="sm" 
+                  className="rounded-full bg-gradient-to-r from-primary to-baco-blue hover:from-baco-blue hover:to-primary text-white transition-all duration-300"
+                  onClick={() => participateMutation.mutate()}
+                  disabled={participateMutation.isPending}
+                >
+                  {participateMutation.isPending ? (
+                    "Aguarde..."
+                  ) : (
+                    <>
+                      <CheckIcon className="h-4 w-4 mr-1" />
+                      Participar
+                    </>
+                  )}
+                </Button>
               )}
-            </Button>
-          ) : (
-            <Button 
-              size="sm" 
-              className="rounded-full bg-gradient-to-r from-primary to-baco-blue hover:from-baco-blue hover:to-primary text-white transition-all duration-300"
-              onClick={() => participateMutation.mutate()}
-              disabled={participateMutation.isPending}
-            >
-              {participateMutation.isPending ? (
-                "Aguarde..."
-              ) : (
-                <>
-                  <CheckIcon className="h-4 w-4 mr-1" />
-                  Participar
-                </>
-              )}
-            </Button>
-          )}
+            </div>
+          </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+      
+      {/* Modal de visualização de detalhes do evento */}
+      {fetchEventDetails.data && (
+        <ViewEventModal
+          event={fetchEventDetails.data}
+          isOpen={isViewModalOpen}
+          onClose={() => setIsViewModalOpen(false)}
+        />
+      )}
+    </>
   );
 }
