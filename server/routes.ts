@@ -920,6 +920,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Verifica se o usuário está participando de um evento
+  app.get("/api/events/:id/participation", ensureAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      
+      // Busca a participação do usuário no evento
+      const participation = await storage.getParticipation(eventId, userId);
+      
+      if (!participation) {
+        return res.status(404).json({ message: "Você não está participando deste evento" });
+      }
+      
+      res.status(200).json(participation);
+    } catch (err) {
+      res.status(500).json({ message: "Erro ao verificar participação" });
+    }
+  });
+
   // Cancela participação em um evento
   app.delete("/api/events/:id/cancel-participation", ensureAuthenticated, async (req, res) => {
     try {

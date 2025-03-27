@@ -108,10 +108,23 @@ export default function EventCard({
     enabled: !!user,
   });
   
-  // Atualiza o estado local quando a consulta de participação mudar
+  // Atualiza o estado local quando a consulta de participação mudar ou quando recebemos props de participação
   useEffect(() => {
-    setIsParticipating(!!participationQuery.data);
-  }, [participationQuery.data]);
+    // Se recebemos a informação de participação diretamente via props
+    if (participation) {
+      setIsParticipating(true);
+      return;
+    }
+    
+    // Se temos dados da consulta de participação
+    if (participationQuery.data) {
+      setIsParticipating(true);
+      return;
+    }
+    
+    // Se não temos participação
+    setIsParticipating(false);
+  }, [participationQuery.data, participation]);
   
   // Formata a data para exibição
   const formatDate = (dateString: string) => {
@@ -366,8 +379,8 @@ export default function EventCard({
               ) : isParticipating ? (
                 <Button 
                   size="sm" 
-                  variant="destructive"
-                  className="rounded-full"
+                  variant="outline"
+                  className="rounded-full border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600"
                   onClick={() => cancelParticipationMutation.mutate()}
                   disabled={cancelParticipationMutation.isPending}
                 >
@@ -376,7 +389,7 @@ export default function EventCard({
                   ) : (
                     <>
                       <XIcon className="h-4 w-4 mr-1" />
-                      Cancelar
+                      Não irei mais
                     </>
                   )}
                 </Button>
