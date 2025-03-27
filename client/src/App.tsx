@@ -7,8 +7,10 @@ import HomePage from "@/pages/home-page";
 import AuthPage from "@/pages/auth-page";
 import ProfilePage from "@/pages/profile-page";
 import MyEventsPage from "@/pages/my-events-page";
+import PrivacyPolicyPage from "@/pages/privacy-policy-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
+import { ConsentBanner } from "@/components/ui/consent-banner";
 
 /**
  * Componente Router
@@ -21,6 +23,7 @@ function Router() {
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/my-events" component={MyEventsPage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/privacy-policy" component={PrivacyPolicyPage} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -35,6 +38,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router />
+        <ConsentBanner />
         <Toaster />
       </AuthProvider>
     </QueryClientProvider>
