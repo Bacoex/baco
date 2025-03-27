@@ -1,3 +1,4 @@
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +17,6 @@ import { ptBR } from 'date-fns/locale';
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Fragment, useEffect } from "react";
 
 export function NotificationsMenu() {
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification, removeAllNotifications } = useNotifications();
@@ -26,11 +26,9 @@ export function NotificationsMenu() {
 
   useEffect(() => {
     if (user) {
-      // Buscar notificações do localStorage
       const userStorageKey = `baco-notifications-${user.id}`;
       const storedNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
       
-      // Mostrar notificações não lidas usando toast
       storedNotifications
         .filter((n: any) => !n.read)
         .forEach((notification: any) => {
@@ -40,43 +38,33 @@ export function NotificationsMenu() {
           });
         });
     }
-  }, [notifications, user, toast]);
+  }, [user, toast]);
 
   const handleNotificationClick = (notification: Notification) => {
-    // Marcar como lida
     markAsRead(notification.id);
-
-    // Redirecionar para o evento se houver um eventId
+    
     if (notification.eventId) {
-      // Fechar dropdown e abrir modal de evento
-      setTimeout(() => {
-        // Em vez de navegar diretamente, disparamos um evento personalizado que o EventCard vai escutar
-        const event = new CustomEvent('open-event', { detail: { eventId: notification.eventId } });
-        document.dispatchEvent(event);
-        setLocation('/');
-      }, 100);
+      setLocation(`/events/${notification.eventId}`);
     }
   };
 
-  // Função para remover uma notificação e evitar propagação do evento
   const handleRemoveNotification = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     removeNotification(id);
   };
 
-  const getNotificationIcon = (type: Notification['type']) => {
+  const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'event_application':
       case 'event_approval':
       case 'event_rejection':
         return <Calendar className="h-4 w-4 mr-2" />;
       default:
-        return <Bell className="h-4 w-4 mr-2" />;
+        return null;
     }
   };
 
   return (
-    <Fragment>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
@@ -119,8 +107,6 @@ export function NotificationsMenu() {
             )}
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-
         {notifications.length === 0 ? (
           <div className="py-4 px-2 text-center text-muted-foreground text-sm">
             Nenhuma notificação no momento.
@@ -164,6 +150,5 @@ export function NotificationsMenu() {
         )}
       </DropdownMenuContent>
     </DropdownMenu>
-    </Fragment>
   );
 }
