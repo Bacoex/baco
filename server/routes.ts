@@ -568,11 +568,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             rejected: participantsWithDetails.filter(p => p.status === 'rejected')
           };
 
-          // Agrupa participantes por status para facilitar a depuração
-          const pendingCount = participants.filter(p => p.status === 'pending').length;
-          const approvedCount = participants.filter(p => p.status === 'approved').length;
-          const rejectedCount = participants.filter(p => p.status === 'rejected').length;
-          const confirmedCount = participants.filter(p => p.status === 'confirmed').length;
+          const pendingCount = participantsByStatus.pending.length;
+          const approvedCount = participantsByStatus.approved.length;
+          const rejectedCount = participantsByStatus.rejected.length;
+          const confirmedCount = participantsByStatus.confirmed.length;
 
           console.log(`Estatísticas do evento ${event.id}: 
                       Pendentes: ${pendingCount}, 
@@ -592,10 +591,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             participants: participantsByStatus,
             participantCounts: {
               total: participantsWithDetails.length,
-              pending: participantsByStatus.pending.length,
-              approved: participantsByStatus.approved.length,
-              confirmed: participantsByStatus.confirmed.length,
-              rejected: participantsByStatus.rejected.length
+              pending: pendingCount,
+              approved: approvedCount,
+              confirmed: confirmedCount,
+              rejected: rejectedCount
             }
           };
         })
@@ -879,8 +878,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           title: "Participação Confirmada",
           message: `Você está confirmado no evento "${event.name}". Compareça no dia e hora marcados.`,
           type: "event_approval",
-          eventId: event.id,
-          userId: userId // ID do usuário atual, que está se inscrevendo no evento
+          eventId: event.id,          userId: userId // ID do usuário atual, que está se inscrevendo no evento
         };
 
         // Notificação para o criador do evento
