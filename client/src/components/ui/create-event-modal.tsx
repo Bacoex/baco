@@ -39,6 +39,16 @@ interface CreateEventModalProps {
 }
 
 /**
+ * Interface para subcategoria
+ */
+interface Subcategory {
+  id: number;
+  name: string;
+  slug: string;
+  categoryId: number;
+}
+
+/**
  * Tipo para os dados do formulário de criação de evento
  */
 type EventFormValues = z.infer<typeof insertEventSchema>;
@@ -63,12 +73,43 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
   const [eventType, setEventType] = useState<EventType>('public');
   const [additionalTickets, setAdditionalTickets] = useState<AdditionalTicket[]>([]);
   const [showMapSelector, setShowMapSelector] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number>(0);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [isLoadingSubcategories, setIsLoadingSubcategories] = useState(false);
   
   // Debug log para verificar se as categorias estão sendo passadas corretamente
   console.log("Categorias disponíveis no CreateEventModal:", categories);
   console.log("Tipo de categories:", typeof categories);
   console.log("É array?", Array.isArray(categories));
   console.log("Comprimento:", categories.length);
+  
+  // Função para carregar subcategorias quando uma categoria é selecionada
+  const loadSubcategories = async (categoryId: number) => {
+    if (categoryId <= 0) {
+      setSubcategories([]);
+      return;
+    }
+    
+    setIsLoadingSubcategories(true);
+    try {
+      const response = await fetch(`/api/categories/${categoryId}/subcategories`);
+      if (!response.ok) {
+        throw new Error('Erro ao carregar subcategorias');
+      }
+      const data = await response.json();
+      setSubcategories(data);
+    } catch (error) {
+      console.error('Erro ao carregar subcategorias:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar as subcategorias",
+        variant: "destructive",
+      });
+      setSubcategories([]);
+    } finally {
+      setIsLoadingSubcategories(false);
+    }
+  };
 
   // Inicializa o formulário com o esquema de validação
   const form = useForm<EventFormValues>({
@@ -83,12 +124,26 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
       coordinates: "",
       coverImage: "",
       categoryId: 0,
+      subcategoryId: 0,
       eventType: "public",
       importantInfo: "",
       ticketPrice: 0,
       capacity: 0,
     },
   });
+  
+  // Observa quando a categoria muda para buscar subcategorias
+  const watchCategoryId = form.watch("categoryId");
+  
+  // Efeito para buscar subcategorias quando a categoria é alterada
+  useEffect(() => {
+    if (watchCategoryId) {
+      setSelectedCategoryId(Number(watchCategoryId));
+      loadSubcategories(Number(watchCategoryId));
+    } else {
+      setSubcategories([]);
+    }
+  }, [watchCategoryId]);
 
   // Observa mudanças no tipo de evento
   const watchEventType = form.watch("eventType");
@@ -142,6 +197,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
     const eventData = {
       ...data,
       categoryId: Number(data.categoryId),
+      subcategoryId: data.subcategoryId ? Number(data.subcategoryId) : null,
       ticketPrice: data.eventType === 'private_ticket' ? Number(data.ticketPrice) : 0,
       capacity: data.capacity ? Number(data.capacity) : null,
     };
@@ -298,6 +354,42 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                 </FormItem>
               )}
             />
+
+            {/* Subcategoria (aparece só quando uma categoria é selecionada) */}
+            {selectedCategoryId > 0 && (
+              <FormField
+                control={form.control}
+                name="subcategoryId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Subcategoria</FormLabel>
+                    <FormDescription className="text-xs">
+                      Opcional - Selecione uma subcategoria para classificar seu evento
+                    </FormDescription>
+                    <Select 
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      value={field.value !== undefined ? field.value.toString() : "0"}
+                      disabled={isLoadingSubcategories || subcategories.length === 0}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={isLoadingSubcategories ? "Carregando..." : subcategories.length === 0 ? "Sem subcategorias disponíveis" : "Selecione uma subcategoria"} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="0">Nenhuma subcategoria</SelectItem>
+                        {subcategories.map((subcategory) => (
+                          <SelectItem key={subcategory.id} value={subcategory.id.toString()}>
+                            {subcategory.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             {/* Data e hora */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

@@ -271,6 +271,108 @@ export class MemStorage implements IStorage {
     });
     
     console.log("Categorias inicializadas:", this.categoriesMap.size);
+    
+    // Após criar as categorias, criar subcategorias
+    this._createInitialSubcategories();
+  }
+  
+  /**
+   * Cria subcategorias iniciais para as categorias existentes
+   */
+  private _createInitialSubcategories() {
+    const subcategories: Array<{categorySlug: string, subcategory: InsertEventSubcategory}> = [
+      // Subcategorias para Aniversário
+      { categorySlug: "birthday", subcategory: { name: "Infantil", slug: "kids", categoryId: 0 }},
+      { categorySlug: "birthday", subcategory: { name: "Adolescente", slug: "teenager", categoryId: 0 }},
+      { categorySlug: "birthday", subcategory: { name: "Adulto", slug: "adult-birthday", categoryId: 0 }},
+      { categorySlug: "birthday", subcategory: { name: "Idoso", slug: "senior", categoryId: 0 }},
+      { categorySlug: "birthday", subcategory: { name: "Temático", slug: "themed", categoryId: 0 }},
+      
+      // Subcategorias para Casamento
+      { categorySlug: "wedding", subcategory: { name: "Tradicional", slug: "traditional", categoryId: 0 }},
+      { categorySlug: "wedding", subcategory: { name: "Ao ar livre", slug: "outdoor", categoryId: 0 }},
+      { categorySlug: "wedding", subcategory: { name: "Cerimônia civil", slug: "civil", categoryId: 0 }},
+      { categorySlug: "wedding", subcategory: { name: "Recepção", slug: "reception", categoryId: 0 }},
+      
+      // Subcategorias para Religioso
+      { categorySlug: "religious", subcategory: { name: "Católico", slug: "catholic", categoryId: 0 }},
+      { categorySlug: "religious", subcategory: { name: "Evangélico", slug: "evangelical", categoryId: 0 }},
+      { categorySlug: "religious", subcategory: { name: "Espírita", slug: "spiritist", categoryId: 0 }},
+      { categorySlug: "religious", subcategory: { name: "Judaico", slug: "jewish", categoryId: 0 }},
+      { categorySlug: "religious", subcategory: { name: "Umbanda", slug: "umbanda", categoryId: 0 }},
+      { categorySlug: "religious", subcategory: { name: "Budista", slug: "buddhist", categoryId: 0 }},
+      { categorySlug: "religious", subcategory: { name: "Islâmico", slug: "islamic", categoryId: 0 }},
+      
+      // Subcategorias para Reunião
+      { categorySlug: "meeting", subcategory: { name: "Corporativa", slug: "corporate", categoryId: 0 }},
+      { categorySlug: "meeting", subcategory: { name: "Confraternização", slug: "team-building", categoryId: 0 }},
+      { categorySlug: "meeting", subcategory: { name: "Workshops", slug: "workshop", categoryId: 0 }},
+      { categorySlug: "meeting", subcategory: { name: "Treinamentos", slug: "training", categoryId: 0 }},
+      
+      // Subcategorias para Churrasco
+      { categorySlug: "barbecue", subcategory: { name: "Familiar", slug: "family", categoryId: 0 }},
+      { categorySlug: "barbecue", subcategory: { name: "Amigos", slug: "friends", categoryId: 0 }},
+      { categorySlug: "barbecue", subcategory: { name: "Costela", slug: "ribs", categoryId: 0 }},
+      { categorySlug: "barbecue", subcategory: { name: "Fogo de chão", slug: "ground-fire", categoryId: 0 }},
+      
+      // Subcategorias para Festa
+      { categorySlug: "party", subcategory: { name: "Balada", slug: "nightclub", categoryId: 0 }},
+      { categorySlug: "party", subcategory: { name: "Formatura", slug: "graduation", categoryId: 0 }},
+      { categorySlug: "party", subcategory: { name: "Hallowen", slug: "halloween", categoryId: 0 }},
+      { categorySlug: "party", subcategory: { name: "Carnaval", slug: "carnival", categoryId: 0 }},
+      { categorySlug: "party", subcategory: { name: "Réveillon", slug: "new-year", categoryId: 0 }},
+      { categorySlug: "party", subcategory: { name: "Fantasia", slug: "costume", categoryId: 0 }},
+      
+      // Subcategorias para Show
+      { categorySlug: "concert", subcategory: { name: "Rock", slug: "rock", categoryId: 0 }},
+      { categorySlug: "concert", subcategory: { name: "Sertanejo", slug: "country", categoryId: 0 }},
+      { categorySlug: "concert", subcategory: { name: "Pop", slug: "pop", categoryId: 0 }},
+      { categorySlug: "concert", subcategory: { name: "Funk", slug: "funk", categoryId: 0 }},
+      { categorySlug: "concert", subcategory: { name: "Samba", slug: "samba", categoryId: 0 }},
+      { categorySlug: "concert", subcategory: { name: "MPB", slug: "mpb", categoryId: 0 }},
+      { categorySlug: "concert", subcategory: { name: "Jazz", slug: "jazz", categoryId: 0 }},
+      { categorySlug: "concert", subcategory: { name: "Eletrônica", slug: "electronic", categoryId: 0 }},
+      
+      // Subcategorias para LGBT+
+      { categorySlug: "lgbt", subcategory: { name: "Parada", slug: "pride-parade", categoryId: 0 }},
+      { categorySlug: "lgbt", subcategory: { name: "Balada", slug: "lgbt-club", categoryId: 0 }},
+      { categorySlug: "lgbt", subcategory: { name: "Cultural", slug: "cultural", categoryId: 0 }},
+      { categorySlug: "lgbt", subcategory: { name: "Ativismo", slug: "activism", categoryId: 0 }},
+      
+      // Subcategorias para Eventos 18+
+      { categorySlug: "adult", subcategory: { name: "Festa", slug: "adult-party", categoryId: 0 }},
+      { categorySlug: "adult", subcategory: { name: "Balada", slug: "adult-club", categoryId: 0 }},
+      { categorySlug: "adult", subcategory: { name: "Show", slug: "adult-show", categoryId: 0 }}
+    ];
+    
+    console.log("Inicializando subcategorias...");
+    
+    subcategories.forEach(item => {
+      // Buscar a categoria pelo slug
+      let categoryId = 0;
+      for (const [id, category] of this.categoriesMap.entries()) {
+        if (category.slug === item.categorySlug) {
+          categoryId = id;
+          break;
+        }
+      }
+      
+      if (categoryId === 0) {
+        console.warn(`Categoria com slug ${item.categorySlug} não encontrada para subcategoria ${item.subcategory.name}`);
+        return; // skip this subcategory
+      }
+      
+      // Atribuir o ID da categoria à subcategoria
+      const subcategory = {...item.subcategory, categoryId};
+      
+      // Criar a subcategoria
+      const id = this.subcategoryIdCounter++;
+      const newSubcategory: EventSubcategory = { ...subcategory, id };
+      this.subcategoriesMap.set(id, newSubcategory);
+      console.log(`Adicionada subcategoria: ${id} - ${subcategory.name} (categoria: ${categoryId})`);
+    });
+    
+    console.log("Subcategorias inicializadas:", this.subcategoriesMap.size);
   }
   
   // Implementação de usuários
