@@ -228,6 +228,25 @@ export const eventParticipants = pgTable("event_participants", {
 });
 
 /**
+ * Esquema da tabela de convites de co-organizadores para eventos
+ * Permite convidar usuários para ajudar na gestão do evento
+ */
+export const eventCoOrganizerInvites = pgTable("event_co_organizer_invites", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").notNull(),
+  inviterId: integer("inviter_id").notNull(), // ID do usuário que enviou o convite
+  email: text("email").notNull(), // Email do convidado (pode ser um usuário existente ou não)
+  inviteToken: text("invite_token").notNull(), // Token único para aceitar o convite
+  status: text("status").notNull().default("pending"), // pending, accepted, rejected
+  invitedAt: timestamp("invited_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+  // Informações sobre o usuário convidado (se já existir)
+  inviteeId: integer("invitee_id"), // ID do usuário convidado (se existir)
+  // Mensagem personalizada para o convite
+  message: text("message"),
+});
+
+/**
  * Esquema da tabela de mensagens de chat
  * Para comunicação entre participantes de um evento
  */
@@ -360,6 +379,22 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
 });
 
 /**
+ * Esquema de validação para convites de co-organizadores
+ */
+export const insertEventCoOrganizerInviteSchema = createInsertSchema(eventCoOrganizerInvites).omit({
+  id: true,
+  invitedAt: true,
+  respondedAt: true,
+  status: true,
+  inviteToken: true
+}).extend({
+  // Validação do email
+  email: z.string().email("E-mail inválido"),
+  // Mensagem personalizada (opcional)
+  message: z.string().optional()
+});
+
+/**
  * Esquema de validação para atualizar perfil de usuário
  */
 export const updateUserProfileSchema = z.object({
@@ -390,3 +425,5 @@ export type EventParticipant = typeof eventParticipants.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type UpdateUserProfile = z.infer<typeof updateUserProfileSchema>;
+export type InsertEventCoOrganizerInvite = z.infer<typeof insertEventCoOrganizerInviteSchema>;
+export type EventCoOrganizerInvite = typeof eventCoOrganizerInvites.$inferSelect;

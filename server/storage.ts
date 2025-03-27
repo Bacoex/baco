@@ -43,6 +43,17 @@ export interface IStorage {
   removeParticipation(id: number): Promise<void>;
   updateParticipationStatus(id: number, status: string): Promise<EventParticipant>;
   
+  // Co-organizadores de eventos
+  getEventCoOrganizers(eventId: number): Promise<User[]>;
+  getEventCoOrganizerInvites(eventId: number): Promise<EventCoOrganizerInvite[]>;
+  getEventCoOrganizerInvite(id: number): Promise<EventCoOrganizerInvite | undefined>;
+  getEventCoOrganizerInviteByToken(token: string): Promise<EventCoOrganizerInvite | undefined>;
+  createEventCoOrganizerInvite(invite: InsertEventCoOrganizerInvite, inviterId: number, eventId: number): Promise<EventCoOrganizerInvite>;
+  updateEventCoOrganizerInviteStatus(id: number, status: string, inviteeId?: number): Promise<EventCoOrganizerInvite>;
+  removeEventCoOrganizerInvite(id: number): Promise<void>;
+  addEventCoOrganizer(eventId: number, userId: number): Promise<void>;
+  removeEventCoOrganizer(eventId: number, userId: number): Promise<void>;
+  
   // Sessões
   sessionStore: session.SessionStore;
 }
