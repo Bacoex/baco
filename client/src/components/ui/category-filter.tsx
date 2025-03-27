@@ -31,7 +31,7 @@ export default function CategoryFilter({
   onSelectCategory,
 }: CategoryFilterProps) {
   return (
-    <div className="bg-black/60 py-1">
+    <div className="bg-black/20 backdrop-blur-sm py-1">
       <ScrollArea className="w-full whitespace-nowrap">
         <div className="flex p-2 space-x-2">
           <Button
@@ -39,8 +39,10 @@ export default function CategoryFilter({
             size="sm"
             onClick={() => onSelectCategory(null)}
             className={cn(
-              "rounded-full",
-              selectedCategory === null ? "bg-primary text-primary-foreground hover:bg-primary/90" : "text-gray-300 hover:text-white border-blue-900/40 hover:bg-gray-900"
+              "rounded-full text-sm",
+              selectedCategory === null 
+                ? "bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white border-0"
+                : "text-gray-300 hover:text-white border-blue-900/30 hover:bg-blue-900/20 bg-transparent"
             )}
           >
             Todos
@@ -53,9 +55,12 @@ export default function CategoryFilter({
               size="sm"
               onClick={() => onSelectCategory(category.slug)}
               className={cn(
-                "rounded-full",
-                category.slug === "lgbt" && selectedCategory === category.slug ? "pride-gradient" : "",
-                selectedCategory === category.slug && category.slug !== "lgbt" ? "bg-primary text-primary-foreground hover:bg-primary/90" : "text-gray-300 hover:text-white border-blue-900/40 hover:bg-gray-900"
+                "rounded-full text-sm",
+                category.slug === "lgbt" && selectedCategory === category.slug 
+                  ? "pride-gradient border-0" 
+                  : selectedCategory === category.slug && category.slug !== "lgbt" 
+                    ? "bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white border-0" 
+                    : "text-gray-300 hover:text-white border-blue-900/30 hover:bg-blue-900/20 bg-transparent"
               )}
               style={(category.slug === "lgbt" && category.color === "pride" && selectedCategory === category.slug) 
                 ? { 

@@ -69,7 +69,7 @@ export default function HomePage() {
       <Header />
       
       {/* Filtro de categorias - posicionado logo abaixo da navbar */}
-      <div className="sticky top-14 z-40 w-full border-b border-gray-800 bg-black/90 backdrop-blur-sm">
+      <div className="sticky top-16 z-40 w-full border-b border-gray-800/50">
         <div className="container mx-auto">
           <CategoryFilter
             categories={categoriesQuery.data || []}
