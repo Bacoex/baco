@@ -21,9 +21,6 @@ export function Eneagon({ children, className }: EneagonProps) {
       )}
       style={{
         clipPath: 'polygon(50% 0%, 83% 12%, 100% 43%, 94% 78%, 68% 100%, 32% 100%, 6% 78%, 0% 43%, 17% 12%)',
-        borderRadius: '2px',
-        border: '2px solid #FF9900',
-        boxShadow: '0 0 10px rgba(255, 153, 0, 0.5)',
       }}
     >
       {children}
