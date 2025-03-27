@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useNotifications } from "@/hooks/use-notifications";
 import { CalendarIcon, MapPinIcon, CheckIcon, XIcon, InfoIcon, ShieldAlertIcon, Settings as SettingsIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -67,6 +68,50 @@ interface EventProps {
   onRevertParticipant?: (participantId: number) => void;
   onFollow?: (eventId: number) => void;
   onUnfollow?: (eventId: number) => void;
+}
+
+// Importar a interface do ViewEventModal em vez de duplicá-la
+interface EventDetailsForModal {
+  id: number;
+  name: string;
+  description: string;
+  date: string;
+  timeStart: string;
+  timeEnd: string | null;
+  location: string;
+  coordinates: string | null;
+  coverImage: string | null;
+  eventType: 'public' | 'private_ticket' | 'private_application';
+  categoryId: number;
+  creatorId: number;
+  capacity: number | null;
+  ticketPrice: number | null;
+  isActive: boolean;
+  createdAt: Date | null;
+  category: {
+    id: number;
+    name: string;
+    slug: string;
+    color: string;
+    ageRestriction?: number | null;
+  };
+  creator: { // Não é opcional
+    id: number;
+    firstName: string;
+    lastName: string;
+    profileImage: string | null;
+  };
+  participants?: Array<{
+    id: number;
+    userId: number;
+    status: string;
+    user: {
+      firstName: string; // Removido id do user para corresponder ao ViewEventModal
+      lastName: string;
+      profileImage: string | null;
+    };
+    applicationReason?: string;
+  }>;
 }
 
 /**
@@ -236,9 +281,14 @@ export default function EventCard({
   // Mutação para cancelar a participação no evento
   const cancelParticipationMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("DELETE", `/api/events/${event.id}/cancel-participation`);
+      const response = await apiRequest("DELETE", `/api/events/${event.id}/cancel-participation`);
+      try {
+        return await response.json();
+      } catch (e) {
+        return null; // Se a resposta não tiver corpo JSON
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setIsParticipating(false);
       
       if (event.eventType === 'private_application') {
@@ -251,6 +301,11 @@ export default function EventCard({
           title: "Participação cancelada",
           description: "Você não está mais participando deste evento.",
         });
+      }
+      
+      // Se temos uma notificação na resposta (para o criador do evento)
+      if (data?.notification?.forCreator && user?.id === event.creatorId) {
+        addNotification(data.notification.forCreator);
       }
       
       // Atualiza as consultas relevantes
@@ -317,12 +372,44 @@ export default function EventCard({
     queryKey: [`/api/events/${event.id}`, user?.id],
     queryFn: async () => {
       try {
+        // Converter eventType para o tipo esperado
+        let validEventType: 'public' | 'private_ticket' | 'private_application' = 'public';
+        if (event.eventType === 'private_ticket' || event.eventType === 'private_application') {
+          validEventType = event.eventType;
+        }
+        
+        // Garantir que o creator tenha um valor válido
+        const creator = event.creator || {
+          id: event.creatorId,
+          firstName: "Usuário",
+          lastName: "",
+          profileImage: null
+        };
+        
+        // Formatar os participantes para garantir compatibilidade com ViewEventModal
+        const participants = event.participants?.map(p => ({
+          ...p,
+          user: {
+            firstName: p.user.firstName,
+            lastName: p.user.lastName,
+            profileImage: p.user.profileImage
+          }
+        }));
+        
         // Converte o evento atual para o formato esperado pelo ViewEventModal
-        const eventDetails = {
+        const eventDetails: EventDetailsForModal = {
           ...event,
           isActive: true,
           createdAt: null,
           coordinates: null,
+          // Garantir que os campos opcionais tenham valores corretos para satisfazer a interface EventDetails
+          timeEnd: event.timeEnd || null,
+          coverImage: event.coverImage || null,
+          capacity: event.capacity || null,
+          ticketPrice: event.ticketPrice || null,
+          eventType: validEventType,  // Usar a versão validada do eventType
+          creator: creator,
+          participants: participants
         };
         return eventDetails;
       } catch (error) {
