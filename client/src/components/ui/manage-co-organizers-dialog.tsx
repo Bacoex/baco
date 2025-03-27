@@ -89,7 +89,7 @@ export function ManageCoOrganizersDialog({ eventId, isOpen, onClose }: ManageCoO
               </div>
             ) : (
               <div className="space-y-2">
-                {coOrganizersQuery.data.map((coOrg: any) => (
+                {coOrganizersQuery.data.map((coOrg) => (
                   <div key={coOrg.id} className="flex justify-between items-center p-3 border rounded-md">
                     <div className="flex items-center gap-3">
                       <Avatar>
