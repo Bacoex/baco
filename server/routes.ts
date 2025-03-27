@@ -95,6 +95,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(401).json({ message: "Não autorizado" });
   };
   
+  // Middleware para verificar se o usuário é administrador
+  const ensureAdmin = (req: any, res: any, next: any) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Não autorizado" });
+    }
+    
+    if (!req.user.isAdmin && !req.user.isSuperAdmin) {
+      return res.status(403).json({ message: "Permissão negada. Acesso restrito a administradores." });
+    }
+    
+    return next();
+  };
+  
   // Helper para transformar rotas para o formato da aplicação
   // Permite usar ambos formatos sem modificar o frontend
   const createEndpointAlias = (app: Express, originalPath: string, aliasPath: string, methods: string[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']) => {
@@ -1235,6 +1248,148 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Cria servidor HTTP
+  /**
+   * Rotas administrativas para verificação de documentos
+   */
+  
+  // Rota para administradores listarem usuários pendentes de verificação de documentos
+  app.get("/api/admin/documents/pending", ensureAdmin, async (req, res) => {
+    try {
+      // Obtém todos os usuários
+      const allUsers = Array.from(storage.usersMap.values());
+      
+      // Filtra usuários com documentos pendentes de verificação
+      const pendingUsers = allUsers.filter(user => 
+        // Verifica se o usuário enviou documentos mas ainda não foram verificados
+        (user.documentRgImage || user.documentCpfImage || user.documentSelfieImage) &&
+        user.documentVerified === false
+      );
+      
+      // Remove informações sensíveis antes de enviar
+      const safeUsers = pendingUsers.map(user => {
+        const { password, ...safeUser } = user;
+        return safeUser;
+      });
+      
+      res.json(safeUsers);
+    } catch (err) {
+      console.error("Erro ao listar documentos pendentes:", err);
+      res.status(500).json({ message: "Erro ao listar documentos pendentes" });
+    }
+  });
+  
+  // Rota para aprovar documentos de um usuário
+  app.post("/api/admin/documents/:userId/approve", ensureAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      
+      // Atualiza status de verificação do usuário
+      const updatedUser = await storage.updateUser(userId, {
+        documentVerified: true,
+        documentReviewedAt: new Date(),
+        documentReviewedBy: req.user?.id || null,
+        documentRejectionReason: null
+      });
+      
+      // Remove informações sensíveis antes de enviar
+      const { password, ...safeUser } = updatedUser;
+      res.json(safeUser);
+    } catch (err) {
+      console.error("Erro ao aprovar documentos:", err);
+      res.status(500).json({ message: "Erro ao aprovar documentos" });
+    }
+  });
+  
+  // Rota para rejeitar documentos de um usuário
+  app.post("/api/admin/documents/:userId/reject", ensureAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { rejectionReason } = req.body;
+      
+      if (!rejectionReason) {
+        return res.status(400).json({ message: "Motivo da rejeição é obrigatório" });
+      }
+      
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      
+      // Atualiza status de verificação do usuário
+      const updatedUser = await storage.updateUser(userId, {
+        documentVerified: false,
+        documentReviewedAt: new Date(),
+        documentReviewedBy: req.user?.id || null,
+        documentRejectionReason: rejectionReason
+      });
+      
+      // Remove informações sensíveis antes de enviar
+      const { password, ...safeUser } = updatedUser;
+      res.json(safeUser);
+    } catch (err) {
+      console.error("Erro ao rejeitar documentos:", err);
+      res.status(500).json({ message: "Erro ao rejeitar documentos" });
+    }
+  });
+  
+  // Rota para administradores verificarem estatísticas gerais do sistema
+  app.get("/api/admin/stats", ensureAdmin, async (req, res) => {
+    try {
+      // Obtém todos os usuários e eventos
+      const allUsers = Array.from(storage.usersMap.values());
+      const allEvents = await storage.getEvents();
+      
+      // Calcula estatísticas
+      const totalUsers = allUsers.length;
+      const verifiedUsers = allUsers.filter(user => user.documentVerified).length;
+      const pendingVerification = allUsers.filter(user => 
+        (user.documentRgImage || user.documentCpfImage || user.documentSelfieImage) &&
+        !user.documentVerified
+      ).length;
+      
+      const totalEvents = allEvents.length;
+      const activeEvents = allEvents.filter(event => event.isActive).length;
+      const upcomingEvents = allEvents.filter(event => {
+        const eventDate = new Date(event.date);
+        const today = new Date();
+        return eventDate > today && event.isActive;
+      }).length;
+      
+      // Eventos por categoria
+      const eventsByCategory = {};
+      const categories = await storage.getCategories();
+      
+      for (const category of categories) {
+        const eventsInCategory = allEvents.filter(event => event.categoryId === category.id).length;
+        eventsByCategory[category.name] = eventsInCategory;
+      }
+      
+      res.json({
+        users: {
+          total: totalUsers,
+          verified: verifiedUsers,
+          pendingVerification: pendingVerification
+        },
+        events: {
+          total: totalEvents,
+          active: activeEvents,
+          upcoming: upcomingEvents,
+          byCategory: eventsByCategory
+        },
+        timestamp: new Date()
+      });
+    } catch (err) {
+      console.error("Erro ao obter estatísticas:", err);
+      res.status(500).json({ message: "Erro ao obter estatísticas" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   return httpServer;

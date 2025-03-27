@@ -158,6 +158,13 @@ export const users = pgTable("users", {
   documentVerified: boolean("document_verified").notNull().default(false),
   twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
   twoFactorSecret: text("two_factor_secret"),
+  // Campos para validação de documentos
+  documentRgImage: text("document_rg_image"), // URL da imagem do RG
+  documentCpfImage: text("document_cpf_image"), // URL da imagem do CPF
+  documentSelfieImage: text("document_selfie_image"), // URL da selfie com documento
+  documentRejectionReason: text("document_rejection_reason"), // Razão para rejeição da validação
+  documentReviewedAt: timestamp("document_reviewed_at"), // Data da revisão dos documentos
+  documentReviewedBy: integer("document_reviewed_by"), // ID do admin que revisou
   // Campos para conformidade com privacidade
   termsAccepted: boolean("terms_accepted").notNull().default(false),
   privacyPolicyAccepted: boolean("privacy_policy_accepted").notNull().default(false),
@@ -169,7 +176,12 @@ export const users = pgTable("users", {
   lastUserAgent: text("last_user_agent"),
   deviceIds: text("device_ids"), // Armazenado como JSON
   // Campos para autenticação com serviços externos
-  googleId: text("google_id").unique()
+  googleId: text("google_id").unique(),
+  // Campos de permissões administrativas
+  isAdmin: boolean("is_admin").notNull().default(false),
+  isSuperAdmin: boolean("is_super_admin").notNull().default(false),
+  adminSince: timestamp("admin_since"),
+  adminPermissions: text("admin_permissions") // JSON com permissões específicas
 });
 
 /**

@@ -34,6 +34,14 @@ CREATE TABLE IF NOT EXISTS users (
   document_verified BOOLEAN NOT NULL DEFAULT FALSE,
   two_factor_enabled BOOLEAN NOT NULL DEFAULT FALSE,
   two_factor_secret VARCHAR(255) DEFAULT NULL,
+  -- Campos para validação de documentos
+  document_rg_image VARCHAR(255) DEFAULT NULL COMMENT 'URL da imagem do RG',
+  document_cpf_image VARCHAR(255) DEFAULT NULL COMMENT 'URL da imagem do CPF',
+  document_selfie_image VARCHAR(255) DEFAULT NULL COMMENT 'URL da selfie com documento',
+  document_rejection_reason TEXT DEFAULT NULL COMMENT 'Razão para rejeição da validação',
+  document_reviewed_at DATETIME DEFAULT NULL COMMENT 'Data da revisão dos documentos',
+  document_reviewed_by INT DEFAULT NULL COMMENT 'ID do admin que revisou',
+  -- Campos para conformidade com privacidade
   terms_accepted BOOLEAN NOT NULL DEFAULT FALSE,
   privacy_policy_accepted BOOLEAN NOT NULL DEFAULT FALSE,
   marketing_consent BOOLEAN NOT NULL DEFAULT FALSE,
@@ -42,7 +50,12 @@ CREATE TABLE IF NOT EXISTS users (
   last_login_ip VARCHAR(50) DEFAULT NULL,
   last_user_agent TEXT DEFAULT NULL,
   device_ids TEXT DEFAULT NULL COMMENT 'Armazenado como JSON',
-  google_id VARCHAR(255) DEFAULT NULL UNIQUE
+  google_id VARCHAR(255) DEFAULT NULL UNIQUE,
+  -- Campos de permissões administrativas
+  is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+  is_super_admin BOOLEAN NOT NULL DEFAULT FALSE,
+  admin_since DATETIME DEFAULT NULL,
+  admin_permissions TEXT DEFAULT NULL COMMENT 'JSON com permissões específicas'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Tabela de categorias de eventos

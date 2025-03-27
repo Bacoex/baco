@@ -22,6 +22,7 @@ export interface IStorage {
   getUserByGoogleId(googleId: string): Promise<User | undefined>;
   updateUserGoogleId(userId: number, googleId: string): Promise<User>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, userData: Partial<User>): Promise<User>;
   
   // Categorias de eventos
   getCategories(): Promise<EventCategory[]>;
@@ -156,153 +157,77 @@ export class MemStorage implements IStorage {
   }
   
   /**
-   * Cria usuários e eventos de teste para a aplicação
+   * Cria usuários e eventos iniciais para a aplicação
+   */
+  /**
+   * Cria usuário administrador de suporte para a aplicação
    */
   private _createTestUsersAndEvents() {
-    console.log("Criando usuários e eventos de teste...");
+    console.log("Criando usuário administrador de suporte...");
     
-    // 1. Criar 5 usuários de teste
-    const testUsers: InsertUser[] = [
-      {
-        username: "12345678901",
-        password: "445c678c04146877b6fb1cd930af60213a78b098e05b8a6a4ff9dbf4ff8bafa01c6b05b851f43f27d4bb3dcb7504e8645a026013cd91901704d24ae5eeec03c0.73b9deb7c7cd0891f61221d27b10b44a", // Teste@123
-        firstName: "Ana",
-        lastName: "Silva",
-        birthDate: "1990-05-15",
-        email: "ana.silva@example.com",
-        phone: "11987654321",
-        rg: "223344556",
-        zodiacSign: "Touro",
-        city: "São Paulo",
-        state: "SP",
-        biography: "Adoro eventos culturais e conhecer pessoas novas.",
-        instagramUsername: "ana.silvaa",
-        threadsUsername: "ana.silvaa",
-        termsAccepted: true,
-        privacyPolicyAccepted: true,
-        dataProcessingConsent: true,
-        marketingConsent: true,
-        tituloEleitor: "123456789012",
-        googleId: null
-      },
-      {
-        username: "23456789012",
-        password: "445c678c04146877b6fb1cd930af60213a78b098e05b8a6a4ff9dbf4ff8bafa01c6b05b851f43f27d4bb3dcb7504e8645a026013cd91901704d24ae5eeec03c0.73b9deb7c7cd0891f61221d27b10b44a", // Teste@123
-        firstName: "Carlos",
-        lastName: "Oliveira",
-        birthDate: "1988-10-22",
-        email: "carlos.oliveira@example.com",
-        phone: "21976543210",
-        rg: "334455667",
-        zodiacSign: "Libra",
-        city: "Rio de Janeiro",
-        state: "RJ",
-        biography: "DJ profissional, curto festas e música eletrônica.",
-        instagramUsername: "dj_carlos",
-        threadsUsername: "dj_carlos",
-        termsAccepted: true,
-        privacyPolicyAccepted: true,
-        dataProcessingConsent: true,
-        marketingConsent: true,
-        tituloEleitor: "234567890123",
-        googleId: null
-      },
-      {
-        username: "34567890123",
-        password: "445c678c04146877b6fb1cd930af60213a78b098e05b8a6a4ff9dbf4ff8bafa01c6b05b851f43f27d4bb3dcb7504e8645a026013cd91901704d24ae5eeec03c0.73b9deb7c7cd0891f61221d27b10b44a", // Teste@123
-        firstName: "Beatriz",
-        lastName: "Santos",
-        birthDate: "1995-03-08",
-        email: "beatriz.santos@example.com",
-        phone: "31965432109",
-        rg: "445566778",
-        zodiacSign: "Peixes",
-        city: "Belo Horizonte",
-        state: "MG",
-        biography: "Fotógrafa, amo registrar momentos especiais.",
-        instagramUsername: "beatriz.foto",
-        threadsUsername: "beatriz.foto",
-        termsAccepted: true,
-        privacyPolicyAccepted: true,
-        dataProcessingConsent: true,
-        marketingConsent: true,
-        tituloEleitor: "345678901234",
-        googleId: null
-      },
-      {
-        username: "45678901234",
-        password: "445c678c04146877b6fb1cd930af60213a78b098e05b8a6a4ff9dbf4ff8bafa01c6b05b851f43f27d4bb3dcb7504e8645a026013cd91901704d24ae5eeec03c0.73b9deb7c7cd0891f61221d27b10b44a", // Teste@123
-        firstName: "Rafael",
-        lastName: "Costa",
-        birthDate: "1992-07-18",
-        email: "rafael.costa@example.com",
-        phone: "51954321098",
-        rg: "556677889",
-        zodiacSign: "Câncer",
-        city: "Porto Alegre",
-        state: "RS",
-        biography: "Chef de cozinha, especialista em churrasco.",
-        instagramUsername: "chef_rafael",
-        threadsUsername: "chef_rafael",
-        termsAccepted: true,
-        privacyPolicyAccepted: true,
-        dataProcessingConsent: true,
-        marketingConsent: true,
-        tituloEleitor: "456789012345",
-        googleId: null
-      },
-      {
-        username: "56789012345",
-        password: "445c678c04146877b6fb1cd930af60213a78b098e05b8a6a4ff9dbf4ff8bafa01c6b05b851f43f27d4bb3dcb7504e8645a026013cd91901704d24ae5eeec03c0.73b9deb7c7cd0891f61221d27b10b44a", // Teste@123
-        firstName: "Fernanda",
-        lastName: "Lima",
-        birthDate: "1991-12-05",
-        email: "fernanda.lima@example.com",
-        phone: "81943210987",
-        rg: "667788990",
-        zodiacSign: "Sagitário",
-        city: "Recife",
-        state: "PE",
-        biography: "Organizadora de eventos profissional.",
-        instagramUsername: "fer.eventos",
-        threadsUsername: "fer.eventos",
-        termsAccepted: true,
-        privacyPolicyAccepted: true,
-        dataProcessingConsent: true,
-        marketingConsent: true,
-        tituloEleitor: "567890123456",
-        googleId: null
-      }
-    ];
-
-    // Criar os usuários e armazenar seus IDs
-    const userIds: number[] = [];
-    testUsers.forEach((userData) => {
-      const id = this.userIdCounter++;
-      const newUser: User = {
-        ...userData,
-        id,
-        createdAt: new Date(),
-        profileImage: null,
-        isActive: true,
-        lastLogin: null,
-        interests: null,
-        emailVerified: false,
-        phoneVerified: false,
-        documentVerified: false,
-        twoFactorEnabled: false,
-        twoFactorSecret: null,
-        lastLoginIP: null,
-        lastUserAgent: null,
-        deviceIds: null,
-        termsAcceptedAt: null
-      };
-      this.usersMap.set(id, newUser);
-      userIds.push(id);
-      console.log(`Usuário criado: ${id} - ${userData.firstName} ${userData.lastName}`);
-    });
-
-    // 2. Criar um evento do Kevin (usuário 1) que precisa de aprovação
+    // Criar usuário administrador de suporte (ID 2)
+    const adminId = this.userIdCounter++;
+    const adminUser: User = {
+      id: adminId,
+      username: "00000000000", // CPF do admin de suporte
+      // Hash gerada para a senha "Admin@123" 
+      password: "445c678c04146877b6fb1cd930af60213a78b098e05b8a6a4ff9dbf4ff8bafa01c6b05b851f43f27d4bb3dcb7504e8645a026013cd91901704d24ae5eeec03c0.73b9deb7c7cd0891f61221d27b10b44a",
+      firstName: "Suporte",
+      lastName: "Baco",
+      birthDate: "2000-01-01",
+      email: "suporte@bacoexperiencias.com.br",
+      phone: "11999999999",
+      rg: "000000000",
+      tituloEleitor: "000000000000",
+      zodiacSign: "Capricórnio",
+      profileImage: null,
+      biography: "Administrador de suporte técnico do Baco.",
+      instagramUsername: "baco.suporte",
+      threadsUsername: "baco.suporte",
+      city: "São Paulo",
+      state: "SP",
+      interests: null,
+      isActive: true,
+      lastLogin: null,
+      createdAt: new Date(),
+      emailVerified: true,
+      phoneVerified: true,
+      documentVerified: true,
+      twoFactorEnabled: false,
+      twoFactorSecret: null,
+      termsAccepted: true,
+      privacyPolicyAccepted: true,
+      marketingConsent: true,
+      dataProcessingConsent: true,
+      termsAcceptedAt: new Date(),
+      lastLoginIP: null,
+      lastUserAgent: null,
+      deviceIds: null,
+      googleId: null,
+      // Campos para validação de documentos
+      documentRgImage: null,
+      documentCpfImage: null,
+      documentSelfieImage: null,
+      documentRejectionReason: null,
+      documentReviewedAt: null,
+      documentReviewedBy: null,
+      // Campos de permissões administrativas
+      isAdmin: true,
+      isSuperAdmin: true,
+      adminSince: new Date(),
+      adminPermissions: JSON.stringify({
+        manageUsers: true,
+        manageEvents: true,
+        approveDocuments: true,
+        manageCategories: true,
+        viewAllData: true,
+        accessDashboard: true
+      })
+    };
+    this.usersMap.set(adminId, adminUser);
+    console.log(`Usuário administrador criado: ${adminId} - ${adminUser.firstName} ${adminUser.lastName}`);
+    
+    // Mantém apenas o workshop do Kevin
     const kevinEventId = this.eventIdCounter++;
     const kevinEvent: Event = {
       id: kevinEventId,
@@ -318,7 +243,7 @@ export class MemStorage implements IStorage {
       categoryId: 4, // Reunião
       creatorId: 1, // Kevin
       capacity: 15,
-      ticketPrice: null,
+      ticketPrice: 0,
       isActive: true,
       createdAt: new Date(),
       importantInfo: "Traga sua própria câmera. Haverá alguns modelos disponíveis para empréstimo.",
@@ -326,157 +251,12 @@ export class MemStorage implements IStorage {
       paymentMethods: null
     };
     this.eventsMap.set(kevinEventId, kevinEvent);
-    console.log(`Evento criado: ${kevinEventId} - ${kevinEvent.name} (Criador: Kevin)`);
-    
-    // 3. Criar eventos para os outros usuários
-    const eventDetails = [
-      {
-        name: "Festa de Aniversário",
-        description: "Comemoração de 30 anos com open bar e DJ.",
-        date: "2025-05-20",
-        category: 1, // Aniversário
-        creator: userIds[0], // Ana
-        type: "private_ticket",
-        image: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2070&auto=format&fit=crop"
-      },
-      {
-        name: "Night Eletrônica",
-        description: "A melhor noite de música eletrônica da cidade com DJs internacionais.",
-        date: "2025-04-10",
-        category: 6, // Festa
-        creator: userIds[1], // Carlos
-        type: "public",
-        image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070&auto=format&fit=crop"
-      },
-      {
-        name: "Exposição de Fotografia",
-        description: "Exposição de fotografia urbana com coquetel de abertura.",
-        date: "2025-04-25",
-        category: 7, // Show (usando para exposição)
-        creator: userIds[2], // Beatriz
-        type: "public",
-        image: "https://images.unsplash.com/photo-1602580165725-11edd5492687?q=80&w=2071&auto=format&fit=crop"
-      },
-      {
-        name: "Festival Gastronômico",
-        description: "Festival com os melhores chefs da região sul. Pratos típicos e harmonização.",
-        date: "2025-06-05",
-        category: 5, // Churrasco (usando para gastronomia)
-        creator: userIds[3], // Rafael
-        type: "private_ticket",
-        image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=2087&auto=format&fit=crop"
-      },
-      {
-        name: "Workshop de Organização de Eventos",
-        description: "Aprenda a organizar eventos profissionais com foco em experiência do cliente.",
-        date: "2025-05-10",
-        category: 4, // Reunião
-        creator: userIds[4], // Fernanda
-        type: "private_application",
-        image: "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?q=80&w=2070&auto=format&fit=crop"
-      },
-      {
-        name: "Casamento Ana & João",
-        description: "Cerimônia e recepção para celebrar nossa união. Traje: Esporte fino.",
-        date: "2025-07-12",
-        category: 2, // Casamento
-        creator: userIds[0], // Ana
-        type: "private_application",
-        image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2070&auto=format&fit=crop"
-      },
-      {
-        name: "Culto Especial de Páscoa",
-        description: "Celebração especial com apresentações musicais e reflexão.",
-        date: "2025-04-20",
-        category: 3, // Religioso
-        creator: userIds[2], // Beatriz
-        type: "public",
-        image: "https://images.unsplash.com/photo-1520187044487-b2efb58f0cba?q=80&w=2070&auto=format&fit=crop"
-      },
-      {
-        name: "Pride Parade 2025",
-        description: "Celebração da diversidade com shows, desfiles e atividades culturais.",
-        date: "2025-06-28",
-        category: 8, // LGBT+
-        creator: userIds[1], // Carlos
-        type: "public",
-        image: "https://images.unsplash.com/photo-1516655855035-d5d3c5f19e21?q=80&w=2070&auto=format&fit=crop"
-      },
-      {
-        name: "Encontro de Empreendedores",
-        description: "Networking e palestras para empreendedores da região.",
-        date: "2025-05-15",
-        category: 4, // Reunião
-        creator: userIds[4], // Fernanda
-        type: "private_application",
-        image: "https://images.unsplash.com/photo-1577497445563-e1ecff94b40d?q=80&w=2070&auto=format&fit=crop"
-      },
-      {
-        name: "Festa Open Bar Premium",
-        description: "Uma noite especial apenas para maiores de 18 anos com open bar premium e atrações exclusivas.",
-        date: "2025-07-20",
-        category: 9, // Eventos 18+
-        creator: userIds[1], // Carlos
-        type: "private_ticket",
-        image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=1170&auto=format&fit=crop"
-      }
-    ];
+    console.log(`Evento mantido: ${kevinEventId} - ${kevinEvent.name} (Criador: Kevin)`);
 
-    // Criar os eventos
-    eventDetails.forEach((eventDetail, index) => {
-      const eventId = this.eventIdCounter++;
-      const event: Event = {
-        id: eventId,
-        name: eventDetail.name,
-        description: eventDetail.description,
-        date: eventDetail.date,
-        timeStart: "19:00",
-        timeEnd: "23:00",
-        location: "Local a confirmar",
-        coordinates: null,
-        coverImage: eventDetail.image,
-        eventType: eventDetail.type as 'public' | 'private_ticket' | 'private_application',
-        categoryId: eventDetail.category,
-        creatorId: eventDetail.creator,
-        capacity: 50,
-        ticketPrice: eventDetail.type === 'private_ticket' ? 50 + (index * 10) : null,
-        isActive: true,
-        createdAt: new Date(),
-        importantInfo: eventDetail.type === 'private_ticket' ? "Ingresso não inclui bebidas. Proibido entrada com bebidas de fora." : null,
-        additionalTickets: eventDetail.type === 'private_ticket' ? '{"vip":{"nome":"VIP","preco":120,"descricao":"Acesso à área VIP com open bar premium"}}' : null,
-        paymentMethods: eventDetail.type === 'private_ticket' ? '{"cartao":true,"pix":true,"dinheiro":false}' : null
-      };
-      this.eventsMap.set(eventId, event);
-      console.log(`Evento criado: ${eventId} - ${event.name} (Criador: ${event.creatorId})`);
-    });
-
-    // 4. Criar candidaturas para o evento do Kevin
-    // Três usuários se candidatam ao workshop de fotografia
-    [userIds[0], userIds[2], userIds[4]].forEach((userId, index) => {
-      const participationId = this.participantIdCounter++;
-      const participation: EventParticipant = {
-        id: participationId,
-        eventId: kevinEventId,
-        userId: userId,
-        status: "pending", // Pendente de aprovação
-        applicationReason: `Gostaria de participar do workshop porque tenho interesse em fotografia e quero aprimorar minhas habilidades. ${index === 1 ? 'Tenho experiência prévia como fotógrafa amadora.' : ''}`,
-        reviewedBy: null,
-        reviewedAt: null,
-        createdAt: new Date()
-      };
-      this.participantsMap.set(participationId, participation);
-      console.log(`Candidatura criada: Usuário ${userId} para o evento ${kevinEventId}`);
-    });
-
-    console.log("Criação de dados de teste concluída!");
+    console.log("Configuração de usuários e eventos concluída!");
     console.log(`Total de usuários: ${this.usersMap.size}`);
     console.log(`Total de eventos: ${this.eventsMap.size}`);
-    console.log(`Total de participações: ${this.participantsMap.size}`);
   }
-  
-  /**
-   * Cria categorias iniciais para uso na aplicação
-   */
   private _createInitialCategories() {
     const categories: InsertEventCategory[] = [
       { name: "Aniversário", slug: "birthday", color: "#a78bfa" },
@@ -578,10 +358,47 @@ export class MemStorage implements IStorage {
       lastLoginIP: null,
       lastUserAgent: null,
       deviceIds: null,
-      termsAcceptedAt: null
+      termsAcceptedAt: null,
+      // Campos para validação de documentos
+      documentRgImage: null,
+      documentCpfImage: null,
+      documentSelfieImage: null,
+      documentRejectionReason: null,
+      documentReviewedAt: null,
+      documentReviewedBy: null,
+      // Campos de permissões administrativas
+      isAdmin: false,
+      isSuperAdmin: false,
+      adminSince: null,
+      adminPermissions: null
     };
     this.usersMap.set(id, newUser);
+    console.log(`Usuário criado: ${id} - ${newUser.firstName} ${newUser.lastName}`);
     return newUser;
+  }
+  
+  /**
+   * Atualiza um usuário existente
+   * @param id ID do usuário
+   * @param userData Dados parciais do usuário a serem atualizados
+   * @returns O usuário atualizado
+   */
+  async updateUser(id: number, userData: Partial<User>): Promise<User> {
+    const user = await this.getUser(id);
+    
+    if (!user) {
+      throw new Error(`Usuário com ID ${id} não encontrado`);
+    }
+    
+    // Atualiza os campos fornecidos
+    const updatedUser: User = {
+      ...user,
+      ...userData
+    };
+    
+    this.usersMap.set(id, updatedUser);
+    console.log(`Usuário atualizado: ${id} - ${updatedUser.firstName} ${updatedUser.lastName}`);
+    return updatedUser;
   }
   
   // Implementação de categorias
