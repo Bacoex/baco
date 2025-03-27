@@ -530,6 +530,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user!.id;
       const events = await storage.getEventsByCreator(userId);
 
+      // Função auxiliar para processar participantes
+      const processParticipants = async (participants) => {
+        const participantsWithDetails = await Promise.all(
+          participants.map(async (participant) => {
+            const user = await storage.getUser(participant.userId);
+            return {
+              id: participant.id,
+              userId: participant.userId,
+              status: participant.status,
+              createdAt: participant.createdAt,
+              user: user ? {
+                id: user.id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                profileImage: user.profileImage
+              } : null
+            };
+          })
+        );
+
+        // Agrupa por status
+        const byStatus = {
+          pending: [],
+          approved: [],
+          confirmed: [],
+          rejected: []
+        };
+
+        participantsWithDetails.forEach(p => {
+          byStatus[p.status].push(p);
+        });
+
+        return {
+          all: participantsWithDetails,
+          byStatus,
+          counts: {
+            pending: byStatus.pending.length,
+            approved: byStatus.approved.length,
+            confirmed: byStatus.confirmed.length,
+            rejected: byStatus.rejected.length,
+            total: participantsWithDetails.length
+          }
+        };
+      };
+
+
       // Obtém os detalhes das categorias, criador e participantes para cada evento
       const eventsWithDetails = await Promise.all(
         events.map(async (event) => {
@@ -542,42 +588,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const participants = await storage.getParticipants(event.id);
           console.log(`Evento ${event.id} tem ${participants.length} participantes:`, 
                       participants.map(p => ({ id: p.id, userId: p.userId, status: p.status })));
-          const participantsWithDetails = await Promise.all(
-            participants.map(async (participant) => {
-              const user = await storage.getUser(participant.userId);
-              return {
-                id: participant.id,
-                userId: participant.userId,
-                status: participant.status,
-                createdAt: participant.createdAt,
-                user: user ? {
-                  id: user.id,
-                  firstName: user.firstName,
-                  lastName: user.lastName,
-                  profileImage: user.profileImage
-                } : null
-              };
-            })
-          );
+          const processedParticipants = await processParticipants(participants);
 
-          // Agrupa participantes por status para facilitar o frontend
-          const participantsByStatus = {
-            pending: participantsWithDetails.filter(p => p.status === 'pending'),
-            approved: participantsWithDetails.filter(p => p.status === 'approved'),
-            confirmed: participantsWithDetails.filter(p => p.status === 'confirmed'),
-            rejected: participantsWithDetails.filter(p => p.status === 'rejected')
-          };
-
-          const pendingCount = participantsByStatus.pending.length;
-          const approvedCount = participantsByStatus.approved.length;
-          const rejectedCount = participantsByStatus.rejected.length;
-          const confirmedCount = participantsByStatus.confirmed.length;
 
           console.log(`Estatísticas do evento ${event.id}: 
-                      Pendentes: ${pendingCount}, 
-                      Aprovados: ${approvedCount}, 
-                      Rejeitados: ${rejectedCount}, 
-                      Confirmados: ${confirmedCount}`);
+                      Pendentes: ${processedParticipants.counts.pending}, 
+                      Aprovados: ${processedParticipants.counts.approved}, 
+                      Rejeitados: ${processedParticipants.counts.rejected}, 
+                      Confirmados: ${processedParticipants.counts.confirmed}`);
 
           return {
             ...event,
@@ -588,14 +606,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               lastName: req.user!.lastName,
               profileImage: req.user!.profileImage
             },
-            participants: participantsByStatus,
-            participantCounts: {
-              total: participantsWithDetails.length,
-              pending: pendingCount,
-              approved: approvedCount,
-              confirmed: confirmedCount,
-              rejected: rejectedCount
-            }
+            participants: processedParticipants.byStatus,
+            participantCounts: processedParticipants.counts
           };
         })
       );
@@ -605,8 +617,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                  eventsWithDetails.map(e => ({ 
                    id: e.id, 
                    name: e.name, 
-                   participantCount: e.participants?.length || 0,
-                   pendingCount: e.participants?.filter(p => p.status === 'pending').length || 0
+                   participantCount: e.participants.all.length,
+                   pendingCount: e.participantCounts.pending
                  })));
 
       res.json(eventsWithDetails);
