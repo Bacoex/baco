@@ -355,7 +355,7 @@ export default function ProfilePage() {
                     rel="noopener noreferrer"
                     className="text-white hover:text-gray-300"
                   >
-                    <MessageSquare className="h-5 w-5" />
+                    <div className="h-5 w-5 flex items-center justify-center font-semibold">@</div>
                   </a>
                 )}
               </div>
