@@ -228,31 +228,8 @@ export class MemStorage implements IStorage {
     this.usersMap.set(adminId, adminUser);
     console.log(`Usuário administrador criado: ${adminId} - ${adminUser.firstName} ${adminUser.lastName}`);
     
-    // Mantém apenas o workshop do Kevin
-    const kevinEventId = this.eventIdCounter++;
-    const kevinEvent: Event = {
-      id: kevinEventId,
-      name: "Workshop de Fotografia",
-      description: "Workshop exclusivo de fotografia com profissionais renomados. Vagas limitadas.",
-      date: "2025-04-15",
-      timeStart: "14:00",
-      timeEnd: "18:00",
-      location: "Estúdio Fotográfico Central, Bauru-SP",
-      coordinates: "-22.3156,-49.0709",
-      coverImage: "https://images.unsplash.com/photo-1452587925148-ce544e77e70d?q=80&w=2074&auto=format&fit=crop",
-      eventType: "private_application",
-      categoryId: 4, // Reunião
-      creatorId: 1, // Kevin
-      capacity: 15,
-      ticketPrice: 0,
-      isActive: true,
-      createdAt: new Date(),
-      importantInfo: "Traga sua própria câmera. Haverá alguns modelos disponíveis para empréstimo.",
-      additionalTickets: null,
-      paymentMethods: null
-    };
-    this.eventsMap.set(kevinEventId, kevinEvent);
-    console.log(`Evento mantido: ${kevinEventId} - ${kevinEvent.name} (Criador: Kevin)`);
+    // Nenhum evento será criado automaticamente
+    console.log("Nenhum evento foi criado na inicialização - configuração limpa");
 
     console.log("Configuração de usuários e eventos concluída!");
     console.log(`Total de usuários: ${this.usersMap.size}`);
