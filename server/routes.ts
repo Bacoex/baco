@@ -368,7 +368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const user = await storage.getUser(participant.userId);
           console.log(`Detalhes do participante ${participant.id}, usuário ${participant.userId}:`, 
                       user ? `${user.firstName} ${user.lastName}` : 'Usuário não encontrado');
-          
+
           const participantDetails = {
             id: participant.id,
             userId: participant.userId,
@@ -874,7 +874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Notificação para o criador do evento
         const notificationForCreator = {
-          title: "Novo Participante em seu Evento",
+          title: ""Novo Participante em seu Evento",
           message: `${user?.firstName} ${user?.lastName} entrou como participante do seu evento "${event.name}".`,
           type: "event_approval",
           eventId: event.id,
@@ -939,7 +939,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const notificationsWithRecipients = await storage.getNotificationsByUser(req.user.id);
       console.log("Notificações encontradas:", notificationsWithRecipients);
-      
+
       if (!notificationsWithRecipients) {
         return res.json([]);
       }
