@@ -246,7 +246,7 @@ export class MemStorage implements IStorage {
       timeEnd: "18:00",
       location: "Estúdio Fotográfico Central, Bauru-SP",
       coordinates: "-22.3156,-49.0709",
-      coverImage: null,
+      coverImage: "https://images.unsplash.com/photo-1452587925148-ce544e77e70d?q=80&w=2074&auto=format&fit=crop",
       eventType: "private_application",
       categoryId: 4, // Reunião
       creatorId: 1, // Kevin
@@ -266,7 +266,8 @@ export class MemStorage implements IStorage {
         date: "2025-05-20",
         category: 1, // Aniversário
         creator: userIds[0], // Ana
-        type: "private_ticket"
+        type: "private_ticket",
+        image: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2070&auto=format&fit=crop"
       },
       {
         name: "Night Eletrônica",
@@ -274,7 +275,8 @@ export class MemStorage implements IStorage {
         date: "2025-04-10",
         category: 6, // Festa
         creator: userIds[1], // Carlos
-        type: "public"
+        type: "public",
+        image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070&auto=format&fit=crop"
       },
       {
         name: "Exposição de Fotografia",
@@ -282,7 +284,8 @@ export class MemStorage implements IStorage {
         date: "2025-04-25",
         category: 7, // Show (usando para exposição)
         creator: userIds[2], // Beatriz
-        type: "public"
+        type: "public",
+        image: "https://images.unsplash.com/photo-1602580165725-11edd5492687?q=80&w=2071&auto=format&fit=crop"
       },
       {
         name: "Festival Gastronômico",
@@ -290,7 +293,8 @@ export class MemStorage implements IStorage {
         date: "2025-06-05",
         category: 5, // Churrasco (usando para gastronomia)
         creator: userIds[3], // Rafael
-        type: "private_ticket"
+        type: "private_ticket",
+        image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=2087&auto=format&fit=crop"
       },
       {
         name: "Workshop de Organização de Eventos",
@@ -298,7 +302,8 @@ export class MemStorage implements IStorage {
         date: "2025-05-10",
         category: 4, // Reunião
         creator: userIds[4], // Fernanda
-        type: "private_application"
+        type: "private_application",
+        image: "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?q=80&w=2070&auto=format&fit=crop"
       },
       {
         name: "Casamento Ana & João",
@@ -306,7 +311,8 @@ export class MemStorage implements IStorage {
         date: "2025-07-12",
         category: 2, // Casamento
         creator: userIds[0], // Ana
-        type: "private_application"
+        type: "private_application",
+        image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2070&auto=format&fit=crop"
       },
       {
         name: "Culto Especial de Páscoa",
@@ -314,7 +320,8 @@ export class MemStorage implements IStorage {
         date: "2025-04-20",
         category: 3, // Religioso
         creator: userIds[2], // Beatriz
-        type: "public"
+        type: "public",
+        image: "https://images.unsplash.com/photo-1520187044487-b2efb58f0cba?q=80&w=2070&auto=format&fit=crop"
       },
       {
         name: "Pride Parade 2025",
@@ -322,7 +329,8 @@ export class MemStorage implements IStorage {
         date: "2025-06-28",
         category: 8, // LGBT+
         creator: userIds[1], // Carlos
-        type: "public"
+        type: "public",
+        image: "https://images.unsplash.com/photo-1516655855035-d5d3c5f19e21?q=80&w=2070&auto=format&fit=crop"
       },
       {
         name: "Encontro de Empreendedores",
@@ -330,7 +338,8 @@ export class MemStorage implements IStorage {
         date: "2025-05-15",
         category: 4, // Reunião
         creator: userIds[4], // Fernanda
-        type: "private_application"
+        type: "private_application",
+        image: "https://images.unsplash.com/photo-1577497445563-e1ecff94b40d?q=80&w=2070&auto=format&fit=crop"
       }
     ];
 
@@ -346,7 +355,7 @@ export class MemStorage implements IStorage {
         timeEnd: "23:00",
         location: "Local a confirmar",
         coordinates: null,
-        coverImage: null,
+        coverImage: eventDetail.image,
         eventType: eventDetail.type as 'public' | 'private_ticket' | 'private_application',
         categoryId: eventDetail.category,
         creatorId: eventDetail.creator,
