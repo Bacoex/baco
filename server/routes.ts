@@ -1012,9 +1012,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: userId // ID do usuário que se candidatou e receberá esta notificação
         };
         
-        // Salvar notificações no banco de dados
+        // Adicionar recipientes para as notificações
         const savedCreatorNotification = await storage.createNotification(notificationForCreator);
+        await storage.addNotificationRecipients(savedCreatorNotification.id, [event.creatorId]);
+        
         const savedParticipantNotification = await storage.createNotification(notificationForParticipant);
+        await storage.addNotificationRecipients(savedParticipantNotification.id, [userId]);
         
         // Retornar notificações junto com a resposta para o frontend tratar
         res.status(201).json({
@@ -1048,9 +1051,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: event.creatorId // ID do criador do evento
         };
         
-        // Salvar notificações no banco de dados
+        // Salvar notificações no banco de dados com destinatários específicos
         const savedCreatorNotification = await storage.createNotification(notificationForCreator);
+        await storage.addNotificationRecipients(savedCreatorNotification.id, [event.creatorId]);
+        
         const savedParticipantNotification = await storage.createNotification(notificationForParticipant);
+        await storage.addNotificationRecipients(savedParticipantNotification.id, [userId]);
         
         res.status(201).json({
           ...participation,
@@ -1165,6 +1171,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let savedNotification = null;
         if (event.creatorId !== userId) {
           savedNotification = await storage.createNotification(notificationForCreator);
+          // Adicionar o criador do evento como destinatário específico da notificação
+          await storage.addNotificationRecipients(savedNotification.id, [event.creatorId]);
         }
         
         return res.status(200).json({ 
