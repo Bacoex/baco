@@ -16,7 +16,10 @@ export function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      setLocation(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      console.log("Header: Realizando busca por:", searchQuery.trim());
+      const searchURL = `/search?q=${encodeURIComponent(searchQuery.trim())}`;
+      console.log("Header: Redirecionando para:", searchURL);
+      setLocation(searchURL);
     }
   };
 

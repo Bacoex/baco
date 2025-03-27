@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
@@ -14,32 +14,20 @@ import { Card } from "@/components/ui/card";
 export default function SearchPage() {
   // Obtém a localização atual e o parâmetro de pesquisa
   const [location] = useLocation();
-  const queryParams = new URLSearchParams(location.split("?")[1]);
+  const queryParams = new URLSearchParams(location.split("?")[1] || "");
   const searchQuery = queryParams.get("q") || "";
+  
+  // Para debugging
+  useEffect(() => {
+    console.log("SearchPage: Query da URL:", searchQuery);
+  }, [searchQuery]);
 
   // Busca eventos usando a API de pesquisa
   const searchResultsQuery = useQuery({
-    queryKey: ["/api/search", searchQuery],
-    queryFn: async () => {
-      if (!searchQuery) return [];
-      
-      try {
-        console.log("Realizando pesquisa para:", searchQuery);
-        const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
-        
-        if (!res.ok) {
-          throw new Error(`Erro ao pesquisar: ${res.status}`);
-        }
-        
-        const data = await res.json();
-        console.log("Resultados da pesquisa:", data);
-        return data;
-      } catch (error) {
-        console.error("Erro na pesquisa:", error);
-        throw error;
-      }
-    },
+    queryKey: [`/api/search?q=${encodeURIComponent(searchQuery)}`],
     enabled: !!searchQuery,
+    refetchOnMount: true,
+    retry: 1,
     initialData: []
   });
 
