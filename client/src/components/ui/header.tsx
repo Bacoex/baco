@@ -1,4 +1,3 @@
-
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -10,12 +9,24 @@ export function Header() {
 
   return (
     <div className="fixed w-full z-50 flex justify-between items-center px-4 py-2">
-      {/* Logo Baco */}
+      {/* Logo SVG */}
       <Link href="/" className="hover:opacity-80 transition-opacity">
-        <div className="relative h-40 flex justify-center items-center">
-          <div className="relative z-10 flex flex-col items-center">
-            <img src="/baco-logo.png" alt="Baco" className="h-32 w-auto animate-float" />
-          </div>
+        <div className="relative h-12 w-auto">
+          <svg width="100" height="48" viewBox="0 0 100 48" className="animate-smoke">
+            <text
+              x="50%"
+              y="50%"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fill="#FF9900"
+              fontSize="32px"
+              fontFamily="Futura, 'Trebuchet MS', Arial, sans-serif"
+              fontWeight="600"
+              style={{ letterSpacing: '0.05em' }}
+            >
+              BACO
+            </text>
+          </svg>
         </div>
       </Link>
 
@@ -23,7 +34,7 @@ export function Header() {
       {user && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full w-10 h-10">
+            <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 flex items-center justify-center">
               <Menu className="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
