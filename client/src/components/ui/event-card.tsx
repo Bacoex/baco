@@ -15,17 +15,24 @@ interface EventProps {
   event: {
     id: number;
     name: string;
+    description: string;
     date: string;
-    time: string;
+    timeStart: string;
+    timeEnd?: string | null;
     location: string;
-    price: number;
-    image?: string;
+    categoryId: number;
+    creatorId: number;
+    eventType: string;
+    coverImage?: string | null;
+    capacity?: number | null;
+    ticketPrice?: number | null;
     category: {
       name: string;
       color: string;
       slug: string;
+      id: number;
     };
-    creator: {
+    creator?: {
       id: number;
       firstName: string;
       lastName: string;
@@ -132,7 +139,7 @@ export default function EventCard({ event }: EventProps) {
   });
   
   // Imagem de fallback se não houver imagem do evento
-  const imageSrc = event.image || "https://via.placeholder.com/500x250?text=Evento";
+  const imageSrc = event.coverImage || "https://via.placeholder.com/500x250?text=Evento";
   
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-primary/10 hover:border-primary/30 group transform hover:scale-[1.02]">
@@ -161,13 +168,13 @@ export default function EventCard({ event }: EventProps) {
           <div className="flex items-center">
             <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-300 mr-2">
               <img 
-                src={event.creator.profileImage || undefined} 
-                alt={event.creator.firstName}
+                src={event.creator?.profileImage || undefined} 
+                alt={event.creator?.firstName || "Criador"}
                 className="w-full h-full object-cover"
               />
             </div>
             <span className="text-sm text-white drop-shadow-md">
-              {event.creator.firstName} {event.creator.lastName}
+              {event.creator?.firstName || "Usuário"} {event.creator?.lastName || ""}
             </span>
           </div>
         </div>
@@ -180,11 +187,11 @@ export default function EventCard({ event }: EventProps) {
         
         <div className="flex items-center mb-3">
           <CalendarIcon className="text-primary h-4 w-4 mr-1" />
-          <p className="text-gray-700 text-sm">{formatDate(event.date)}, {event.time}</p>
+          <p className="text-gray-700 text-sm">{formatDate(event.date)}, {event.timeStart}</p>
         </div>
         
         <div className="flex justify-between items-center mt-4">
-          <span className="bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent font-semibold text-lg">{formatPrice(event.price)}</span>
+          <span className="bg-gradient-to-r from-primary to-baco-blue bg-clip-text text-transparent font-semibold text-lg">{formatPrice(event.ticketPrice || 0)}</span>
           
           {isParticipating ? (
             <Button 
