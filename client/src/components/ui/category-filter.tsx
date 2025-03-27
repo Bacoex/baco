@@ -61,7 +61,7 @@ export default function CategoryFilter({
                     ? "pride-gradient border-0" 
                     : selectedCategory === category.slug && category.slug !== "lgbt" 
                       ? "bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white border-0" 
-                      : "text-gray-300 hover:text-white border-gray-800/50 hover:bg-black/40 bg-black/30 backdrop-blur-md"
+                      : "text-gray-300 hover:text-white bg-black/30 backdrop-blur-md"
                 )}
                 style={(category.slug === "lgbt" && category.color === "pride" && selectedCategory === category.slug) 
                   ? { 
@@ -72,7 +72,7 @@ export default function CategoryFilter({
                     }
                   : (category.color && category.color !== "pride" && selectedCategory === category.slug)
                     ? { backgroundColor: category.color, color: "#fff", borderColor: "transparent" }
-                    : {}
+                    : { borderColor: category.color || 'rgba(55, 65, 81, 0.5)' }
                 }
               >
                 {category.name}

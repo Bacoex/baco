@@ -56,10 +56,10 @@ export function Header() {
         </Link>
       </div>
 
-      {/* Barra de pesquisa flutuante centralizada */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+      {/* Barra de pesquisa flutuante centralizada na parte inferior */}
+      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
         <form onSubmit={handleSearch} className="relative">
-          <div className="bg-black/50 backdrop-blur-md rounded-full shadow-lg flex items-center pl-4 pr-2 py-2 border border-gray-800/50">
+          <div className="bg-black/40 backdrop-blur-md rounded-full shadow-lg flex items-center pl-4 pr-2 py-2 border border-gray-800/30">
             <Search className="h-4 w-4 text-gray-400" />
             <Input
               type="search"
