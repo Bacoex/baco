@@ -24,8 +24,12 @@ export function NotificationsMenu() {
     
     // Se for uma notificação relacionada a um evento, redirecionar para a página do evento
     if (notification.eventId) {
-      // Para notificações de solicitações pendentes, ir para a página Meus Eventos
-      if (notification.type === 'participant_request') {
+      // Para notificações de solicitações pendentes ou de candidatura, ir para a página Meus Eventos
+      if (notification.type === 'participant_request' || 
+          notification.type === 'event_application' || 
+          notification.type.includes('event_') || 
+          notification.type.includes('participant_')) {
+        console.log('Redirecionando para Meus Eventos após clicar na notificação:', notification);
         setLocation(`/my-events`);
       } else {
         // Para outras notificações de eventos, ir para a página do evento específico
@@ -42,13 +46,17 @@ export function NotificationsMenu() {
 
   // Função para obter o ícone adequado para cada tipo de notificação
   const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'participant_pending':
-        return <Calendar className="h-4 w-4 mr-2" />;
-      case 'participant_request':
-        return <UserCheck className="h-4 w-4 mr-2" />;
-      default:
-        return <Bell className="h-4 w-4 mr-2" />;
+    // Verifica se o tipo contém determinadas palavras-chave
+    if (type.includes('application') || type.includes('participant') || type.includes('request')) {
+      return <UserCheck className="h-4 w-4 mr-2" />;
+    } else if (type.includes('approval') || type.includes('accepted')) {
+      return <Check className="h-4 w-4 mr-2 text-green-500" />;
+    } else if (type.includes('rejection') || type.includes('rejected')) {
+      return <X className="h-4 w-4 mr-2 text-red-500" />;
+    } else if (type.includes('event')) {
+      return <Calendar className="h-4 w-4 mr-2" />;
+    } else {
+      return <Bell className="h-4 w-4 mr-2" />;
     }
   };
 

@@ -11,8 +11,9 @@ export interface Notification {
   message: string;
   date: Date;
   read: boolean;
-  type: "participant_pending" | "participant_request" | "system";
+  type: string; // Aceita qualquer tipo de notificação do backend: "event_application", "event_approval", "event_rejection", etc.
   eventId?: number | null;
+  recipientId?: number; // ID do destinatário no backend (usado para marcar como lido)
 }
 
 // Interface para o contexto de notificações
@@ -37,6 +38,69 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Query para buscar notificações do backend
+  const { isLoading: isNotificationsLoading } = useQuery({
+    queryKey: ['/api/notifications'],
+    enabled: !!user,
+    queryFn: async () => {
+      if (!user) return [];
+      
+      try {
+        console.log('Buscando notificações da API...');
+        const response = await apiRequest('GET', '/api/notifications');
+        const data = await response.json();
+        
+        if (Array.isArray(data) && data.length > 0) {
+          console.log('Notificações recebidas da API:', data);
+          
+          // Transformar notificações da API para o formato do frontend
+          const apiNotifications = data.map((item: any) => {
+            return {
+              id: `api-${item.recipient.id}`,
+              title: item.notification.title,
+              message: item.notification.message,
+              date: new Date(item.notification.createdAt || Date.now()),
+              read: item.recipient.read,
+              type: item.notification.type,
+              eventId: item.notification.eventId,
+              // Manter o ID original do recipiente para operações como "marcar como lido"
+              recipientId: item.recipient.id
+            } as Notification;
+          });
+          
+          // Atualizar o estado de notificações com as novas da API
+          setNotifications(prev => {
+            // IDs atuais para evitar duplicatas
+            const existingIds = new Set(prev.map(n => n.id));
+            // Filtrar notificações para incluir apenas as novas
+            const uniqueNewNotifications = apiNotifications.filter(n => !existingIds.has(n.id));
+            
+            if (uniqueNewNotifications.length > 0) {
+              console.log(`Adicionando ${uniqueNewNotifications.length} novas notificações da API`);
+              // Mostrar toasts para novas notificações não lidas
+              uniqueNewNotifications.filter(n => !n.read).forEach(n => {
+                toast({
+                  title: n.title,
+                  description: n.message,
+                });
+              });
+              
+              return [...uniqueNewNotifications, ...prev];
+            }
+            
+            return prev;
+          });
+        }
+        
+        return data;
+      } catch (error) {
+        console.error('Erro ao buscar notificações:', error);
+        return [];
+      }
+    },
+    refetchInterval: 10000, // Atualiza a cada 10 segundos
+  });
+  
   // Query para buscar informações do usuário e seus eventos
   const { isLoading: isUserEventsLoading } = useQuery({
     queryKey: ['/api/user/events/creator'],
@@ -146,13 +210,30 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   }, [notifications, user]);
 
   // Marcar como lida
-  const markAsRead = (id: string) => {
+  const markAsRead = async (id: string) => {
+    // Busca a notificação pelo ID
+    const notification = notifications.find(n => n.id === id);
+    if (!notification) return;
+    
+    // Marca como lida no estado local
     const updatedNotifications = notifications.map(notification =>
       notification.id === id
         ? { ...notification, read: true }
         : notification
     );
     setNotifications(updatedNotifications);
+    
+    // Se a notificação veio da API (tem o formato 'api-X'), também marca como lida no backend
+    if (id.startsWith('api-') && notification.recipientId) {
+      try {
+        console.log(`Marcando notificação ${notification.recipientId} como lida no backend`);
+        await apiRequest('PATCH', `/api/notifications/${notification.recipientId}/read`);
+        // Invalidar a query para que seja buscada novamente
+        queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      } catch (error) {
+        console.error('Erro ao marcar notificação como lida no backend:', error);
+      }
+    }
     
     // Atualiza localStorage manualmente
     if (user) {
@@ -205,9 +286,25 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   };
 
   // Marcar todas como lidas
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
+    // Marca todas as notificações como lidas no estado local
     const updatedNotifications = notifications.map(notification => ({ ...notification, read: true }));
     setNotifications(updatedNotifications);
+    
+    // Obter notificações da API que precisam ser marcadas como lidas no backend
+    const apiNotifications = notifications.filter(n => n.id.startsWith('api-') && !n.read && n.recipientId);
+    
+    // Se houver notificações da API não lidas, marca todas como lidas no backend
+    if (apiNotifications.length > 0) {
+      try {
+        console.log(`Marcando todas as ${apiNotifications.length} notificações como lidas no backend`);
+        await apiRequest('PATCH', `/api/notifications/read-all`);
+        // Invalidar a query para que seja buscada novamente
+        queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      } catch (error) {
+        console.error('Erro ao marcar todas as notificações como lidas no backend:', error);
+      }
+    }
     
     // Atualiza localStorage manualmente
     if (user && updatedNotifications.length > 0) {

@@ -15,8 +15,11 @@ export function Header() {
 
   return (
     <div className="fixed w-full z-50 flex justify-between items-center px-4 py-2">
-      {/* Logo SVG */}
-      <Link href="/" className="hover:opacity-80 transition-opacity">
+      {/* Espaço à esquerda para manter o balanceamento */}
+      <div className="w-[100px]"></div>
+      
+      {/* Logo SVG centralizada */}
+      <Link href="/" className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 hover:opacity-80 transition-opacity">
         <div className="relative h-12 w-auto">
           <svg width="100" height="48" viewBox="0 0 100 48" className="animate-smoke">
             <text
