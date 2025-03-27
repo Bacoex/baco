@@ -869,43 +869,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-                // Para eventos normais (public ou private_ticket), também incluir uma notificação de confirmação
-        const notificationForParticipant = {
-          title: "Participação Confirmada",
-          message: `Você está confirmado no evento "${event.name}". Compareça no dia e hora marcados.`,
-          type: "event_approval",
-          eventId: event.id,          userId: userId // ID do usuário atual, que está se inscrevendo no evento
-        };
+                if (event.eventType !== 'private_application') {
+          // Para eventos normais (public ou private_ticket)
+          const notificationForParticipant = {
+            title: "Participação Confirmada",
+            message: `Você está confirmado no evento "${event.name}". Compareça no dia e hora marcados.`,
+            type: "event_approval",
+            eventId: event.id,
+            userId: userId
+          };
 
-        // Notificação para o criador do evento
-        const notificationForCreator = {
-          title: "Novo Participante em seu Evento",
-          message: `${user?.firstName} ${user?.lastName} entrou como participante do seu evento "${event.name}".`,
-          type: "event_approval",
-          eventId: event.id,
-          userId: event.creatorId // ID do criador do evento
-        };
+          // Notificação para o criador do evento
+          const notificationForCreator = {
+            title: "Novo Participante em seu Evento",
+            message: `${user?.firstName} ${user?.lastName} entrou como participante do seu evento "${event.name}".`,
+            type: "event_approval",
+            eventId: event.id,
+            userId: event.creatorId
+          };
 
-        // Salvar notificações no banco de dados com destinatários específicos
-        const savedCreatorNotification = await storage.createNotification(notificationForCreator);
-        await storage.addNotificationRecipients(savedCreatorNotification.id, [event.creatorId]);
+          // Salvar notificações no banco de dados
+          const savedCreatorNotification = await storage.createNotification(notificationForCreator);
+          await storage.addNotificationRecipients(savedCreatorNotification.id, [event.creatorId]);
 
-        const savedParticipantNotification = await storage.createNotification(notificationForParticipant);
-        await storage.addNotificationRecipients(savedParticipantNotification.id, [userId]);
+          const savedParticipantNotification = await storage.createNotification(notificationForParticipant);
+          await storage.addNotificationRecipients(savedParticipantNotification.id, [userId]);
 
-        res.status(201).json({
-          ...participation,
-          user: user ? {
-            firstName: user.firstName,
-            lastName: user.lastName,
-            profileImage: user.profileImage
-          } : null,
-          notification: {
-            forCreator: savedCreatorNotification,
-            forParticipant: savedParticipantNotification
-          }
-        });
-      }
+          res.status(201).json({
+            ...participation,
+            user: user ? {
+              firstName: user.firstName,
+              lastName: user.lastName,
+              profileImage: user.profileImage
+            } : null,
+            notification: {
+              forCreator: savedCreatorNotification,
+              forParticipant: savedParticipantNotification
+            }
+          });
+        }
     } catch (err) {
       if (err instanceof ZodError) {
         const validationError = fromZodError(err);
