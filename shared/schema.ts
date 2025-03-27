@@ -192,7 +192,20 @@ export const eventCategories = pgTable("event_categories", {
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
   color: text("color").notNull(),
+  icon: text("icon"), // Ícone para exibir junto ao nome da categoria
   ageRestriction: integer("age_restriction"), // Restrição de idade para a categoria (ex: 18 para maiores de 18 anos)
+});
+
+/**
+ * Esquema da tabela de subcategorias de eventos
+ */
+export const eventSubcategories = pgTable("event_subcategories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  categoryId: integer("category_id").notNull().references(() => eventCategories.id),
+  // Obs: Idealmente teríamos um índice composto para evitar duplicações de slug dentro da mesma categoria
+  // mas permitindo o mesmo slug em categorias diferentes
 });
 
 /**
@@ -210,6 +223,7 @@ export const events = pgTable("events", {
   coordinates: text("coordinates"), // Para armazenar coordenadas do mapa
   coverImage: text("cover_image"),
   categoryId: integer("category_id").notNull(),
+  subcategoryId: integer("subcategory_id").references(() => eventSubcategories.id), // Subcategoria é opcional
   creatorId: integer("creator_id").notNull(),
   // Tipo de evento: 'public', 'private_ticket', 'private_application'
   eventType: text("event_type").notNull().default('public'),
@@ -375,6 +389,13 @@ export const insertEventCategorySchema = createInsertSchema(eventCategories).omi
 });
 
 /**
+ * Esquema de validação para inserção na tabela de subcategorias
+ */
+export const insertEventSubcategorySchema = createInsertSchema(eventSubcategories).omit({
+  id: true
+});
+
+/**
  * Esquema de validação para inserção na tabela de participantes
  */
 export const insertEventParticipantSchema = createInsertSchema(eventParticipants).omit({
@@ -433,6 +454,8 @@ export type InsertEvent = z.infer<typeof insertEventSchema>;
 export type Event = typeof events.$inferSelect;
 export type InsertEventCategory = z.infer<typeof insertEventCategorySchema>;
 export type EventCategory = typeof eventCategories.$inferSelect;
+export type InsertEventSubcategory = z.infer<typeof insertEventSubcategorySchema>;
+export type EventSubcategory = typeof eventSubcategories.$inferSelect;
 export type InsertEventParticipant = z.infer<typeof insertEventParticipantSchema>;
 export type EventParticipant = typeof eventParticipants.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;

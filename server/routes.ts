@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { insertEventSchema, insertEventParticipantSchema } from "@shared/schema";
+import { insertEventSchema, insertEventParticipantSchema, insertEventSubcategorySchema } from "@shared/schema";
 import { scrypt, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 
@@ -136,6 +136,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error("Erro ao buscar categorias:", err);
       res.status(500).json({ message: "Erro ao buscar categorias" });
+    }
+  });
+
+  /**
+   * API de Subcategorias
+   */
+  
+  // Obtém todas as subcategorias
+  app.get("/api/subcategories", async (req, res) => {
+    try {
+      const subcategories = await storage.getSubcategories();
+      res.json(subcategories);
+    } catch (err) {
+      console.error("Erro ao buscar subcategorias:", err);
+      res.status(500).json({ message: "Erro ao buscar subcategorias" });
+    }
+  });
+
+  // Obtém subcategorias por categoria
+  app.get("/api/categories/:categoryId/subcategories", async (req, res) => {
+    try {
+      const categoryId = parseInt(req.params.categoryId);
+      if (isNaN(categoryId)) {
+        return res.status(400).json({ message: "ID de categoria inválido" });
+      }
+      
+      const subcategories = await storage.getSubcategoriesByCategory(categoryId);
+      res.json(subcategories);
+    } catch (err) {
+      console.error("Erro ao buscar subcategorias:", err);
+      res.status(500).json({ message: "Erro ao buscar subcategorias para a categoria" });
+    }
+  });
+
+  // Obtém uma subcategoria específica
+  app.get("/api/subcategories/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "ID de subcategoria inválido" });
+      }
+      
+      const subcategory = await storage.getSubcategory(id);
+      if (!subcategory) {
+        return res.status(404).json({ message: "Subcategoria não encontrada" });
+      }
+      
+      res.json(subcategory);
+    } catch (err) {
+      console.error("Erro ao buscar subcategoria:", err);
+      res.status(500).json({ message: "Erro ao buscar subcategoria" });
+    }
+  });
+
+  // Cria uma nova subcategoria (requer privilégios de administrador)
+  app.post("/api/subcategories", ensureAdmin, async (req, res) => {
+    try {
+      // Valida os dados da subcategoria
+      const subcategoryData = insertEventSubcategorySchema.parse(req.body);
+      
+      // Verifica se a categoria pai existe
+      const category = await storage.getCategoryBySlug(subcategoryData.categoryId.toString());
+      if (!category) {
+        return res.status(404).json({ message: "Categoria pai não encontrada" });
+      }
+      
+      // Cria a subcategoria
+      const subcategory = await storage.createSubcategory({
+        ...subcategoryData,
+        categoryId: category.id
+      });
+      
+      res.status(201).json(subcategory);
+    } catch (err) {
+      if (err instanceof ZodError) {
+        const validationError = fromZodError(err);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error("Erro ao criar subcategoria:", err);
+      res.status(500).json({ message: "Erro ao criar subcategoria" });
     }
   });
 

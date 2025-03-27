@@ -2,7 +2,9 @@ import {
   users, type User, type InsertUser,
   events, type Event, type InsertEvent,
   eventCategories, type EventCategory, type InsertEventCategory,
-  eventParticipants, type EventParticipant, type InsertEventParticipant
+  eventParticipants, type EventParticipant, type InsertEventParticipant,
+  eventSubcategories, type EventSubcategory, type InsertEventSubcategory,
+  eventCoOrganizerInvites, type EventCoOrganizerInvite, type InsertEventCoOrganizerInvite
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -28,6 +30,12 @@ export interface IStorage {
   getCategories(): Promise<EventCategory[]>;
   getCategoryBySlug(slug: string): Promise<EventCategory | undefined>;
   createCategory(category: InsertEventCategory): Promise<EventCategory>;
+  
+  // Subcategorias de eventos
+  getSubcategories(): Promise<EventSubcategory[]>;
+  getSubcategoriesByCategory(categoryId: number): Promise<EventSubcategory[]>;
+  getSubcategory(id: number): Promise<EventSubcategory | undefined>;
+  createSubcategory(subcategory: InsertEventSubcategory): Promise<EventSubcategory>;
   
   // Eventos
   getEvents(): Promise<Event[]>;
@@ -58,7 +66,7 @@ export interface IStorage {
   removeEventCoOrganizer(eventId: number, userId: number): Promise<void>;
   
   // Sessões
-  sessionStore: session.SessionStore;
+  sessionStore: ReturnType<typeof createMemoryStore>;
 }
 
 /**
@@ -69,34 +77,39 @@ export class MemStorage implements IStorage {
   // Mapas acessíveis publicamente para API de debug (remover em produção)
   public usersMap: Map<number, User>;
   private categoriesMap: Map<number, EventCategory>;
+  private subcategoriesMap: Map<number, EventSubcategory>;
   private eventsMap: Map<number, Event>;
   private participantsMap: Map<number, EventParticipant>;
   
   // IDs para autoincrementar
   private userIdCounter: number;
   private categoryIdCounter: number;
+  private subcategoryIdCounter: number;
   private eventIdCounter: number;
   private participantIdCounter: number;
   
-  sessionStore: session.SessionStore;
+  sessionStore: ReturnType<typeof createMemoryStore>;
   
   constructor() {
     // Inicializa as estruturas de dados
     this.usersMap = new Map();
     this.categoriesMap = new Map();
+    this.subcategoriesMap = new Map();
     this.eventsMap = new Map();
     this.participantsMap = new Map();
     
     // Define os contadores iniciais
     this.userIdCounter = 2; // Iniciando em 2 para preservar o usuário com ID 1
     this.categoryIdCounter = 1;
+    this.subcategoryIdCounter = 1;
     this.eventIdCounter = 1;
     this.participantIdCounter = 1;
     
     // Inicializa o sessionStore para armazenar sessões
-    this.sessionStore = new MemoryStore({
+    const store = new MemoryStore({
       checkPeriod: 86400000 // Limpa sessões expiradas a cada 24h
     });
+    this.sessionStore = store;
     
     // Cria o usuário fixo com ID 1 (Kevin)
     this._createPermanentUser();
@@ -396,6 +409,29 @@ export class MemStorage implements IStorage {
     const newCategory: EventCategory = { ...category, id };
     this.categoriesMap.set(id, newCategory);
     return newCategory;
+  }
+  
+  // Implementação de subcategorias
+  
+  async getSubcategories(): Promise<EventSubcategory[]> {
+    return Array.from(this.subcategoriesMap.values());
+  }
+  
+  async getSubcategoriesByCategory(categoryId: number): Promise<EventSubcategory[]> {
+    return Array.from(this.subcategoriesMap.values()).filter(
+      (subcategory) => subcategory.categoryId === categoryId
+    );
+  }
+  
+  async getSubcategory(id: number): Promise<EventSubcategory | undefined> {
+    return this.subcategoriesMap.get(id);
+  }
+  
+  async createSubcategory(subcategory: InsertEventSubcategory): Promise<EventSubcategory> {
+    const id = this.subcategoryIdCounter++;
+    const newSubcategory: EventSubcategory = { ...subcategory, id };
+    this.subcategoriesMap.set(id, newSubcategory);
+    return newSubcategory;
   }
   
   // Implementação de eventos
