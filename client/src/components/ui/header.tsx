@@ -11,17 +11,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function Header() {
-  const { user, logout } = useAuth();
-  const { toast } = useToast();
+  const { user, logoutMutation } = useAuth();
   const [, navigate] = useLocation();
 
   const handleLogout = () => {
-    logout();
-    toast({
-      title: "Logout realizado",
-      description: "Você foi desconectado com sucesso.",
-    });
-    navigate("/");
+    logoutMutation.mutate();
   };
 
   return (
@@ -29,8 +23,27 @@ export function Header() {
       <div className="container flex h-14 items-center">
         <div className="mr-4 flex">
           <Link to="/" className="mr-6 flex items-center space-x-2">
-            <img src="/logo.png" alt="Logo Baco" className="h-8" />
-            <span className="hidden font-bold sm:inline-block">
+            <svg 
+              width="32" 
+              height="32" 
+              viewBox="0 0 80 80" 
+              xmlns="http://www.w3.org/2000/svg"
+              className="text-orange-500"
+            >
+              <defs>
+                <linearGradient id="bacoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#ff9900" />
+                  <stop offset="100%" stopColor="#ff6600" />
+                </linearGradient>
+              </defs>
+              <g fill="url(#bacoGradient)">
+                <path d="M20 10 H60 A10 10 0 0 1 70 20 V30 A10 10 0 0 1 60 40 A10 10 0 0 1 70 50 V60 A10 10 0 0 1 60 70 H20 A10 10 0 0 1 10 60 V20 A10 10 0 0 1 20 10 Z" />
+                <circle cx="40" cy="25" r="8" fill="#000" />
+                <circle cx="40" cy="55" r="8" fill="#000" />
+              </g>
+              <path d="M30 40 H50 Z" stroke="#000" strokeWidth="2" />
+            </svg>
+            <span className="hidden font-bold sm:inline-block bg-gradient-to-r from-orange-500 to-orange-600 text-transparent bg-clip-text">
               Baco
             </span>
           </Link>
