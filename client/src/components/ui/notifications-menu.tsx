@@ -16,20 +16,17 @@ import { ptBR } from 'date-fns/locale';
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Fragment } from "react";
 
 export function NotificationsMenu() {
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification, removeAllNotifications } = useNotifications();
+  const { toast } = useToast();
   const [_, setLocation] = useLocation();
   const { user } = useAuth();
-  const { toast } = useToast();
 
   useEffect(() => {
-    if (user) {
-      // Carregar notificações do localStorage
-      const userStorageKey = `baco-notifications-${user.id}`;
-      const storedNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
-
-      // Mostrar notificações não lidas
+    if (user && notifications.length > 0) {
+      const storedNotifications = notifications;
       storedNotifications
         .filter((n: any) => !n.read)
         .forEach((notification: any) => {
@@ -39,7 +36,7 @@ export function NotificationsMenu() {
           });
         });
     }
-  }, [user]);
+  }, [notifications, user, toast]);
 
   const handleNotificationClick = (notification: Notification) => {
     // Marcar como lida
@@ -75,6 +72,7 @@ export function NotificationsMenu() {
   };
 
   return (
+    <Fragment>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
@@ -162,5 +160,6 @@ export function NotificationsMenu() {
         )}
       </DropdownMenuContent>
     </DropdownMenu>
+    </Fragment>
   );
 }
