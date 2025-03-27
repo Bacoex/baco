@@ -380,6 +380,19 @@ export default function EventCard({
                     </>
                   )}
                 </Button>
+              ) : isCreator ? (
+                <Button 
+                  size="sm" 
+                  className={`rounded-full text-white transition-all duration-300 ${
+                    event.category.slug === "lgbt" 
+                    ? "pride-gradient" 
+                    : "bg-primary hover:bg-primary/90"
+                  }`}
+                  onClick={() => setIsViewModalOpen(true)}
+                >
+                  <SettingsIcon className="h-4 w-4 mr-1" />
+                  Editar
+                </Button>
               ) : (
                 <Button 
                   size="sm" 
