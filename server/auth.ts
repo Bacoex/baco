@@ -51,11 +51,11 @@ export function setupAuth(app: Express) {
   // Configuração da sessão
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "baco-app-secret-key-change-in-production",
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     store: storage.sessionStore,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
     }
   };
