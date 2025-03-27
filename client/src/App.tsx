@@ -13,6 +13,7 @@ import TermsOfServicePage from "@/pages/terms-of-service-page";
 import AboutPage from "@/pages/about-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
+import { NotificationsProvider } from "./hooks/use-notifications";
 import { ConsentBanner } from "@/components/ui/consent-banner";
 
 /**
@@ -44,9 +45,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router />
-        <ConsentBanner />
-        <Toaster />
+        <NotificationsProvider>
+          <Router />
+          <ConsentBanner />
+          <Toaster />
+        </NotificationsProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

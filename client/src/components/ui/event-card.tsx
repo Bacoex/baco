@@ -108,6 +108,23 @@ export default function EventCard({
     enabled: !!user,
   });
   
+  // Ouvir o evento personalizado para abrir o modal a partir das notificações
+  useEffect(() => {
+    const handleOpenEvent = (e: CustomEvent) => {
+      if (e.detail?.eventId === event.id) {
+        setIsViewModalOpen(true);
+      }
+    };
+    
+    // Adicionar o ouvinte de evento
+    document.addEventListener('open-event', handleOpenEvent as EventListener);
+    
+    // Remover o ouvinte ao desmontar o componente
+    return () => {
+      document.removeEventListener('open-event', handleOpenEvent as EventListener);
+    };
+  }, [event.id]);
+
   // Atualiza o estado local quando a consulta de participação mudar ou quando recebemos props de participação
   useEffect(() => {
     // Se recebemos a informação de participação diretamente via props
@@ -169,12 +186,16 @@ export default function EventCard({
     }
   };
   
+  // Importar o hook de notificações
+  const { addNotification } = useNotifications();
+  
   // Mutação para participar do evento
   const participateMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", `/api/events/${event.id}/participate`);
+      const response = await apiRequest("POST", `/api/events/${event.id}/participate`);
+      return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setIsParticipating(true);
       
       if (event.eventType === 'private_application') {
@@ -182,6 +203,14 @@ export default function EventCard({
           title: "Candidatura enviada!",
           description: "Sua candidatura foi recebida. Você será notificado quando for aprovado.",
         });
+        
+        // Se temos notificação na resposta da API (para o criador do evento)
+        if (data.notification?.forCreator && event.creatorId !== user?.id) {
+          // Adicione a notificação para o sistema apenas se o usuário atual for o criador
+          if (user?.id === event.creatorId) {
+            addNotification(data.notification.forCreator);
+          }
+        }
       } else {
         toast({
           title: "Sucesso!",

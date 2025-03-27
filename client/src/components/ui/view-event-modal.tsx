@@ -431,11 +431,15 @@ export default function ViewEventModal({
             {/* Tab de participantes */}
             <TabsContent value="participants">
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Participantes ({event.participants?.length || 0})</h3>
+                <h3 className="text-lg font-medium">
+                  Participantes ({event.participants?.filter(p => p.status === 'approved' || p.status === 'confirmed' || isCreator).length || 0})
+                </h3>
                 
                 {event.participants && event.participants.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {event.participants.map((participant) => (
+                    {event.participants
+                      .filter(participant => participant.status === 'approved' || participant.status === 'confirmed' || isCreator)
+                      .map((participant) => (
                       <div 
                         key={participant.id} 
                         className="flex flex-col p-2 rounded-md border hover:bg-gray-100 dark:hover:bg-gray-800"

@@ -2,7 +2,8 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { LogOut, Menu, User, HelpCircle, Info } from "lucide-react";
+import { LogOut, Menu, User, HelpCircle, Info, Bell } from "lucide-react";
+import { NotificationsMenu } from "@/components/ui/notifications-menu";
 
 export function Header() {
   const { user, logoutMutation } = useAuth();
@@ -35,45 +36,51 @@ export function Header() {
         </div>
       </Link>
 
-      {/* Mini Menu */}
+      {/* Ações no lado direito */}
       {user && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 flex items-center justify-center">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem asChild>
-              <Link href="/profile">
-                <User className="mr-2 h-4 w-4" />
-                Perfil
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/my-events">
-                <User className="mr-2 h-4 w-4" />
-                Meus Eventos
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <a href="mailto:baco.suporte@gmail.com" target="_blank" rel="noopener noreferrer">
-                <HelpCircle className="mr-2 h-4 w-4" />
-                Suporte
-              </a>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/about">
-                <Info className="mr-2 h-4 w-4" />
-                Sobre
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sair
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2">
+          {/* Menu de Notificações */}
+          <NotificationsMenu />
+
+          {/* Mini Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 flex items-center justify-center">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem asChild>
+                <Link href="/profile">
+                  <User className="mr-2 h-4 w-4" />
+                  Perfil
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/my-events">
+                  <User className="mr-2 h-4 w-4" />
+                  Meus Eventos
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href="mailto:bacoexperiencias@gmail.com" target="_blank" rel="noopener noreferrer">
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  Suporte
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/about">
+                  <Info className="mr-2 h-4 w-4" />
+                  Sobre
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       )}
     </div>
   );
