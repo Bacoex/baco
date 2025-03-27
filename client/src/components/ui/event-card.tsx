@@ -308,9 +308,17 @@ export default function EventCard({
         });
       }
       
-      // Se temos uma notificação na resposta (para o criador do evento)
-      if (data?.notification?.forCreator && user?.id === event.creatorId) {
-        addNotification(data.notification.forCreator);
+      // Se temos notificações na resposta da API
+      if (data?.notification) {
+        // Notificação para o criador do evento
+        if (data.notification.forCreator && user?.id === event.creatorId) {
+          addNotification(data.notification.forCreator);
+        }
+        
+        // Notificação para o participante (usuário atual)
+        if (data.notification.forParticipant && user?.id !== event.creatorId) {
+          addNotification(data.notification.forParticipant);
+        }
       }
       
       // Atualiza as consultas relevantes

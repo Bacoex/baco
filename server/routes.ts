@@ -935,13 +935,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Obtém o usuário para incluir na resposta
       const user = await storage.getUser(userId);
       
-      // Se for um evento com candidatura, notificar o criador do evento
+      // Obter o criador do evento
+      const creator = await storage.getUser(event.creatorId);
+      
+      // Preparar resposta com base no tipo de evento
       if (event.eventType === 'private_application') {
-        // Obter o criador do evento
-        const creator = await storage.getUser(event.creatorId);
-        
-        // Preparar notificação para o frontend
-        const notificationInfo = {
+        // Notificação para o criador em caso de evento com candidatura
+        const notificationForCreator = {
           title: "Nova Candidatura",
           message: `${user?.firstName} ${user?.lastName} se candidatou ao seu evento "${event.name}"`,
           type: "event_application",
@@ -949,7 +949,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: user?.id
         };
         
-        // Retornar notificação junto com a resposta para o frontend tratar
+        // Notificação para o participante
+        const notificationForParticipant = {
+          title: "Candidatura Enviada",
+          message: `Sua candidatura para o evento "${event.name}" foi enviada com sucesso. Aguarde a aprovação.`,
+          type: "event_application",
+          eventId: event.id,
+          userId: creator?.id
+        };
+        
+        // Retornar notificações junto com a resposta para o frontend tratar
         res.status(201).json({
           ...participation,
           user: user ? {
@@ -958,19 +967,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
             profileImage: user.profileImage
           } : null,
           notification: {
-            forCreator: notificationInfo,
-            forParticipant: null
+            forCreator: notificationForCreator,
+            forParticipant: notificationForParticipant
           }
         });
       } else {
-        // Para eventos normais, apenas retorna a participação
+        // Para eventos normais (public ou private_ticket), também incluir uma notificação de confirmação
+        const notificationForParticipant = {
+          title: "Participação Confirmada",
+          message: `Você está confirmado no evento "${event.name}". Compareça no dia e hora marcados.`,
+          type: "event_approval",
+          eventId: event.id,
+          userId: creator?.id
+        };
+        
         res.status(201).json({
           ...participation,
           user: user ? {
             firstName: user.firstName,
             lastName: user.lastName,
             profileImage: user.profileImage
-          } : null
+          } : null,
+          notification: {
+            forCreator: null,
+            forParticipant: notificationForParticipant
+          }
         });
       }
     } catch (err) {
@@ -1013,11 +1034,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Você não está participando deste evento" });
       }
       
+      // Obter informações do evento e usuário para a notificação
+      const event = await storage.getEvent(eventId);
+      const user = await storage.getUser(userId);
+      
       // Remove a participação
       await storage.removeParticipation(participation.id);
       
-      res.status(200).json({ message: "Participação cancelada com sucesso" });
+      // Se for um evento do tipo candidatura, notificar o criador
+      if (event?.eventType === 'private_application') {
+        // Preparar notificação para o criador do evento
+        const notificationForCreator = {
+          title: "Candidatura Cancelada",
+          message: `${user?.firstName} ${user?.lastName} cancelou a candidatura para o evento "${event.name}"`,
+          type: "event_application",
+          eventId: eventId,
+          userId: userId
+        };
+        
+        return res.status(200).json({ 
+          message: "Participação cancelada com sucesso",
+          notification: {
+            forCreator: event.creatorId === userId ? null : notificationForCreator,
+            forParticipant: null
+          }
+        });
+      }
+      
+      res.status(200).json({ 
+        message: "Participação cancelada com sucesso"
+      });
     } catch (err) {
+      console.error("Erro ao cancelar participação:", err);
       res.status(500).json({ message: "Erro ao cancelar participação" });
     }
   });
@@ -1045,25 +1093,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(participation.userId);
       const event = await storage.getEvent(participation.eventId);
       
-      // Retorna informações adicionais para exibição de notificação
-      res.json({
-        ...participation,
-        notification: {
-          title: status === "approved" ? "Candidatura Aprovada!" : "Candidatura Recusada",
-          message: status === "approved" 
-            ? `Sua candidatura para o evento "${event?.name}" foi aprovada.` 
-            : `Sua candidatura para o evento "${event?.name}" foi recusada.`,
-          user: user ? {
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email
-          } : null,
-          event: event ? {
-            name: event.name,
-            date: event.date
-          } : null
-        }
-      });
+      // Obter o criador do evento para a notificação
+      const creator = await storage.getUser(event?.creatorId || 0);
+      
+      // Preparar notificações para criador e participante
+      if (status === "approved") {
+        // Notificação para o criador quando aprova um participante
+        const notificationForCreator = {
+          title: "Candidatura Aprovada!",
+          message: `Você aprovou a candidatura de ${user?.firstName} ${user?.lastName} para o evento "${event?.name}".`,
+          type: "event_approval",
+          eventId: event?.id,
+          userId: user?.id
+        };
+        
+        // Notificação para o participante que foi aprovado
+        const notificationForParticipant = {
+          title: "Sua Candidatura foi Aprovada!",
+          message: `Sua candidatura para o evento "${event?.name}" foi aprovada. Você pode ver os detalhes do evento agora.`,
+          type: "event_approval",
+          eventId: event?.id,
+          userId: creator?.id
+        };
+        
+        res.json({
+          ...participation,
+          notification: {
+            forCreator: notificationForCreator,
+            forParticipant: notificationForParticipant
+          }
+        });
+      } else {
+        // Notificação para o criador quando rejeita um participante
+        const notificationForCreator = {
+          title: "Candidatura Recusada",
+          message: `Você recusou a candidatura de ${user?.firstName} ${user?.lastName} para o evento "${event?.name}".`,
+          type: "event_rejection",
+          eventId: event?.id,
+          userId: user?.id
+        };
+        
+        // Notificação para o participante que foi recusado
+        const notificationForParticipant = {
+          title: "Sua Candidatura foi Recusada",
+          message: `Infelizmente sua candidatura para o evento "${event?.name}" foi recusada.`,
+          type: "event_rejection",
+          eventId: event?.id,
+          userId: creator?.id
+        };
+        
+        res.json({
+          ...participation,
+          notification: {
+            forCreator: notificationForCreator,
+            forParticipant: notificationForParticipant
+          }
+        });
+      }
     } catch (err) {
       console.error("Erro ao atualizar status de participação:", err);
       res.status(500).json({ message: "Erro ao atualizar status de participação" });

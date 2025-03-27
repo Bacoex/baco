@@ -11,6 +11,7 @@ import { Eneagon } from "@/components/ui/eneagon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useNotifications } from "@/hooks/use-notifications";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getUserDisplayName } from "@/lib/utils";
 import { useLocation } from "wouter";
@@ -431,6 +432,7 @@ function EventCard({ event, isCreator = false, participation = null, onApprove, 
 export default function MyEventsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { addNotification } = useNotifications();
   const [_location, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("created");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -516,17 +518,15 @@ export default function MyEventsPage() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/user/events/created"] });
       
-      // Exibe a notificação customizada com as informações do backend
-      if (data.notification) {
-        toast({
-          title: data.notification.title,
-          description: data.notification.message,
-        });
-      } else {
-        toast({
-          title: "Participante aprovado!",
-          description: "O participante foi aprovado com sucesso.",
-        });
+      // Exibe uma notificação toast para feedback imediato
+      toast({
+        title: "Participante aprovado!",
+        description: "O participante foi aprovado com sucesso.",
+      });
+      
+      // Processa as notificações retornadas pela API
+      if (data.notification && data.notification.forCreator) {
+        addNotification(data.notification.forCreator);
       }
     },
     onError: (error: Error) => {
@@ -547,17 +547,15 @@ export default function MyEventsPage() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/user/events/created"] });
       
-      // Exibe a notificação customizada com as informações do backend
-      if (data.notification) {
-        toast({
-          title: data.notification.title,
-          description: data.notification.message,
-        });
-      } else {
-        toast({
-          title: "Participante rejeitado",
-          description: "O participante foi rejeitado com sucesso.",
-        });
+      // Exibe uma notificação toast para feedback imediato
+      toast({
+        title: "Participante rejeitado",
+        description: "O participante foi rejeitado com sucesso.",
+      });
+      
+      // Processa as notificações retornadas pela API
+      if (data.notification && data.notification.forCreator) {
+        addNotification(data.notification.forCreator);
       }
     },
     onError: (error: Error) => {
@@ -578,17 +576,15 @@ export default function MyEventsPage() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/user/events/created"] });
       
-      // Exibe a notificação customizada com as informações do backend
-      if (data.notification) {
-        toast({
-          title: data.notification.title,
-          description: data.notification.message,
-        });
-      } else {
-        toast({
-          title: "Participante removido",
-          description: "O participante foi removido com sucesso.",
-        });
+      // Exibe uma notificação toast para feedback imediato
+      toast({
+        title: "Participante removido",
+        description: "O participante foi removido com sucesso.",
+      });
+      
+      // Processa as notificações retornadas pela API
+      if (data.notification && data.notification.forCreator) {
+        addNotification(data.notification.forCreator);
       }
     },
     onError: (error: Error) => {
@@ -609,17 +605,15 @@ export default function MyEventsPage() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/user/events/created"] });
       
-      // Exibe a notificação customizada com as informações do backend
-      if (data.notification) {
-        toast({
-          title: data.notification.title,
-          description: data.notification.message,
-        });
-      } else {
-        toast({
-          title: "Candidatura revertida",
-          description: "A candidatura foi revertida para análise.",
-        });
+      // Exibe uma notificação toast para feedback imediato
+      toast({
+        title: "Candidatura revertida",
+        description: "A candidatura foi revertida para análise.",
+      });
+      
+      // Processa as notificações retornadas pela API
+      if (data.notification && data.notification.forCreator) {
+        addNotification(data.notification.forCreator);
       }
     },
     onError: (error: Error) => {
