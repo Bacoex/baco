@@ -538,13 +538,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const categoriasArray = await storage.getCategories();
           const categoria = categoriasArray.find(cat => cat.id === event.categoryId);
 
-          // Adiciona participantes
+          // Busca participantes e adiciona dados do usuário
           const participants = await storage.getParticipants(event.id);
           console.log(`Evento ${event.id} tem ${participants.length} participantes:`, 
                       participants.map(p => ({ id: p.id, userId: p.userId, status: p.status })));
-
-          // Busca participantes e adiciona dados do usuário
-          const participants = await storage.getParticipants(event.id);
           const participantsWithDetails = await Promise.all(
             participants.map(async (participant) => {
               const user = await storage.getUser(participant.userId);
