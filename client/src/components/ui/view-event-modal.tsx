@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { getUserDisplayName, cn } from "@/lib/utils";
+import { useLocation } from "wouter";
 
 /**
  * Interface do evento com todos os dados necessários para exibição
@@ -77,6 +78,7 @@ interface ViewEventModalProps {
 export default function ViewEventModal({ event, isOpen, onClose }: ViewEventModalProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [_location, navigate] = useLocation(); 
   const [activeTab, setActiveTab] = useState("details");
   
   // Se não houver evento, não renderiza o modal
@@ -342,7 +344,11 @@ export default function ViewEventModal({ event, isOpen, onClose }: ViewEventModa
               {event.participants && event.participants.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {event.participants.map((participant) => (
-                    <div key={participant.id} className="flex items-center space-x-2 p-2 rounded-md border">
+                    <div 
+                      key={participant.id} 
+                      className="flex items-center space-x-2 p-2 rounded-md border cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                      onClick={() => navigate(`/profile/${participant.userId}`)}
+                    >
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={participant.user?.profileImage || undefined} />
                         <AvatarFallback>

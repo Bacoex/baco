@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getUserDisplayName } from "@/lib/utils";
+import { useLocation } from "wouter";
 import { Loader2, Calendar, MapPin, Clock, Users, Edit, Trash2, CheckCircle, XCircle, MessageSquare, Plus, Heart, HeartOff } from "lucide-react";
 import {
   Dialog,
@@ -333,8 +334,11 @@ function EventCard({ event, isCreator = false, participation = null, onApprove, 
           {event.participants && event.participants.length > 0 ? (
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {event.participants.map((participant) => (
-                <div key={participant.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                  <div className="flex items-center">
+                <div key={participant.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg group">
+                  <div 
+                    className="flex items-center flex-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-md transition-colors" 
+                    onClick={() => navigate(`/profile/${participant.userId}`)}
+                  >
                     <Eneagon className="w-10 h-10">
                       <Avatar>
                         <AvatarImage src={participant.user.profileImage || undefined} />
@@ -344,7 +348,7 @@ function EventCard({ event, isCreator = false, participation = null, onApprove, 
                       </Avatar>
                     </Eneagon>
                     <div className="ml-3">
-                      <p className="text-sm font-medium">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-primary">
                         {getUserDisplayName({ firstName: participant.user.firstName, lastName: participant.user.lastName })}
                       </p>
                       <Badge className={`${statusColors[participant.status]} text-xs mt-1`}>
@@ -427,6 +431,7 @@ function EventCard({ event, isCreator = false, participation = null, onApprove, 
 export default function MyEventsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [_location, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("created");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   
