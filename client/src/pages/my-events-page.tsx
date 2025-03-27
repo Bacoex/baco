@@ -484,11 +484,19 @@ export default function MyEventsPage() {
       return res.json();
     },
     onSuccess: () => {
+      // Invalidar múltiplas queries para garantir que todos os dados sejam atualizados
       queryClient.invalidateQueries({ queryKey: ["/api/user/events/created"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      
       toast({
         title: "Evento removido!",
         description: "Seu evento foi removido com sucesso.",
       });
+      
+      // Atualizar a página para garantir que todos os dados sejam recarregados
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
     },
     onError: (error: Error) => {
       toast({
