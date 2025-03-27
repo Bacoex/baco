@@ -135,7 +135,7 @@ export default function TermsOfServicePage() {
             <p>
               Se você tiver dúvidas sobre estes Termos, entre em contato conosco em:
               <br />
-              <a href="mailto:termos@bacoapp.com.br" className="text-primary">termos@bacoapp.com.br</a>
+              <a href="mailto:bacoexperiencias@gmail.com" className="text-primary">termos@bacoapp.com.br</a>
             </p>
             
             <div className="mt-8 p-4 bg-gray-800/50 rounded-lg">

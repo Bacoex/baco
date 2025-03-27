@@ -106,7 +106,7 @@ export default function PrivacyPolicyPage() {
             <p>
               Se você tiver dúvidas sobre esta política ou nossas práticas de privacidade, entre em contato conosco em:
               <br />
-              <a href="mailto:privacidade@bacoapp.com.br" className="text-primary">privacidade@bacoapp.com.br</a>
+              <a href="mailto:bacoexperiencias@gmail.com" className="text-primary">bacoexperiencias@gmail.com</a>
             </p>
             
             <div className="mt-8 p-4 bg-gray-800/50 rounded-lg">

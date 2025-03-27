@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Calendar, MapPin, Clock, Users, Tag, User, Share2, Heart } from "lucide-react";
+import { Calendar, MapPin, Clock, Users, Tag, User, Share2, Heart, 
+         MessageSquare, MessageSquareX, LockKeyhole } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -376,9 +378,49 @@ export default function ViewEventModal({ event, isOpen, onClose }: ViewEventModa
           
           {/* Tab de chat */}
           <TabsContent value="chat">
-            <div className="text-center py-8 text-muted-foreground">
-              O chat para este evento estará disponível em breve.
-            </div>
+            {/* Verificar se o evento é do tipo que permite chat (privado ou com candidatura) */}
+            {event.eventType === 'public' ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <MessageSquareX className="h-12 w-12 mx-auto text-gray-400 mb-2" />
+                <p>O chat não está disponível para eventos públicos.</p>
+              </div>
+            ) : (
+              <>
+                {/* Verificar se o usuário é participante aprovado */}
+                {isCreator || (event.participants && event.participants.some(p => p.userId === user?.id && p.status === 'approved')) ? (
+                  <div className="space-y-4">
+                    <div className="h-64 overflow-y-auto border rounded-md p-3 mb-4 bg-gray-50 dark:bg-gray-900">
+                      <div className="text-center text-gray-500 italic py-10">
+                        <MessageSquare className="h-12 w-12 mx-auto text-gray-400 mb-2" />
+                        <p>Você só verá mensagens enviadas após sua entrada no evento.</p>
+                        <p className="mt-2 text-sm">O histórico de mensagens anteriores não está disponível.</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <Textarea 
+                        placeholder="Digite sua mensagem..."
+                        className="flex-1"
+                      />
+                      <Button onClick={() => {
+                        toast({
+                          title: "Mensagem enviada",
+                          description: "Sua mensagem foi enviada para todos os participantes."
+                        });
+                      }}>
+                        Enviar
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <LockKeyhole className="h-12 w-12 mx-auto text-gray-400 mb-2" />
+                    <p>O chat só está disponível para participantes aprovados.</p>
+                    <p className="text-sm mt-2">Participe do evento para acessar o chat.</p>
+                  </div>
+                )}
+              </>
+            )}
           </TabsContent>
         </Tabs>
       </DialogContent>

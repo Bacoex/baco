@@ -530,7 +530,7 @@ export default function ProfilePage() {
                           <Label>CPF</Label>
                           <div className="flex mt-2">
                             <Input value={user.username} disabled className="bg-gray-100" />
-                            <Button type="button" variant="link" className="text-xs" onClick={() => window.location.href = "mailto:suporte@baco.app"}>
+                            <Button type="button" variant="link" className="text-xs" onClick={() => window.location.href = "mailto:bacoexperiencias@gmail.com"}>
                               Contatar suporte
                             </Button>
                           </div>
@@ -541,7 +541,7 @@ export default function ProfilePage() {
                           <Label>RG</Label>
                           <div className="flex mt-2">
                             <Input value={user.rg} disabled className="bg-gray-100" />
-                            <Button type="button" variant="link" className="text-xs" onClick={() => window.location.href = "mailto:suporte@baco.app"}>
+                            <Button type="button" variant="link" className="text-xs" onClick={() => window.location.href = "mailto:bacoexperiencias@gmail.com"}>
                               Contatar suporte
                             </Button>
                           </div>

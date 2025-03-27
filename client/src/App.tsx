@@ -10,6 +10,7 @@ import MyEventsPage from "@/pages/my-events-page";
 import SearchPage from "@/pages/search-page";
 import PrivacyPolicyPage from "@/pages/privacy-policy-page";
 import TermsOfServicePage from "@/pages/terms-of-service-page";
+import AboutPage from "@/pages/about-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
 import { ConsentBanner } from "@/components/ui/consent-banner";
@@ -29,6 +30,7 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <Route path="/privacy-policy" component={PrivacyPolicyPage} />
       <Route path="/terms-of-service" component={TermsOfServicePage} />
+      <Route path="/about" component={AboutPage} />
       <Route component={NotFound} />
     </Switch>
   );

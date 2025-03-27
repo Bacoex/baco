@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Menu, Calendar, Star, User, LogOut, Home } from "lucide-react";
+import { Search, Menu, Calendar, Star, User, LogOut, Home, HelpCircle, Info } from "lucide-react";
 import { useState } from "react";
 import {
   DropdownMenu,
@@ -109,6 +109,23 @@ export function Header() {
                   <User className="mr-2 h-4 w-4" />
                   <span>Perfil</span>
                 </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/about" className="flex items-center cursor-pointer">
+                  <Info className="mr-2 h-4 w-4" />
+                  <span>Sobre</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a 
+                  href="mailto:bacoexperiencias@gmail.com" 
+                  className="flex items-center cursor-pointer"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  <span>Suporte</span>
+                </a>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleLogout} className="flex items-center cursor-pointer">
                 <LogOut className="mr-2 h-4 w-4" />
