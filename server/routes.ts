@@ -1128,7 +1128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `Sua candidatura para o evento "${event?.name}" foi aprovada. Você pode ver os detalhes do evento agora.`,
           type: "event_approval",
           eventId: event?.id,
-          userId: creator?.id
+          userId: creator?.id // ID do criador para indicar quem aprovou
         };
         
         res.json({

@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Bell, Check, Calendar } from "lucide-react";
+import { Bell, Check, Calendar, X, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNotifications, Notification } from "@/hooks/use-notifications";
 import { Link, useLocation } from "wouter";
@@ -15,7 +15,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export function NotificationsMenu() {
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification, removeAllNotifications } = useNotifications();
   const [_, setLocation] = useLocation();
 
   const handleNotificationClick = (notification: Notification) => {
@@ -32,6 +32,12 @@ export function NotificationsMenu() {
         setLocation('/');
       }, 100);
     }
+  };
+  
+  // Função para remover uma notificação e evitar propagação do evento
+  const handleRemoveNotification = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    removeNotification(id);
   };
 
   const getNotificationIcon = (type: Notification['type']) => {
@@ -63,17 +69,30 @@ export function NotificationsMenu() {
       <DropdownMenuContent align="end" className="w-80">
         <DropdownMenuLabel className="flex justify-between items-center">
           <span>Notificações</span>
-          {unreadCount > 0 && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-xs h-6"
-              onClick={() => markAllAsRead()}
-            >
-              <Check className="h-3 w-3 mr-1" />
-              Marcar todas como lidas
-            </Button>
-          )}
+          <div className="flex gap-1">
+            {unreadCount > 0 && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs h-6"
+                onClick={() => markAllAsRead()}
+              >
+                <Check className="h-3 w-3 mr-1" />
+                Marcar como lidas
+              </Button>
+            )}
+            {notifications.length > 0 && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs h-6"
+                onClick={() => removeAllNotifications()}
+              >
+                <Trash2 className="h-3 w-3 mr-1" />
+                Limpar tudo
+              </Button>
+            )}
+          </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         
@@ -91,12 +110,22 @@ export function NotificationsMenu() {
               >
                 <div className="flex items-center w-full text-sm font-medium">
                   {getNotificationIcon(notification.type)}
-                  {notification.title}
-                  {!notification.read && (
-                    <Badge className="ml-auto bg-blue-500 hover:bg-blue-600 px-1.5" variant="secondary">
-                      Nova
-                    </Badge>
-                  )}
+                  <span className="flex-1 truncate">{notification.title}</span>
+                  <div className="flex items-center gap-1 ml-1">
+                    {!notification.read && (
+                      <Badge className="bg-blue-500 hover:bg-blue-600 px-1.5" variant="secondary">
+                        Nova
+                      </Badge>
+                    )}
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive" 
+                      onClick={(e) => handleRemoveNotification(e, notification.id)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 ml-6">
                   {notification.message}

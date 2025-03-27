@@ -17,6 +17,8 @@ interface NotificationsContextType {
   unreadCount: number;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
+  removeNotification: (id: string) => void;
+  removeAllNotifications: () => void;
   addNotification: (notification: Omit<Notification, "id" | "date" | "read">) => void;
 }
 
@@ -49,9 +51,13 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   
   // Salvar notificações no localStorage sempre que elas mudarem
   useEffect(() => {
-    if (user && notifications.length > 0) {
+    if (user) {
       const userKey = `${NOTIFICATIONS_STORAGE_KEY}-${user.id}`;
-      localStorage.setItem(userKey, JSON.stringify(notifications));
+      if (notifications.length > 0) {
+        localStorage.setItem(userKey, JSON.stringify(notifications));
+      } else {
+        localStorage.removeItem(userKey);
+      }
     }
   }, [notifications, user]);
   
@@ -76,6 +82,18 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     );
   };
   
+  // Remover uma notificação específica
+  const removeNotification = (id: string) => {
+    setNotifications(prev => 
+      prev.filter(notification => notification.id !== id)
+    );
+  };
+  
+  // Remover todas as notificações
+  const removeAllNotifications = () => {
+    setNotifications([]);
+  };
+  
   // Adicionar uma nova notificação
   const addNotification = (notification: Omit<Notification, "id" | "date" | "read">) => {
     const newNotification: Notification = {
@@ -95,6 +113,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         unreadCount, 
         markAsRead, 
         markAllAsRead,
+        removeNotification,
+        removeAllNotifications,
         addNotification
       }}
     >
