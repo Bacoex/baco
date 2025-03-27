@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/ui/header";
 import EventCard from "@/components/ui/event-card";
@@ -37,8 +37,10 @@ export default function HomePage() {
   
   // Busca todos os eventos com possível filtro de categoria
   const eventsQuery = useQuery<Event[]>({
-    queryKey: ["/api/events", selectedCategory && `?category=${selectedCategory}`],
-    initialData: [],
+    queryKey: ["/api/events", selectedCategory],
+    refetchOnWindowFocus: false,
+    staleTime: 30000,
+    retry: 3,
     onSuccess: (data) => {
       console.log("Eventos disponíveis:", data);
     },
@@ -69,6 +71,15 @@ export default function HomePage() {
       {/* Conteúdo principal com eventos */}
       <main className="flex-grow px-4 pb-20 pt-28 relative z-10">
         <div className="container mx-auto">
+          {/* Filtro de categorias */}
+          <div className="mb-6 bg-black border border-gray-800 rounded-lg overflow-hidden">
+            <CategoryFilter
+              categories={categoriesQuery.data || []}
+              selectedCategory={selectedCategory}
+              onSelectCategory={handleCategorySelect}
+            />
+          </div>
+          
           {/* Título da seção */}
           <div className="text-center py-4">
             <h2 className="text-xl font-semibold mb-2 inline-block text-white">

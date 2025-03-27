@@ -31,16 +31,16 @@ export default function CategoryFilter({
   onSelectCategory,
 }: CategoryFilterProps) {
   return (
-    <div className="bg-gray-50 border-t border-gray-200">
+    <div className="bg-black border-b border-gray-800 py-1">
       <ScrollArea className="w-full whitespace-nowrap">
-        <div className="flex p-4 space-x-2">
+        <div className="flex p-3 space-x-2">
           <Button
             variant={selectedCategory === null ? "default" : "outline"}
             size="sm"
             onClick={() => onSelectCategory(null)}
             className={cn(
               "rounded-full",
-              selectedCategory === null ? "bg-primary-100 text-primary-800 hover:bg-primary-200" : ""
+              selectedCategory === null ? "bg-primary text-primary-foreground hover:bg-primary/90" : "text-gray-300 hover:text-white border-gray-700 hover:bg-gray-900"
             )}
           >
             Todos
@@ -54,17 +54,18 @@ export default function CategoryFilter({
               onClick={() => onSelectCategory(category.slug)}
               className={cn(
                 "rounded-full",
-                selectedCategory === category.slug ? "bg-primary-100 text-primary-800 hover:bg-primary-200" : "",
-                category.slug === "lgbt" ? "pride-gradient" : ""
+                category.slug === "lgbt" && selectedCategory === category.slug ? "pride-gradient" : "",
+                selectedCategory === category.slug && category.slug !== "lgbt" ? "bg-primary text-primary-foreground hover:bg-primary/90" : "text-gray-300 hover:text-white border-gray-700 hover:bg-gray-900"
               )}
-              style={(category.slug === "lgbt" && category.color === "pride") 
+              style={(category.slug === "lgbt" && category.color === "pride" && selectedCategory === category.slug) 
                 ? { 
-                    background: "linear-gradient(90deg, rgba(255,0,0,0.7) 0%, rgba(255,154,0,0.7) 17%, rgba(208,222,33,0.7) 33%, rgba(79,220,74,0.7) 50%, rgba(63,218,216,0.7) 66%, rgba(47,201,226,0.7) 83%, rgba(28,127,238,0.7) 100%)",
+                    background: "linear-gradient(90deg, rgba(255,0,0,0.8) 0%, rgba(255,154,0,0.8) 17%, rgba(208,222,33,0.8) 33%, rgba(79,220,74,0.8) 50%, rgba(63,218,216,0.8) 66%, rgba(47,201,226,0.8) 83%, rgba(28,127,238,0.8) 100%)",
                     color: "#fff", 
-                    textShadow: "0px 0px 2px rgba(0,0,0,0.6)" 
+                    textShadow: "0px 0px 2px rgba(0,0,0,0.6)",
+                    borderColor: "transparent"
                   }
                 : (category.color && category.color !== "pride" && selectedCategory === category.slug)
-                  ? { backgroundColor: `${category.color}20`, color: category.color }
+                  ? { backgroundColor: category.color, color: "#fff", borderColor: "transparent" }
                   : {}
               }
             >
