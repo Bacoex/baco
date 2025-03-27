@@ -1058,8 +1058,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rotas de notificações
   app.get("/api/notifications", ensureAuthenticated, async (req, res) => {
     try {
-      const notifications = await storage.getNotificationsByUser(req.user!.id);
-      res.json(notifications);
+      const notificationsWithRecipients = await storage.getNotificationsByUser(req.user!.id);
+      res.json(notificationsWithRecipients);
     } catch (err) {
       console.error("Erro ao buscar notificações:", err);
       res.status(500).json({ message: "Erro ao buscar notificações" });
@@ -1068,8 +1068,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/notifications/:id/read", ensureAuthenticated, async (req, res) => {
     try {
-      const notificationId = parseInt(req.params.id);
-      await storage.markNotificationAsRead(notificationId);
+      const recipientId = parseInt(req.params.id);
+      await storage.markNotificationAsRead(recipientId);
       res.json({ message: "Notificação marcada como lida" });
     } catch (err) {
       console.error("Erro ao marcar notificação como lida:", err);
@@ -1079,8 +1079,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/notifications/:id", ensureAuthenticated, async (req, res) => {
     try {
-      const notificationId = parseInt(req.params.id);
-      await storage.deleteNotification(notificationId);
+      const recipientId = parseInt(req.params.id);
+      await storage.deleteNotificationForUser(recipientId);
       res.json({ message: "Notificação removida" });
     } catch (err) {
       console.error("Erro ao remover notificação:", err);

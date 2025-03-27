@@ -6,14 +6,24 @@ import { useToast } from '@/hooks/use-toast';
 
 // Interface para notificações do backend
 interface ServerNotification {
-  id: number;
-  userId: number;
-  message: string;
-  read: boolean;
-  createdAt: string;
-  title: string;
-  type: string;
-  eventId?: number;
+  notification: {
+    id: number;
+    message: string;
+    createdAt: string; // O servidor envia como string
+    title: string;
+    type: string;
+    eventId: number | null;
+    createdBy: number | null;
+    sourceType: string | null;
+    sourceId: number | null;
+  };
+  recipient: {
+    id: number;
+    notificationId: number;
+    userId: number;
+    read: boolean;
+    deletedAt: null | string;
+  };
 }
 
 // Interface para notificações no frontend
@@ -24,7 +34,7 @@ export interface Notification {
   date: Date;
   read: boolean;
   type: "event_application" | "event_approval" | "event_rejection" | "system";
-  eventId?: number;
+  eventId?: number | null;
   userId?: number;
   // Campo para controle interno de sincronização
   serverId?: number;
@@ -47,17 +57,20 @@ interface NotificationsContextType {
 const NotificationsContext = createContext<NotificationsContextType | null>(null);
 
 // Converte notificação do servidor para o formato frontend
-const convertServerNotification = (serverNotif: ServerNotification): Notification => ({
-  id: `server-${serverNotif.id}`,
-  serverId: serverNotif.id,
-  title: serverNotif.title || "Notificação",
-  message: serverNotif.message,
-  date: new Date(serverNotif.createdAt),
-  read: serverNotif.read,
-  type: serverNotif.type as any,
-  eventId: serverNotif.eventId,
-  userId: serverNotif.userId
-});
+const convertServerNotification = (serverData: ServerNotification): Notification => {
+  const { notification, recipient } = serverData;
+  return {
+    id: `server-${recipient.id}`,
+    serverId: recipient.id, // Agora usamos o ID do recipient
+    title: notification.title || "Notificação",
+    message: notification.message,
+    date: new Date(notification.createdAt),
+    read: recipient.read,
+    type: notification.type as any,
+    eventId: notification.eventId,
+    userId: recipient.userId
+  };
+};
 
 // Provider do contexto
 export function NotificationsProvider({ children }: { children: ReactNode }) {
@@ -85,8 +98,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   // Mutação para marcar notificação como lida no servidor
   const markAsReadMutation = useMutation({
-    mutationFn: async (notificationId: number) => {
-      await apiRequest('PATCH', `/api/notifications/${notificationId}/read`);
+    mutationFn: async (recipientId: number) => {
+      await apiRequest('PATCH', `/api/notifications/${recipientId}/read`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
@@ -95,8 +108,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   // Mutação para remover notificação no servidor
   const removeNotificationMutation = useMutation({
-    mutationFn: async (notificationId: number) => {
-      await apiRequest('DELETE', `/api/notifications/${notificationId}`);
+    mutationFn: async (recipientId: number) => {
+      await apiRequest('DELETE', `/api/notifications/${recipientId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });

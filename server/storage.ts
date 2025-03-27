@@ -4,7 +4,9 @@ import {
   eventCategories, type EventCategory, type InsertEventCategory,
   eventParticipants, type EventParticipant, type InsertEventParticipant,
   eventSubcategories, type EventSubcategory, type InsertEventSubcategory,
-  eventCoOrganizerInvites, type EventCoOrganizerInvite, type InsertEventCoOrganizerInvite
+  eventCoOrganizerInvites, type EventCoOrganizerInvite, type InsertEventCoOrganizerInvite,
+  notifications, type Notification, type InsertNotification,
+  notificationRecipients, type NotificationRecipient, type InsertNotificationRecipient
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -12,16 +14,7 @@ import createMemoryStore from "memorystore";
 // Criando store para sessões em memória
 const MemoryStore = createMemoryStore(session);
 
-// Definindo o tipo de notificação
-type Notification = {
-  id: number;
-  userId: number;
-  message: string;
-  read: boolean;
-  createdAt: Date;
-};
-
-type InsertNotification = Omit<Notification, 'id' | 'read' | 'createdAt'>;
+// Esses tipos foram movidos para @shared/schema.ts
 
 /**
  * Interface para o armazenamento de dados
@@ -81,9 +74,11 @@ export interface IStorage {
 
   // Notificações
   createNotification(data: InsertNotification): Promise<Notification>;
-  getNotificationsByUser(userId: number): Promise<Notification[]>;
-  markNotificationAsRead(id: number): Promise<void>;
-  deleteNotification(id: number): Promise<void>;
+  addNotificationRecipients(notificationId: number, userIds: number[]): Promise<NotificationRecipient[]>;
+  getNotificationsByUser(userId: number): Promise<{notification: Notification, recipient: NotificationRecipient}[]>;
+  markNotificationAsRead(recipientId: number): Promise<void>;
+  deleteNotificationForUser(recipientId: number): Promise<void>;
+  getEventParticipantsAndCreator(eventId: number): Promise<number[]>; // Retorna IDs de todos os usuários envolvidos em um evento
 }
 
 /**
@@ -98,7 +93,9 @@ export class MemStorage implements IStorage {
   private eventsMap: Map<number, Event>;
   private participantsMap: Map<number, EventParticipant>;
   private notifications: Notification[] = []; // Array para armazenar notificações
+  private notificationRecipients: NotificationRecipient[] = []; // Array para armazenar destinatários de notificações
   private notificationIdCounter: number = 1; // Contador para IDs de notificações
+  private notificationRecipientIdCounter: number = 1; // Contador para IDs de destinatários de notificações
 
   // IDs para autoincrementar
   private userIdCounter: number;
@@ -937,29 +934,83 @@ export class MemStorage implements IStorage {
     const notification = {
       id,
       ...data,
-      read: false, // Notificações são criadas como não lidas
+      read: false,  // Todas as notificações começam como não lidas
       createdAt: new Date()
     };
     this.notifications.push(notification);
     return notification;
   }
 
-  async getNotificationsByUser(userId: number): Promise<Notification[]> {
-    return this.notifications.filter(n => n.userId === userId);
+  async addNotificationRecipients(notificationId: number, userIds: number[]): Promise<NotificationRecipient[]> {
+    const recipients: NotificationRecipient[] = [];
+    
+    for (const userId of userIds) {
+      const recipient: NotificationRecipient = {
+        id: this.notificationRecipientIdCounter++,
+        notificationId,
+        userId,
+        read: false,
+        deletedAt: null
+      };
+      
+      this.notificationRecipients.push(recipient);
+      recipients.push(recipient);
+    }
+    
+    return recipients;
   }
 
-  async markNotificationAsRead(id: number): Promise<void> {
-    const index = this.notifications.findIndex(n => n.id === id);
+  async getNotificationsByUser(userId: number): Promise<{notification: Notification, recipient: NotificationRecipient}[]> {
+    const userRecipients = this.notificationRecipients.filter(
+      r => r.userId === userId && r.deletedAt === null
+    );
+    
+    const results: {notification: Notification, recipient: NotificationRecipient}[] = [];
+    
+    for (const recipient of userRecipients) {
+      const notification = this.notifications.find(n => n.id === recipient.notificationId);
+      if (notification) {
+        results.push({
+          notification,
+          recipient
+        });
+      }
+    }
+    
+    // Ordenar por data de criação, mais recentes primeiro
+    return results.sort((a, b) => 
+      b.notification.createdAt.getTime() - a.notification.createdAt.getTime()
+    );
+  }
+
+  async markNotificationAsRead(recipientId: number): Promise<void> {
+    const index = this.notificationRecipients.findIndex(r => r.id === recipientId);
     if (index !== -1) {
-      this.notifications[index].read = true;
+      this.notificationRecipients[index].read = true;
     }
   }
 
-  async deleteNotification(id: number): Promise<void> {
-    const index = this.notifications.findIndex(n => n.id === id);
+  async deleteNotificationForUser(recipientId: number): Promise<void> {
+    const index = this.notificationRecipients.findIndex(r => r.id === recipientId);
     if (index !== -1) {
-      this.notifications.splice(index, 1);
+      this.notificationRecipients[index].deletedAt = new Date();
     }
+  }
+  
+  async getEventParticipantsAndCreator(eventId: number): Promise<number[]> {
+    const event = this.eventsMap.get(eventId);
+    if (!event) return [];
+    
+    // Adicionar o criador do evento
+    const userIds = [event.creatorId];
+    
+    // Adicionar todos os participantes
+    const participants = Array.from(this.participantsMap.values())
+      .filter(p => p.eventId === eventId)
+      .map(p => p.userId);
+    
+    // Unir os IDs sem duplicação
+    return [...new Set([...userIds, ...participants])];
   }
 }
 

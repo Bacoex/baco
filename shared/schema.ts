@@ -470,17 +470,34 @@ export type EventCoOrganizerInvite = typeof eventCoOrganizerInvites.$inferSelect
 
 /**
  * Esquema da tabela de notificações
+ * Contém o conteúdo da notificação e informações relacionadas
  */
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
   title: text("title").notNull(),
   message: text("message").notNull(),
   type: text("type").notNull(),
   eventId: integer("event_id"),
-  read: boolean("read").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
+  createdBy: integer("created_by"), // ID do usuário que gerou a notificação (opcional)
+  sourceType: text("source_type"), // Tipo da fonte que gerou a notificação (evento, sistema, etc.)
+  sourceId: integer("source_id"), // ID da fonte que gerou a notificação (ID do evento, etc.)
+});
+
+/**
+ * Esquema da tabela de destinatários de notificações
+ * Relaciona notificações com seus destinatários
+ * Permite que uma notificação seja enviada para múltiplos usuários
+ */
+export const notificationRecipients = pgTable("notification_recipients", {
+  id: serial("id").primaryKey(),
+  notificationId: integer("notification_id").notNull().references(() => notifications.id),
+  userId: integer("user_id").notNull(),
+  read: boolean("read").notNull().default(false),
+  deletedAt: timestamp("deleted_at"), // Para permitir que um usuário remova a notificação sem afetar outros
 });
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
+export type NotificationRecipient = typeof notificationRecipients.$inferSelect;
+export type InsertNotificationRecipient = typeof notificationRecipients.$inferInsert;
