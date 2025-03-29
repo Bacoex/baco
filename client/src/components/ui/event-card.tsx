@@ -79,6 +79,20 @@ export default function EventCard({
     enabled: !!user,
   });
 
+  // Atualiza o estado isParticipating com base no participation prop ou no resultado da query
+  useEffect(() => {
+    if (participation) {
+      // Se já temos informação de participação via props, usamos ela
+      setIsParticipating(true);
+    } else if (participationQuery.data) {
+      // Se a query retornou dados, o usuário está participando
+      setIsParticipating(true);
+    } else {
+      // Caso contrário, não está participando
+      setIsParticipating(false);
+    }
+  }, [participation, participationQuery.data]);
+
   useEffect(() => {
     const handleOpenEvent = (e: CustomEvent) => {
       if (e.detail?.eventId === event.id) {

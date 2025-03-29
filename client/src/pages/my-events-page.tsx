@@ -892,16 +892,18 @@ export default function MyEventsPage() {
                 </Card>
               ) : (
                 <div className="space-y-6">
-                  {participatingEventsQuery.data?.map((participation: any) => (
-                    <EventCard 
-                      key={participation.event.id} 
-                      event={participation.event}
-                      participation={{ 
-                        id: participation.id, 
-                        status: participation.status 
-                      }}
-                    />
-                  ))}
+                  {participatingEventsQuery.data?.map((participation: any) => 
+                    participation && participation.event ? (
+                      <EventCard 
+                        key={participation.event.id} 
+                        event={participation.event}
+                        participation={{ 
+                          id: participation.id || 0, 
+                          status: participation.status || 'pending' 
+                        }}
+                      />
+                    ) : null
+                  )}
                 </div>
               )}
             </TabsContent>
