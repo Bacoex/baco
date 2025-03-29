@@ -106,6 +106,7 @@ export default function EventCard({
     };
   }, [event.id]);
 
+  // Função para participar do evento
   const handleParticipate = async () => {
     try {
       const response = await fetch(`/api/events/${event.id}/participate`, {
@@ -119,7 +120,11 @@ export default function EventCard({
         throw new Error('Falha ao participar do evento');
       }
 
+      // Atualiza o estado local e na API
+      setIsParticipating(true);
       queryClient.invalidateQueries([`/api/events/${event.id}/participation`]);
+      queryClient.invalidateQueries(['/api/user/events/participating']);
+      
       toast({
         title: "Sucesso!",
         description: "Sua solicitação foi enviada com sucesso."
@@ -128,6 +133,49 @@ export default function EventCard({
       toast({
         title: "Erro",
         description: "Não foi possível participar do evento.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Função para cancelar participação
+  const handleCancelParticipation = async () => {
+    try {
+      let participationId;
+      
+      // Pegamos o ID da participação das props ou da query
+      if (participation) {
+        participationId = participation.id;
+      } else if (participationQuery.data) {
+        participationId = participationQuery.data.id;
+      } else {
+        throw new Error('Informações de participação não encontradas');
+      }
+      
+      const response = await fetch(`/api/participants/${participationId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao cancelar participação');
+      }
+
+      // Atualiza o estado local e na API
+      setIsParticipating(false);
+      queryClient.invalidateQueries([`/api/events/${event.id}/participation`]);
+      queryClient.invalidateQueries(['/api/user/events/participating']);
+      
+      toast({
+        title: "Participação cancelada",
+        description: "Você não está mais participando deste evento."
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível cancelar sua participação.",
         variant: "destructive"
       });
     }
@@ -171,16 +219,29 @@ export default function EventCard({
 
           <div className="mt-4 flex items-center justify-between">
             {!isCreator && (
-              <Button 
-                onClick={(e) => {
-                  e.stopPropagation(); // Impede que o clique do botão abra o modal
-                  handleParticipate();
-                }}
-                disabled={isParticipating}
-                variant="secondary"
-              >
-                {isParticipating ? 'Participando' : 'Participar'}
-              </Button>
+              isParticipating ? (
+                <Button 
+                  onClick={(e) => {
+                    e.stopPropagation(); // Impede que o clique do botão abra o modal
+                    handleCancelParticipation();
+                  }}
+                  variant="destructive"
+                  size="sm"
+                  className="text-xs"
+                >
+                  Cancelar participação
+                </Button>
+              ) : (
+                <Button 
+                  onClick={(e) => {
+                    e.stopPropagation(); // Impede que o clique do botão abra o modal
+                    handleParticipate();
+                  }}
+                  variant="secondary"
+                >
+                  Participar
+                </Button>
+              )
             )}
           </div>
         </div>

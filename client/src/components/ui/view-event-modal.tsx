@@ -129,30 +129,32 @@ export default function ViewEventModal({
   const handleFollow = () => {
     // Implementação futura: seguir evento
     toast({
-      title: "Seguir evento",
-      description: "Funcionalidade de seguir evento será implementada em breve!",
+      title: "Funcionalidade em desenvolvimento",
+      description: "Você poderá seguir eventos em breve!",
     });
   };
   
-  // Calcula a idade do usuário
-  const calculateAge = (birthDateString?: string) => {
-    if (!birthDateString) return 0;
-    
-    const birthDate = new Date(birthDateString);
+  // Calcula a idade do usuário com base na data de nascimento
+  const calculateAge = (birthDate: string): number => {
     const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
       age--;
     }
+    
     return age;
   };
   
   // Verifica se o evento tem restrição de idade
-  const hasAgeRestriction = !!event.category?.ageRestriction;
+  const hasAgeRestriction = !!event.category?.ageRestriction && event.category.ageRestriction > 0;
   
-  // Verifica se o usuário tem idade suficiente para o evento
+  // Calcula a idade do usuário, se estiver logado e tiver data de nascimento
   const userAge = user?.birthDate ? calculateAge(user.birthDate) : 0;
+  
+  // Verifica se o usuário tem idade suficiente para participar do evento com restrição
   const isUserOldEnough = !hasAgeRestriction || 
     (event.category?.ageRestriction && userAge >= event.category.ageRestriction);
   
@@ -178,7 +180,7 @@ export default function ViewEventModal({
       return;
     }
     
-    try {
+    try {      
       const response = await fetch(`/api/events/${event.id}/participate`, {
         method: 'POST',
         credentials: 'include',
@@ -231,6 +233,41 @@ export default function ViewEventModal({
       toast({
         title: "Erro",
         description: error instanceof Error ? error.message : "Erro ao participar do evento",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Função para cancelar participação
+  const handleCancelParticipation = async () => {
+    try {
+      const response = await fetch(`/api/events/${event.id}/cancel-participation`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao cancelar participação');
+      }
+      
+      // Fecha o modal para forçar uma atualização
+      onClose();
+      
+      toast({
+        title: "Participação cancelada",
+        description: "Você não está mais participando deste evento.",
+      });
+      
+      // Recarrega a lista de eventos para atualizar a interface
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao cancelar participação",
         variant: "destructive"
       });
     }
@@ -368,10 +405,19 @@ export default function ViewEventModal({
                   Compartilhar
                 </Button>
                 
-                {!isCreator && !isParticipant && (
-                  <Button onClick={handleParticipate}>
-                    {event.eventType === 'private_application' ? 'Candidatar-se' : 'Participar'}
-                  </Button>
+                {!isCreator && (
+                  isParticipant ? (
+                    <Button 
+                      variant="destructive" 
+                      onClick={handleCancelParticipation}
+                    >
+                      Cancelar participação
+                    </Button>
+                  ) : (
+                    <Button onClick={handleParticipate}>
+                      {event.eventType === 'private_application' ? 'Candidatar-se' : 'Participar'}
+                    </Button>
+                  )
                 )}
                 
                 {/* Botões de status para candidatos (quando não é criador mas é candidato) */}
@@ -439,44 +485,6 @@ export default function ViewEventModal({
                       </Button>
                     )}
                   </div>
-                )}
-                
-                {isParticipant && (participationStatus === 'approved' || participationStatus === 'confirmed' || (participationStatus === 'rejected' && event.eventType !== 'private_application')) && (
-                  <Button variant="destructive" onClick={async () => {
-                    try {
-                      const response = await fetch(`/api/events/${event.id}/cancel-participation`, {
-                        method: 'DELETE',
-                        credentials: 'include'
-                      });
-                      
-                      if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.message || 'Erro ao cancelar participação');
-                      }
-                      
-                      // Fecha o modal para forçar uma atualização
-                      onClose();
-                      
-                      toast({
-                        title: "Participação cancelada",
-                        description: "Você não está mais participando deste evento.",
-                      });
-                      
-                      // Recarrega a lista de eventos para atualizar a interface
-                      setTimeout(() => {
-                        window.location.reload();
-                      }, 1500);
-                      
-                    } catch (error) {
-                      toast({
-                        title: "Erro",
-                        description: error instanceof Error ? error.message : "Erro ao cancelar participação",
-                        variant: "destructive"
-                      });
-                    }
-                  }}>
-                    Cancelar Participação
-                  </Button>
                 )}
               </div>
             </TabsContent>
@@ -559,7 +567,7 @@ export default function ViewEventModal({
                               </Button>
                             )}
                             
-                            {/* Botão para remover participante */ }
+                            {/* Botão para remover participante */}
                             {onRemoveParticipant && (
                               <Button 
                                 size="sm" 
