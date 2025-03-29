@@ -1,4 +1,3 @@
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +20,7 @@ export function NotificationsMenu() {
   // Função para lidar com clique na notificação
   const handleNotificationClick = (notification: Notification) => {
     markAsRead(notification.id);
-    
+
     // Se for uma notificação relacionada a um evento, redirecionar para a página do evento
     if (notification.eventId) {
       // Para notificações de solicitações pendentes ou de candidatura, ir para a página Meus Eventos
@@ -126,17 +125,20 @@ export function NotificationsMenu() {
                     )}
                     <Button 
                       variant="ghost" 
-                      size="icon" 
-                      className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive" 
-                      onClick={(e) => handleRemoveNotification(e, notification.id)}
+                      size="icon"
+                      className="h-4 w-4"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeNotification(notification.id);
+                      }}
                     >
                       <X className="h-3 w-3" />
                     </Button>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1 ml-6">
+                  </span>
+                </span>
+                <span className="text-xs text-muted-foreground mt-1 ml-6">
                   {notification.message}
-                </p>
+                </span>
                 <span className="text-xs text-muted-foreground mt-1 ml-6">
                   {format(new Date(notification.date), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
                 </span>
