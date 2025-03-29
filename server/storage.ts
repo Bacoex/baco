@@ -146,8 +146,8 @@ export class MemStorage implements IStorage {
     const kevinUser: User = {
       id: 1,
       username: "46318916881",
-      // Hash gerada para a senha "Teste@123" usando a função hashPassword 
-      password: "445c678c04146877b6fb1cd930af60213a78b098e05b8a6a4ff9dbf4ff8bafa01c6b05b851f43f27d4bb3dcb7504e8645a026013cd91901704d24ae5eeec03c0.73b9deb7c7cd0891f61221d27b10b44a",
+      // Hash gerada para a senha "Admin@123" usando a função hashPassword (atualizada em 29/03/2025)
+      password: "28ad4dcc693268d7bca7b740cac6e37b986b96846d086f0bd94f2b736045877eebd7231972f4c6a1b74bd131b370c1156348bf6b74122c11f04e6655d4978207.08498ff1bca99386942ee775f3b8f371",
       firstName: "Kevin",
       lastName: "Barbosa",
       email: "kevin@example.com",
@@ -200,8 +200,8 @@ export class MemStorage implements IStorage {
     const adminUser: User = {
       id: adminId,
       username: "00000000000", // CPF do admin de suporte
-      // Hash gerada para a senha "Admin@123" 
-      password: "643876f31a856f1e48e9c6181c6f857125fc21536ec89d5aeb21c46fb6cddb84834d3af8988f77b58880be1293926346a216b1db706486fd951bed45334717fc.210cb661ad987638a85e914ec922cd58",
+      // Hash gerada para a senha "Admin@123" (atualizada em 29/03/2025)
+      password: "28ad4dcc693268d7bca7b740cac6e37b986b96846d086f0bd94f2b736045877eebd7231972f4c6a1b74bd131b370c1156348bf6b74122c11f04e6655d4978207.08498ff1bca99386942ee775f3b8f371",
       firstName: "Suporte",
       lastName: "Baco",
       birthDate: "2000-01-01",
