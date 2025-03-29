@@ -62,6 +62,7 @@ export default function EventCard({
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isParticipating, setIsParticipating] = useState(false);
+  const [participationStatus, setParticipationStatus] = useState<string | null>(participation?.status || null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   // Verifica se o usuário já está participando do evento
@@ -104,17 +105,20 @@ export default function EventCard({
     retry: 1 // Reduzir o número de tentativas para evitar muitas requisições em caso de erro
   });
 
-  // Atualiza o estado isParticipating com base no participation prop ou no resultado da query
+  // Atualiza o estado isParticipating e participationStatus com base no participation prop ou no resultado da query
   useEffect(() => {
     if (participation) {
       // Se já temos informação de participação via props, usamos ela
       setIsParticipating(true);
+      setParticipationStatus(participation.status);
     } else if (participationQuery.data) {
       // Se a query retornou dados, o usuário está participando
       setIsParticipating(true);
+      setParticipationStatus(participationQuery.data.status);
     } else {
       // Caso contrário, não está participando
       setIsParticipating(false);
+      setParticipationStatus(null);
     }
   }, [participation, participationQuery.data]);
 
@@ -170,6 +174,10 @@ export default function EventCard({
 
       // Atualiza o estado local e na API
       setIsParticipating(true);
+      
+      // Define o status com base no tipo de evento
+      const newStatus = event.eventType === 'private_application' ? 'pending' : 'approved';
+      setParticipationStatus(newStatus);
       
       // Invalidação de queries em cascata para garantir consistência
       queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participation`] });
@@ -278,6 +286,7 @@ export default function EventCard({
 
       // Atualiza o estado local e na API
       setIsParticipating(false);
+      setParticipationStatus(null);
       
       // Invalidação de queries em cascata para garantir consistência
       queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participation`] });
@@ -336,32 +345,57 @@ export default function EventCard({
             <span>{new Date(event.date).toLocaleDateString()}</span>
           </div>
 
-          <div className="mt-4 flex items-center justify-between">
-            {!isCreator && (
-              isParticipating ? (
-                <Button 
-                  onClick={(e) => {
-                    e.stopPropagation(); // Impede que o clique do botão abra o modal
-                    handleCancelParticipation();
-                  }}
-                  variant="destructive"
-                  size="sm"
-                  className="text-xs"
-                >
-                  Cancelar participação
-                </Button>
-              ) : (
-                <Button 
-                  onClick={(e) => {
-                    e.stopPropagation(); // Impede que o clique do botão abra o modal
-                    handleParticipate();
-                  }}
-                  variant="secondary"
-                >
-                  Participar
-                </Button>
-              )
+          <div className="mt-4 flex flex-col space-y-2">
+            {/* Indicador de Status de Participação */}
+            {!isCreator && isParticipating && participationStatus && (
+              <div className={cn(
+                "text-xs px-2 py-1 rounded-md text-center font-medium",
+                participationStatus === "pending" && "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+                participationStatus === "approved" && "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+                participationStatus === "rejected" && "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+                participationStatus === "confirmed" && "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+              )}>
+                {participationStatus === "pending" && "Aguardando aprovação"}
+                {participationStatus === "approved" && "Aprovado"}
+                {participationStatus === "rejected" && "Negado"}
+                {participationStatus === "confirmed" && "Confirmado"}
+              </div>
             )}
+            
+            {/* Botões de Ação */}
+            <div className="flex items-center justify-between">
+              {!isCreator && (
+                isParticipating ? (
+                  <Button 
+                    onClick={(e) => {
+                      e.stopPropagation(); // Impede que o clique do botão abra o modal
+                      handleCancelParticipation();
+                    }}
+                    variant="destructive"
+                    size="sm"
+                    className={cn(
+                      "text-xs",
+                      participationStatus === "rejected" && "bg-gray-500 hover:bg-gray-600"
+                    )}
+                    disabled={participationStatus === "rejected"}
+                  >
+                    {participationStatus === "rejected" 
+                      ? "Participação negada" 
+                      : "Cancelar participação"}
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={(e) => {
+                      e.stopPropagation(); // Impede que o clique do botão abra o modal
+                      handleParticipate();
+                    }}
+                    variant="secondary"
+                  >
+                    Participar
+                  </Button>
+                )
+              )}
+            </div>
           </div>
         </div>
       </Card>
