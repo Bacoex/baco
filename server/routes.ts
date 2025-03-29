@@ -216,6 +216,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * Rotas de gerenciamento de participantes
+   */
+  app.patch("/api/participants/:id/approve", ensureAuthenticated, async (req, res) => {
+    try {
+      const participantId = parseInt(req.params.id);
+      const participant = await storage.getParticipant(participantId);
+      
+      if (!participant) {
+        return res.status(404).json({ message: "Participante não encontrado" });
+      }
+      
+      // Verificar se o usuário atual é o criador do evento
+      const event = await storage.getEvent(participant.eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      if (event.creatorId !== req.user!.id) {
+        return res.status(403).json({ 
+          message: "Apenas o criador do evento pode aprovar participantes" 
+        });
+      }
+      
+      const updatedParticipant = await storage.updateParticipationStatus(
+        participantId, 
+        "approved"
+      );
+      
+      // Retorna objeto de notificação vazio até implementarmos notificações reais
+      res.json({ 
+        ...updatedParticipant,
+        notification: {} 
+      });
+    } catch (err) {
+      console.error("Erro ao aprovar participante:", err);
+      res.status(500).json({ message: "Erro ao aprovar participante" });
+    }
+  });
+  
+  app.patch("/api/participants/:id/reject", ensureAuthenticated, async (req, res) => {
+    try {
+      const participantId = parseInt(req.params.id);
+      const participant = await storage.getParticipant(participantId);
+      
+      if (!participant) {
+        return res.status(404).json({ message: "Participante não encontrado" });
+      }
+      
+      // Verificar se o usuário atual é o criador do evento
+      const event = await storage.getEvent(participant.eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      if (event.creatorId !== req.user!.id) {
+        return res.status(403).json({ 
+          message: "Apenas o criador do evento pode rejeitar participantes" 
+        });
+      }
+      
+      const updatedParticipant = await storage.updateParticipationStatus(
+        participantId, 
+        "rejected"
+      );
+      
+      // Retorna objeto de notificação vazio até implementarmos notificações reais
+      res.json({ 
+        ...updatedParticipant,
+        notification: {} 
+      });
+    } catch (err) {
+      console.error("Erro ao rejeitar participante:", err);
+      res.status(500).json({ message: "Erro ao rejeitar participante" });
+    }
+  });
+  
+  app.patch("/api/participants/:id/revert", ensureAuthenticated, async (req, res) => {
+    try {
+      const participantId = parseInt(req.params.id);
+      const participant = await storage.getParticipant(participantId);
+      
+      if (!participant) {
+        return res.status(404).json({ message: "Participante não encontrado" });
+      }
+      
+      // Verificar se o usuário atual é o criador do evento
+      const event = await storage.getEvent(participant.eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      if (event.creatorId !== req.user!.id) {
+        return res.status(403).json({ 
+          message: "Apenas o criador do evento pode reverter participantes" 
+        });
+      }
+      
+      const updatedParticipant = await storage.updateParticipationStatus(
+        participantId, 
+        "pending"
+      );
+      
+      // Retorna objeto de notificação vazio até implementarmos notificações reais
+      res.json({ 
+        ...updatedParticipant,
+        notification: {} 
+      });
+    } catch (err) {
+      console.error("Erro ao reverter participante:", err);
+      res.status(500).json({ message: "Erro ao reverter participante" });
+    }
+  });
+  
+  app.delete("/api/participants/:id/remove", ensureAuthenticated, async (req, res) => {
+    try {
+      const participantId = parseInt(req.params.id);
+      const participant = await storage.getParticipant(participantId);
+      
+      if (!participant) {
+        return res.status(404).json({ message: "Participante não encontrado" });
+      }
+      
+      // Verificar se o usuário atual é o criador do evento
+      const event = await storage.getEvent(participant.eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      if (event.creatorId !== req.user!.id) {
+        return res.status(403).json({ 
+          message: "Apenas o criador do evento pode remover participantes" 
+        });
+      }
+      
+      await storage.removeParticipation(participantId);
+      
+      // Retorna objeto de notificação vazio até implementarmos notificações reais
+      res.json({ 
+        message: "Participante removido com sucesso",
+        notification: {} 
+      });
+    } catch (err) {
+      console.error("Erro ao remover participante:", err);
+      res.status(500).json({ message: "Erro ao remover participante" });
+    }
+  });
+
+  /**
    * Rotas de Eventos do Usuário
    */
   app.get("/api/user/events/created", ensureAuthenticated, async (req, res) => {
