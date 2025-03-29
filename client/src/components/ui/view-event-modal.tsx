@@ -239,8 +239,12 @@ export default function ViewEventModal({
   // Verifica se o usuário atual é o criador do evento
   const isCreator = user?.id === event.creatorId;
   
-  // Verifica se o usuário já é participante do evento
+  // Verifica se o usuário já é participante do evento (com qualquer status)
   const isParticipant = event.participants?.some(p => p.userId === user?.id) || false;
+  
+  // Pega o status atual da participação do usuário (se existir)
+  const userParticipation = event.participants?.find(p => p.userId === user?.id);
+  const participationStatus = userParticipation?.status;
   
   // Estado para controlar o modal de edição
   const [isEditEventModalOpen, setIsEditEventModalOpen] = useState(false);
@@ -370,6 +374,40 @@ export default function ViewEventModal({
                   </Button>
                 )}
                 
+                {/* Botões de status para candidatos (quando não é criador mas é candidato) */}
+                {/* Candidatura pendente */}
+                {!isCreator && isParticipant && event.eventType === 'private_application' && participationStatus === 'pending' && (
+                  <Button disabled className="bg-amber-500 hover:bg-amber-500">
+                    Candidatura Pendente
+                  </Button>
+                )}
+                
+                {/* Candidatura rejeitada */}
+                {!isCreator && isParticipant && event.eventType === 'private_application' && participationStatus === 'rejected' && (
+                  <div className="space-x-2">
+                    <Button disabled variant="destructive" className="opacity-60">
+                      Candidatura Rejeitada
+                    </Button>
+                    <Button onClick={handleParticipate}>
+                      Candidatar-se Novamente
+                    </Button>
+                  </div>
+                )}
+                
+                {/* Participante já aprovado (mostra apenas indicação visual) */}
+                {!isCreator && isParticipant && participationStatus === 'approved' && (
+                  <Button disabled variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                    <span className="mr-2">✓</span> Você está participando
+                  </Button>
+                )}
+                
+                {/* Participante confirmado (mostra apenas indicação visual) */}
+                {!isCreator && isParticipant && participationStatus === 'confirmed' && (
+                  <Button disabled variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+                    <span className="mr-2">✓</span> Participação confirmada
+                  </Button>
+                )}
+                
                 {isCreator && (
                   <div className="space-x-2">
                     <Button 
@@ -403,7 +441,7 @@ export default function ViewEventModal({
                   </div>
                 )}
                 
-                {isParticipant && (
+                {isParticipant && (participationStatus === 'approved' || participationStatus === 'confirmed' || (participationStatus === 'rejected' && event.eventType !== 'private_application')) && (
                   <Button variant="destructive" onClick={async () => {
                     try {
                       const response = await fetch(`/api/events/${event.id}/cancel-participation`, {
