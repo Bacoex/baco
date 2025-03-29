@@ -835,7 +835,7 @@ export default function MyEventsPage() {
                       Não foi possível carregar os eventos que você está participando.
                     </CardDescription>
                   </CardHeader>
-                </</Card>
+                </Card>
               ) : participatingEventsQuery.data?.length === 0 ? (
                 <Card className="bg-black/30 backdrop-blur-sm border-gray-700">
                   <CardHeader>
