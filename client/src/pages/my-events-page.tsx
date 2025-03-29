@@ -37,6 +37,7 @@ import { Header } from "@/components/ui/header";
 import { Link } from "wouter";
 import CreateEventModal from "@/components/ui/create-event-modal";
 import NetworkBackground from "../components/ui/network-background";
+import { ParticipantsDialog } from "@/components/ui/participants-dialog";
 
 // Tipo para categoria de evento
 interface EventCategory {
@@ -297,80 +298,17 @@ function EventCard({ event, isCreator = false, participation = null, onApprove, 
       </CardFooter>
       
       {/* Modal para visualizar participantes */}
-      <Dialog open={showParticipants} onOpenChange={setShowParticipants}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Participantes do Evento</DialogTitle>
-            <DialogDescription>
-              {event.eventType === 'private_application' ? 
-                'Gerencie as candidaturas para o seu evento.' : 
-                'Veja quem está participando do seu evento.'}
-            </DialogDescription>
-          </DialogHeader>
-          
-          {event.participants && event.participants.length > 0 ? (
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {event.participants.map((participant) => (
-                <div key={participant.id} className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 rounded-lg group">
-                  <div 
-                    className="flex items-center flex-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-md transition-colors" 
-                    onClick={() => window.location.href = `/profile/${participant.userId}`}
-                  >
-                    <Eneagon className="w-10 h-10">
-                      <Avatar>
-                        <AvatarImage src={participant.user?.profileImage || undefined} />
-                        <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                          {participant.user?.firstName?.charAt(0) || ""}{participant.user?.lastName?.charAt(0) || ""}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Eneagon>
-                    <div className="ml-3">
-                      <div className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-primary">
-                        {getUserDisplayName({ firstName: participant.user?.firstName || "", lastName: participant.user?.lastName || "" })}
-                      </div>
-                      <Badge className={`${statusColors[participant.status]} text-xs mt-1`}>
-                        {statusText[participant.status]}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  {event.eventType === 'private_application' && participant.status === 'pending' && (
-                    <div className="flex space-x-1">
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-100"
-                        onClick={() => onApprove && onApprove(participant.id)}
-                      >
-                        <CheckCircle className="h-5 w-5" />
-                      </Button>
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-100"
-                        onClick={() => onReject && onReject(participant.id)}
-                      >
-                        <XCircle className="h-5 w-5" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <Users className="h-12 w-12 mx-auto text-gray-400" />
-              <p className="mt-2 text-gray-500">Nenhum participante ainda.</p>
-            </div>
-          )}
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowParticipants(false)}>
-              Fechar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ParticipantsDialog
+        open={showParticipants}
+        onOpenChange={setShowParticipants}
+        eventName={event.name}
+        eventType={event.eventType}
+        participants={event.participants || []}
+        onApprove={onApprove}
+        onReject={onReject}
+        onRemove={onRemoveParticipant}
+        onRevert={onRevertParticipant}
+      />
       
       {/* Modal para chat do evento */}
       <Dialog open={showChatModal} onOpenChange={setShowChatModal}>
