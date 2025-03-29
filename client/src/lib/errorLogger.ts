@@ -232,6 +232,26 @@ export function getLogsByComponent(component: string): ErrorLogEntry[] {
 // Inicialização: carregar logs do localStorage
 loadLogsFromStorage();
 
+// Criar um log de teste para demonstrar o formato de mensagem como objeto
+if (inMemoryLogs.length === 0) {
+  // Log com mensagem como objeto
+  logError({ message: "Este é um erro de exemplo", code: 500 }, ErrorSeverity.ERROR, {
+    component: "DemoComponent",
+    context: { route: "/test", method: "GET" },
+    additionalData: { 
+      user: { id: 1, name: "Usuário de Teste" },
+      request: { url: "/api/example", headers: { "Content-Type": "application/json" } }
+    }
+  });
+  
+  // Log com mensagem como string
+  logError("Erro de autenticação", ErrorSeverity.WARNING, {
+    component: "AuthService",
+    context: "Tentativa de login",
+    additionalData: { attempt: 3, ip: "192.168.1.1" }
+  });
+}
+
 // Exportar objeto singleton
 /**
  * Monitora uma função e registra automaticamente erros que ocorrem
