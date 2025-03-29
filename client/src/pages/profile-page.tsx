@@ -923,18 +923,63 @@ export default function ProfilePage() {
               <FormField
                 control={passwordForm.control}
                 name="newPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nova Senha</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="Digite a nova senha" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      A senha deve conter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  // Avaliação de força da senha
+                  const password = field.value;
+                  let strength = 0;
+                  let strengthText = "";
+                  let strengthColor = "";
+                  
+                  if (password) {
+                    // +1 para cada critério atendido
+                    if (password.length >= 8) strength++;
+                    if (/[A-Z]/.test(password)) strength++;
+                    if (/[a-z]/.test(password)) strength++;
+                    if (/[0-9]/.test(password)) strength++;
+                    if (/[^A-Za-z0-9]/.test(password)) strength++;
+                    
+                    if (strength <= 2) {
+                      strengthText = "Fraca";
+                      strengthColor = "bg-red-500";
+                    } else if (strength <= 4) {
+                      strengthText = "Média";
+                      strengthColor = "bg-yellow-500";
+                    } else {
+                      strengthText = "Forte";
+                      strengthColor = "bg-green-500";
+                    }
+                  }
+                  
+                  return (
+                    <FormItem>
+                      <FormLabel>Nova Senha</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="Digite a nova senha" {...field} />
+                      </FormControl>
+                      
+                      {password && (
+                        <div className="mt-2">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full ${strengthColor}`} 
+                                style={{ width: `${(strength / 5) * 100}%` }}
+                              />
+                            </div>
+                            <span className="text-xs font-medium">
+                              {strengthText}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <FormDescription>
+                        A senha deve conter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
               
               <FormField

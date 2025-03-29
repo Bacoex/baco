@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth } from "./auth";
+import { setupAuth, comparePasswords, hashPassword } from "./auth";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { 
@@ -508,6 +508,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error("Erro ao buscar eventos que o usuário participa:", err);
       res.status(500).json({ message: "Erro ao buscar eventos participando" });
+    }
+  });
+
+  /**
+   * Rotas de Perfil de Usuário e Autenticação
+   */
+  app.post("/api/user/change-password", ensureAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { currentPassword, newPassword } = req.body;
+      
+      // Buscar o usuário atual
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      
+      // Usar as funções de hash e verificação de senha importadas no topo do arquivo
+      
+      // Verificar se a senha atual está correta
+      const passwordMatch = await comparePasswords(currentPassword, user.password);
+      if (!passwordMatch) {
+        return res.status(400).json({ message: "Senha atual incorreta" });
+      }
+      
+      // Fazer hash da nova senha
+      const hashedPassword = await hashPassword(newPassword);
+      
+      // Atualizar a senha do usuário
+      const updatedUser = await storage.updateUser(userId, { password: hashedPassword });
+      
+      // Remover a senha do objeto de resposta
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.json(userWithoutPassword);
+    } catch (err) {
+      console.error("Erro ao alterar senha:", err);
+      res.status(500).json({ message: "Erro ao alterar senha" });
     }
   });
 

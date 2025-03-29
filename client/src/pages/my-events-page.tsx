@@ -379,7 +379,10 @@ export default function MyEventsPage() {
       }
     },
     enabled: !!user,
-    initialData: [] // Sempre iniciar com um array vazio
+    initialData: [], // Sempre iniciar com um array vazio
+    staleTime: 5000, // Reduz o número de solicitações, considerando os dados "frescos" por 5 segundos
+    refetchOnWindowFocus: false, // Evita refetch automático ao focar na janela
+    refetchOnMount: true // Garante que os dados sejam buscados quando o componente é montado
   });
 
   // Buscar eventos que o usuário está participando
@@ -397,7 +400,10 @@ export default function MyEventsPage() {
       }
     },
     enabled: !!user,
-    initialData: [] // Sempre iniciar com um array vazio
+    initialData: [], // Sempre iniciar com um array vazio
+    staleTime: 5000, // Reduz o número de solicitações, considerando os dados "frescos" por 5 segundos
+    refetchOnWindowFocus: false, // Evita refetch automático ao focar na janela
+    refetchOnMount: true // Garante que os dados sejam buscados quando o componente é montado
   });
 
   // Funcionalidade de seguir eventos foi removida
@@ -406,6 +412,8 @@ export default function MyEventsPage() {
   const categoriesQuery = useQuery<EventCategory[]>({
     queryKey: ["/api/categories"],
     initialData: [],
+    staleTime: 60000, // Categorias mudam raramente, cache por 1 minuto
+    refetchOnWindowFocus: false
   });
 
   // Mutação para remover evento
@@ -418,16 +426,15 @@ export default function MyEventsPage() {
       // Invalidar múltiplas queries para garantir que todos os dados sejam atualizados
       queryClient.invalidateQueries({ queryKey: ["/api/user/events/creator"] });
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/events/participating"] });
+      
+      // Force refetch dos eventos do usuário para atualizar a UI imediatamente
+      createdEventsQuery.refetch();
 
       toast({
         title: "Evento removido!",
         description: "Seu evento foi removido com sucesso.",
       });
-
-      // Atualizar a página para garantir que todos os dados sejam recarregados
-      setTimeout(() => {
-        window.location.reload();
-      }, 800);
     },
     onError: (error: Error) => {
       toast({
