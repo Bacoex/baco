@@ -51,16 +51,16 @@ export function ParticipantsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent aria-describedby="participants-dialog-description" className="max-w-md">
         <DialogHeader>
           <DialogTitle>Participantes: {eventName}</DialogTitle>
-          <div className="mt-1.5 text-sm text-muted-foreground">
+          <DialogDescription id="participants-dialog-description">
             {eventType === 'private_application' ? 
               'Gerencie as candidaturas para o seu evento.' : 
               'Veja quem está participando do seu evento.'}
-          </div>
+          </DialogDescription>
         </DialogHeader>
-        
+
         {participants && participants.length > 0 ? (
           <div className="space-y-4 max-h-96 overflow-y-auto">
             {participants.map((participant) => (
@@ -83,7 +83,7 @@ export function ParticipantsDialog({
             <p className="mt-2 text-gray-500">Nenhum participante ainda.</p>
           </div>
         )}
-        
+
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Fechar

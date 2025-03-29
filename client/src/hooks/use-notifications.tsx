@@ -98,7 +98,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         return [];
       }
     },
-    refetchInterval: 10000, // Atualiza a cada 10 segundos
+    refetchInterval: 30000, // Atualiza a cada 30 segundos
+    refetchOnWindowFocus: false, // Evita múltiplas chamadas ao focar a janela
   });
   
   // Query para buscar informações do usuário e seus eventos
