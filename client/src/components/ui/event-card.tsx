@@ -68,7 +68,45 @@ export default function EventCard({
   // Verifica se o usuário já está participando do evento
   const participationQuery = useQuery({
     queryKey: [`/api/events/${event.id}/participation`, user?.id],
-    // Usamos o queryFn padrão do queryClient que já foi configurado para lidar com erros e respostas não-JSON
+    // Substituímos o queryFn padrão por uma implementação personalizada que trata resposta vazia com status 200
+    queryFn: async ({ queryKey }) => {
+      console.log(`Verificando participação para evento ${event.id}`);
+      const res = await fetch(queryKey[0] as string, {
+        credentials: "include",
+      });
+      
+      console.log(`Resposta de verificação: status=${res.status}, contentType=${res.headers.get('content-type')}`);
+      
+      // Se o status for 200, significa que o usuário ESTÁ participando, mesmo que não tenha corpo JSON
+      if (res.status === 200) {
+        try {
+          // Tenta fazer o parse do JSON
+          const data = await res.json();
+          console.log("Dados de participação:", data);
+          return data;
+        } catch (e) {
+          // Se não conseguir fazer o parse, retorna um objeto padrão com status approved
+          console.log("Resposta 200 sem JSON válido, assumindo participação aprovada");
+          return { 
+            id: -1, // ID temporário
+            status: "approved",
+            eventId: event.id,
+            userId: user?.id
+          };
+        }
+      } else if (res.status === 404) {
+        // Não está participando
+        console.log("Status 404, usuário não está participando");
+        return null;
+      } else if (res.status === 401) {
+        // Não autenticado
+        console.log("Status 401, usuário não autenticado");
+        return null;
+      }
+      
+      // Para outros erros, lançamos uma exceção
+      throw new Error(`Erro ao verificar participação: ${res.status}`);
+    },
     enabled: !!user && !isCreator, // Só verificar participação se o usuário estiver logado e não for o criador
     staleTime: 30000, // Considerar os dados frescos por 30 segundos
     refetchOnMount: true, // Refetch sempre que o componente montar
