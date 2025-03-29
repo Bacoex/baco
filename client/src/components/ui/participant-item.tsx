@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eneagon } from "./eneagon";
+import { logError, ErrorSeverity } from "@/lib/errorLogger";
 
 import { cn } from "@/lib/utils";
 
@@ -87,7 +88,29 @@ export function ParticipantItem({
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 text-green-600 hover:text-green-800 hover:bg-green-100"
-                onClick={() => onApprove(participant.id)}
+                onClick={() => {
+                  try {
+                    onApprove(participant.id);
+                  } catch (error) {
+                    // Registra o erro no sistema de log
+                    logError(
+                      `Erro ao aprovar participante ${participant.id}`, 
+                      ErrorSeverity.ERROR, 
+                      {
+                        context: 'ApproveParticipant',
+                        component: 'ParticipantItem',
+                        error: error instanceof Error ? error : new Error(String(error)),
+                        additionalData: { 
+                          participantId: participant.id,
+                          userId: participant.userId,
+                          eventId: participant.eventId,
+                          previousStatus: participant.status,
+                          timestamp: new Date().toISOString()
+                        }
+                      }
+                    );
+                  }
+                }}
                 title="Aprovar"
               >
                 <CheckCircle className="h-5 w-5" />
@@ -96,7 +119,29 @@ export function ParticipantItem({
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 text-red-600 hover:text-red-800 hover:bg-red-100"
-                onClick={() => onReject(participant.id)}
+                onClick={() => {
+                  try {
+                    onReject(participant.id);
+                  } catch (error) {
+                    // Registra o erro no sistema de log
+                    logError(
+                      `Erro ao rejeitar participante ${participant.id}`, 
+                      ErrorSeverity.ERROR, 
+                      {
+                        context: 'RejectParticipant',
+                        component: 'ParticipantItem',
+                        error: error instanceof Error ? error : new Error(String(error)),
+                        additionalData: { 
+                          participantId: participant.id,
+                          userId: participant.userId,
+                          eventId: participant.eventId,
+                          previousStatus: participant.status,
+                          timestamp: new Date().toISOString()
+                        }
+                      }
+                    );
+                  }
+                }}
                 title="Rejeitar"
               >
                 <XCircle className="h-5 w-5" />
@@ -110,7 +155,29 @@ export function ParticipantItem({
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-amber-600 hover:text-amber-800 hover:bg-amber-100"
-              onClick={() => onRevert(participant.id)}
+              onClick={() => {
+                try {
+                  onRevert(participant.id);
+                } catch (error) {
+                  // Registra o erro no sistema de log
+                  logError(
+                    `Erro ao revogar decisão para participante ${participant.id}`, 
+                    ErrorSeverity.ERROR, 
+                    {
+                      context: 'RevertParticipant',
+                      component: 'ParticipantItem',
+                      error: error instanceof Error ? error : new Error(String(error)),
+                      additionalData: { 
+                        participantId: participant.id,
+                        userId: participant.userId,
+                        eventId: participant.eventId,
+                        previousStatus: participant.status,
+                        timestamp: new Date().toISOString()
+                      }
+                    }
+                  );
+                }
+              }}
               title="Revogar decisão"
             >
               <RotateCcw className="h-5 w-5" />
@@ -123,7 +190,29 @@ export function ParticipantItem({
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-gray-600 hover:text-gray-800 hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={() => onRemove(participant.id)}
+              onClick={() => {
+                try {
+                  onRemove(participant.id);
+                } catch (error) {
+                  // Registra o erro no sistema de log
+                  logError(
+                    `Erro ao remover participante ${participant.id}`, 
+                    ErrorSeverity.ERROR, 
+                    {
+                      context: 'RemoveParticipant',
+                      component: 'ParticipantItem',
+                      error: error instanceof Error ? error : new Error(String(error)),
+                      additionalData: { 
+                        participantId: participant.id,
+                        userId: participant.userId,
+                        eventId: participant.eventId,
+                        previousStatus: participant.status,
+                        timestamp: new Date().toISOString()
+                      }
+                    }
+                  );
+                }
+              }}
               title="Remover participante"
             >
               <XCircle className="h-5 w-5" />
