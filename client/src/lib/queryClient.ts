@@ -1,9 +1,17 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+import ErrorLogger from './errorLogger';
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    const error = `${res.status}: ${text}`;
+    ErrorLogger.log('error', error, { 
+      status: res.status,
+      url: res.url,
+      statusText: res.statusText 
+    });
+    throw new Error(error);
   }
 }
 
