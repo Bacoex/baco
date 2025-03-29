@@ -344,7 +344,7 @@ export default function ViewEventModal({
                         {`${event.creator?.firstName?.charAt(0)}${event.creator?.lastName?.charAt(0)}`}
                       </AvatarFallback>
                     </Avatar>
-                    <span>{getUserDisplayName(event.creator)}</span>
+                    <span className="font-bold text-gray-900 dark:text-white">{getUserDisplayName(event.creator)}</span>
                   </div>
                 </div>
               </div>
@@ -461,7 +461,7 @@ export default function ViewEventModal({
                       .map((participant) => (
                       <div 
                         key={participant.id} 
-                        className="flex flex-col p-2 rounded-md border hover:bg-gray-100 dark:hover:bg-gray-800"
+                        className="flex flex-col p-2 rounded-md border bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
                       >
                         <div 
                           className="flex items-center space-x-2 cursor-pointer"
@@ -474,7 +474,7 @@ export default function ViewEventModal({
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="font-medium">{getUserDisplayName(participant.user)}</div>
+                            <div className="font-bold text-gray-900 dark:text-white">{getUserDisplayName(participant.user)}</div>
                             <div className="text-xs text-muted-foreground">
                               {participant.status === 'confirmed' && 'Confirmado'}
                               {participant.status === 'approved' && 'Aprovado'}

@@ -12,6 +12,6 @@ export function cn(...inputs: ClassValue[]) {
  * @param user - Objeto do usuário ou null/undefined
  * @returns Sobrenome do usuário ou string vazia se não houver usuário
  */
-export function getUserDisplayName(user: { lastName: string } | User | null | undefined): string {
+export function getUserDisplayName(user: { lastName: string, firstName?: string } | User | null | undefined): string {
   return user?.lastName || "";
 }

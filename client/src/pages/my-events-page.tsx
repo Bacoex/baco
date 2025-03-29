@@ -311,7 +311,7 @@ function EventCard({ event, isCreator = false, participation = null, onApprove, 
           {event.participants && event.participants.length > 0 ? (
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {event.participants.map((participant) => (
-                <div key={participant.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg group">
+                <div key={participant.id} className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 rounded-lg group">
                   <div 
                     className="flex items-center flex-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-md transition-colors" 
                     onClick={() => window.location.href = `/profile/${participant.userId}`}
@@ -325,7 +325,7 @@ function EventCard({ event, isCreator = false, participation = null, onApprove, 
                       </Avatar>
                     </Eneagon>
                     <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-primary">
+                      <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-primary">
                         {getUserDisplayName({ firstName: participant.user?.firstName || "", lastName: participant.user?.lastName || "" })}
                       </p>
                       <Badge className={`${statusColors[participant.status]} text-xs mt-1`}>
