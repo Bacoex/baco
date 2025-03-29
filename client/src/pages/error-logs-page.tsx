@@ -219,7 +219,7 @@ export default function ErrorLogsPage() {
           ) : (
             <div className="space-y-4">
               {logs.map((log, index) => (
-                <Card key={index} className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950">
+                <Card key={index} className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800">
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
                       <div className="flex space-x-2 items-center">
@@ -235,18 +235,18 @@ export default function ErrorLogsPage() {
                           </span>
                         </Badge>
                         {log.component && (
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                             {log.component}
                           </Badge>
                         )}
                       </div>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                      <span className="text-xs text-gray-500 dark:text-gray-300">
                         {formatDateTime(log.timestamp)}
                       </span>
                     </div>
                     <CardTitle className="text-lg mt-2 text-gray-900 dark:text-white">{typeof log.message === 'string' ? log.message : JSON.stringify(log.message)}</CardTitle>
                     {log.context && (
-                      <CardDescription className="text-gray-700 dark:text-gray-300">
+                      <CardDescription className="text-gray-700 dark:text-gray-200 font-medium">
                         Contexto: {typeof log.context === 'string' ? log.context : JSON.stringify(log.context)}
                       </CardDescription>
                     )}
@@ -256,7 +256,7 @@ export default function ErrorLogsPage() {
                     {log.errorStack && (
                       <div className="mt-2">
                         <Separator className="my-2" />
-                        <p className="text-xs font-mono text-gray-700 dark:text-gray-300 overflow-x-auto whitespace-pre-wrap">
+                        <p className="text-xs font-mono text-gray-700 dark:text-gray-300 overflow-x-auto whitespace-pre-wrap bg-gray-50 dark:bg-gray-700 p-2 rounded">
                           {log.errorStack}
                         </p>
                       </div>
@@ -265,7 +265,7 @@ export default function ErrorLogsPage() {
                     {log.additionalData && (
                       <div className="mt-4">
                         <h4 className="text-sm font-medium mb-1 text-gray-800 dark:text-gray-200">Dados adicionais:</h4>
-                        <pre className="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded overflow-x-auto text-gray-800 dark:text-gray-200">
+                        <pre className="text-xs bg-gray-50 dark:bg-gray-700 p-3 rounded overflow-x-auto text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600">
                           {JSON.stringify(log.additionalData, null, 2)}
                         </pre>
                       </div>
