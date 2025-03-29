@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -54,7 +53,10 @@ export function ManageCoOrganizersDialog({ eventId, isOpen, onClose }: ManageCoO
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px]" aria-describedby="dialog-description">
+          <div id="dialog-description" className="sr-only">
+            Gerenciar co-organizadores do evento
+          </div>
           <DialogHeader>
             <DialogTitle>Gerenciar Co-organizadores</DialogTitle>
           </DialogHeader>

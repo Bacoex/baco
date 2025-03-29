@@ -115,10 +115,10 @@ export function NotificationsMenu() {
                 className={`px-2 py-2 cursor-pointer flex flex-col items-start ${!notification.read ? 'bg-gray-50 dark:bg-gray-900' : ''}`}
                 onClick={() => handleNotificationClick(notification)}
               >
-                <div className="flex items-center w-full text-sm font-medium">
+                <span className="flex items-center w-full text-sm font-medium">
                   {getNotificationIcon(notification.type)}
                   <span className="flex-1 truncate">{notification.title}</span>
-                  <div className="flex items-center gap-1 ml-1">
+                  <span className="flex items-center gap-1 ml-1">
                     {!notification.read && (
                       <Badge className="bg-blue-500 hover:bg-blue-600 px-1.5" variant="secondary">
                         Nova
