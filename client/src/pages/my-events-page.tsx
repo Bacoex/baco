@@ -396,6 +396,16 @@ export default function MyEventsPage() {
         return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error("Erro ao buscar eventos participando:", error);
+        // Registrando o erro no sistema de logs
+        logError(
+          `Erro ao buscar eventos que o usuário está participando: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+          ErrorSeverity.ERROR,
+          {
+            context: 'Participação em Eventos',
+            component: 'MyEventsPage',
+            error: error instanceof Error ? error : new Error(String(error))
+          }
+        );
         return [];
       }
     },
@@ -948,17 +958,15 @@ export default function MyEventsPage() {
                 </Card>
               ) : (
                 <div className="space-y-6">
-                  {participatingEventsQuery.data?.map((participation: any) => 
-                    participation && participation.event ? (
-                      <EventCard 
-                        key={participation.event.id} 
-                        event={participation.event}
-                        participation={{ 
-                          id: participation.id || 0, 
-                          status: participation.status || 'pending' 
-                        }}
-                      />
-                    ) : null
+                  {participatingEventsQuery.data?.map((eventWithParticipation: any) => 
+                    <EventCard 
+                      key={eventWithParticipation.id} 
+                      event={eventWithParticipation}
+                      participation={eventWithParticipation.participation || { 
+                        id: 0, 
+                        status: 'pending' 
+                      }}
+                    />
                   )}
                 </div>
               )}
