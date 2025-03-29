@@ -21,13 +21,29 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Header } from '@/components/ui/header';
 import NetworkBackground from '@/components/ui/network-background';
-import { getLogs, clearLogs, ErrorSeverity, ErrorLogEntry } from '@/lib/errorLogger';
-import { Loader2, Trash2, RotateCcw, FileText, AlertTriangle, Info, AlertCircle } from 'lucide-react';
+import { 
+  getLogs, 
+  clearLogs, 
+  removeOldLogs, 
+  ErrorSeverity, 
+  ErrorLogEntry 
+} from '@/lib/errorLogger';
+import { 
+  Loader2, 
+  Trash2, 
+  RotateCcw, 
+  FileText, 
+  AlertTriangle, 
+  Info, 
+  AlertCircle, 
+  Clock 
+} from 'lucide-react';
 
 export default function ErrorLogsPage() {
   const { user } = useAuth();
   const [logs, setLogs] = useState<ErrorLogEntry[]>([]);
   const [filter, setFilter] = useState<ErrorSeverity | 'all'>('all');
+  const [oldLogsRemoved, setOldLogsRemoved] = useState<number>(0);
 
   // Carregar logs ao iniciar a página
   useEffect(() => {
@@ -49,6 +65,25 @@ export default function ErrorLogsPage() {
     }
   };
 
+  // Função para remover logs antigos
+  const handleRemoveOldLogs = () => {
+    const removed = removeOldLogs();
+    setOldLogsRemoved(removed);
+    loadLogs();
+    
+    if (removed > 0) {
+      toast({
+        title: 'Logs antigos removidos',
+        description: `${removed} logs com mais de 14 dias foram excluídos permanentemente.`
+      });
+    } else {
+      toast({
+        title: 'Não há logs antigos',
+        description: 'Todos os logs existentes estão dentro do período de retenção de 14 dias.'
+      });
+    }
+  };
+  
   // Limpar todos os logs
   const handleClearLogs = () => {
     if (window.confirm('Tem certeza que deseja limpar todos os logs? Esta ação não pode ser desfeita.')) {
@@ -117,34 +152,53 @@ export default function ErrorLogsPage() {
 
       <main className="flex-grow px-4 pb-20 pt-28 relative z-10">
         <div className="container mx-auto max-w-6xl">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl font-semibold text-white">Log de Erros</h1>
-            <div className="flex space-x-2">
-              <Select
-                value={filter}
-                onValueChange={(value) => setFilter(value as ErrorSeverity | 'all')}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filtrar por severidade" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value={ErrorSeverity.INFO}>Informação</SelectItem>
-                  <SelectItem value={ErrorSeverity.WARNING}>Aviso</SelectItem>
-                  <SelectItem value={ErrorSeverity.ERROR}>Erro</SelectItem>
-                  <SelectItem value={ErrorSeverity.CRITICAL}>Crítico</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Button variant="ghost" onClick={loadLogs}>
-                <RotateCcw className="h-4 w-4 mr-1" />
-                Atualizar
-              </Button>
-              
-              <Button variant="destructive" onClick={handleClearLogs}>
-                <Trash2 className="h-4 w-4 mr-1" />
-                Limpar
-              </Button>
+          <div className="flex flex-col space-y-4 mb-6">
+            <div className="flex justify-between items-center">
+              <h1 className="text-xl font-semibold text-white">Log de Erros</h1>
+              <div className="flex space-x-2">
+                <Select
+                  value={filter}
+                  onValueChange={(value) => setFilter(value as ErrorSeverity | 'all')}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filtrar por severidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value={ErrorSeverity.INFO}>Informação</SelectItem>
+                    <SelectItem value={ErrorSeverity.WARNING}>Aviso</SelectItem>
+                    <SelectItem value={ErrorSeverity.ERROR}>Erro</SelectItem>
+                    <SelectItem value={ErrorSeverity.CRITICAL}>Crítico</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Button variant="ghost" onClick={loadLogs}>
+                  <RotateCcw className="h-4 w-4 mr-1" />
+                  Atualizar
+                </Button>
+                
+                <Button variant="outline" onClick={handleRemoveOldLogs}>
+                  <Clock className="h-4 w-4 mr-1" />
+                  Remover Antigos
+                </Button>
+                
+                <Button variant="destructive" onClick={handleClearLogs}>
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Limpar Tudo
+                </Button>
+              </div>
+            </div>
+            
+            <div className="bg-black/40 backdrop-blur-sm border border-gray-700 rounded p-3 flex items-center">
+              <Clock className="h-5 w-5 text-blue-400 mr-2" />
+              <p className="text-sm text-gray-300">
+                Os logs são automaticamente excluídos após <span className="font-semibold text-white">14 dias</span>.
+                {oldLogsRemoved > 0 && 
+                  <span className="ml-2 italic">
+                    {oldLogsRemoved} logs antigos foram excluídos na última limpeza.
+                  </span>
+                }
+              </p>
             </div>
           </div>
 

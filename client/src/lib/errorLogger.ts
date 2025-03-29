@@ -27,6 +27,9 @@ const inMemoryLogs: ErrorLogEntry[] = [];
 // Limite de logs armazenados
 const MAX_LOGS = 100;
 
+// Limite de dias para retenção de logs (14 dias)
+const LOG_RETENTION_DAYS = 14;
+
 /**
  * Adiciona um log de erro ao sistema
  * @param message Mensagem de erro
@@ -108,6 +111,34 @@ function saveLogsToStorage(): void {
 }
 
 /**
+ * Remove logs mais antigos que o período de retenção configurado
+ * @returns Número de logs removidos
+ */
+export function removeOldLogs(): number {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - LOG_RETENTION_DAYS);
+  
+  const initialCount = inMemoryLogs.length;
+  
+  // Remover logs mais antigos que o período de retenção
+  const filteredLogs = inMemoryLogs.filter(log => {
+    const logDate = new Date(log.timestamp);
+    return logDate >= cutoffDate;
+  });
+  
+  // Atualizar a lista de logs se algum foi removido
+  if (filteredLogs.length < initialCount) {
+    inMemoryLogs.length = 0; // Limpar o array
+    filteredLogs.forEach(log => inMemoryLogs.push(log)); // Re-adicionar logs válidos
+    saveLogsToStorage(); // Salvar alterações
+    
+    return initialCount - filteredLogs.length; // Retornar quantidade de logs removidos
+  }
+  
+  return 0;
+}
+
+/**
  * Carrega os logs armazenados no localStorage
  */
 function loadLogsFromStorage(): void {
@@ -133,6 +164,12 @@ function loadLogsFromStorage(): void {
       // Limitar o tamanho
       while (inMemoryLogs.length > MAX_LOGS) {
         inMemoryLogs.pop();
+      }
+      
+      // Remover logs antigos (mais de 14 dias)
+      const removedCount = removeOldLogs();
+      if (removedCount > 0) {
+        console.log(`Logs removidos automaticamente: ${removedCount} logs com mais de ${LOG_RETENTION_DAYS} dias`);
       }
     }
   } catch (e) {
@@ -186,6 +223,7 @@ export default {
   logError,
   getLogs,
   clearLogs,
+  removeOldLogs,
   getLogsBySeverity,
   getLogsByComponent,
   ErrorSeverity
