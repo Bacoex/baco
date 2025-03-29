@@ -4,17 +4,28 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eneagon } from "./eneagon";
-import { EventParticipant } from "@shared/schema";
+
+import { cn } from "@/lib/utils";
+
+export interface ParticipantWithUser {
+  id: number;
+  eventId: number;
+  userId: number;
+  status: string;
+  applicationReason?: string | null;
+  reviewedBy?: number | null;
+  reviewedAt?: Date | null;
+  createdAt?: Date | string | null;
+  user?: {
+    id: number;
+    firstName?: string;
+    lastName?: string;
+    profileImage?: string | null;
+  };
+}
 
 interface ParticipantItemProps {
-  participant: EventParticipant & {
-    user?: {
-      id: number;
-      firstName?: string;
-      lastName?: string;
-      profileImage?: string | null;
-    };
-  };
+  participant: ParticipantWithUser;
   eventType: "public" | "private_ticket" | "private_application";
   onApprove?: (participantId: number) => void;
   onReject?: (participantId: number) => void;
@@ -58,9 +69,11 @@ export function ParticipantItem({
               lastName: participant.user?.lastName || "" 
             })}
           </div>
-          <Badge className={`${statusColors[status]} text-xs mt-1`}>
-            {statusText[status]}
-          </Badge>
+          <div className="mt-1">
+            <Badge className={cn(`${statusColors[status]} text-xs`)}>
+              {statusText[status]}
+            </Badge>
+          </div>
         </div>
       </div>
       

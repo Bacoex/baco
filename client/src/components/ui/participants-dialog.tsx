@@ -8,22 +8,14 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ParticipantItem } from "./participant-item";
-import { EventParticipant } from "@shared/schema";
+import { ParticipantItem, ParticipantWithUser } from "./participant-item";
 
 interface ParticipantsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   eventName: string;
   eventType: "public" | "private_ticket" | "private_application";
-  participants: Array<EventParticipant & {
-    user?: {
-      id: number;
-      firstName?: string;
-      lastName?: string;
-      profileImage?: string | null;
-    };
-  }>;
+  participants: ParticipantWithUser[];
   onApprove?: (participantId: number) => void;
   onReject?: (participantId: number) => void;
   onRemove?: (participantId: number) => void;
@@ -62,11 +54,11 @@ export function ParticipantsDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Participantes: {eventName}</DialogTitle>
-          <DialogDescription>
+          <div className="mt-1.5 text-sm text-muted-foreground">
             {eventType === 'private_application' ? 
               'Gerencie as candidaturas para o seu evento.' : 
               'Veja quem está participando do seu evento.'}
-          </DialogDescription>
+          </div>
         </DialogHeader>
         
         {participants && participants.length > 0 ? (
