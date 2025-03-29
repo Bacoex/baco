@@ -9,11 +9,15 @@ import {
   insertEventParticipantSchema, 
   insertEventSubcategorySchema 
 } from "@shared/schema";
+import { errorMonitoringMiddleware, monitoredStorage } from "./errorMonitoring";
 
 /**
  * Registra todas as rotas da API
  */
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Adicionar middleware de monitoramento de erros
+  app.use(errorMonitoringMiddleware);
+  
   // Configura autenticação
   setupAuth(app);
 
@@ -43,7 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.get("/api/categories", async (req, res) => {
     try {
-      const categories = await storage.getCategories();
+      const categories = await monitoredStorage.getCategories();
       res.json(categories);
     } catch (err) {
       res.status(500).json({ message: "Erro ao buscar categorias" });
@@ -554,7 +558,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.get("/api/notifications", ensureAuthenticated, async (req, res) => {
     try {
-      const notifications = await storage.getNotificationsByUser(req.user!.id);
+      const notifications = await monitoredStorage.getNotificationsByUser(req.user!.id);
       res.json(notifications);
     } catch (err) {
       res.status(500).json({ message: "Erro ao buscar notificações" });
@@ -591,7 +595,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota para excluir uma notificação
   app.delete("/api/notifications/:id", ensureAuthenticated, async (req, res) => {
     try {
-      await storage.deleteNotificationForUser(parseInt(req.params.id));
+      await monitoredStorage.deleteNotificationForUser(parseInt(req.params.id));
       res.json({ message: "Notificação removida" });
     } catch (err) {
       console.error("Erro ao remover notificação:", err);

@@ -219,6 +219,112 @@ export function getLogsByComponent(component: string): ErrorLogEntry[] {
 loadLogsFromStorage();
 
 // Exportar objeto singleton
+/**
+ * Monitora uma função e registra automaticamente erros que ocorrem
+ * @param fn Função a ser monitorada
+ * @param options Opções de monitoramento
+ * @returns Função monitorada que registra erros automaticamente
+ */
+export function monitorFunction<T extends (...args: any[]) => any>(
+  fn: T,
+  options: {
+    functionName: string;
+    component?: string;
+    context?: string;
+    severity?: ErrorSeverity;
+  }
+): (...args: Parameters<T>) => ReturnType<T> {
+  return function(...args: Parameters<T>): ReturnType<T> {
+    try {
+      const result = fn(...args);
+      
+      // Para funções que retornam Promises, monitorar erros assíncronos
+      if (result instanceof Promise) {
+        return result.catch(error => {
+          logError(
+            `Erro em ${options.functionName}: ${error.message}`,
+            options.severity || ErrorSeverity.ERROR,
+            {
+              component: options.component,
+              context: options.context,
+              error,
+              additionalData: {
+                arguments: args.map(arg => 
+                  // Apenas registrar argumentos primitivos ou seus stringificados para evitar loops circulares
+                  typeof arg === 'object' ? JSON.stringify(arg).substring(0, 500) : arg
+                ),
+                functionName: options.functionName
+              }
+            }
+          );
+          throw error; // Re-lançar o erro para manter o comportamento original
+        }) as ReturnType<T>;
+      }
+      
+      return result;
+    } catch (error: unknown) {
+      const err = error as Error;
+      logError(
+        `Erro em ${options.functionName}: ${err.message || 'Erro desconhecido'}`,
+        options.severity || ErrorSeverity.ERROR,
+        {
+          component: options.component,
+          context: options.context,
+          error: err,
+          additionalData: {
+            arguments: args.map(arg => 
+              typeof arg === 'object' ? JSON.stringify(arg).substring(0, 500) : arg
+            ),
+            functionName: options.functionName
+          }
+        }
+      );
+      throw error; // Re-lançar o erro para manter o comportamento original
+    }
+  };
+}
+
+/**
+ * Monitora um objeto (por exemplo, um hook) e registra automaticamente erros em suas funções
+ * @param obj Objeto com funções a serem monitoradas
+ * @param options Opções de monitoramento
+ * @returns Objeto com funções monitoradas
+ */
+export function monitorObject<T extends Record<string, any>>(
+  obj: T,
+  options: {
+    objectName: string;
+    component?: string;
+    context?: string;
+    severity?: ErrorSeverity;
+    excludeMethods?: string[]; // Métodos a serem excluídos do monitoramento
+  }
+): Record<string, any> {
+  const monitoredObject = { ...obj };
+  const excludeMethods = options.excludeMethods || [];
+  
+  // Percorrer todas as propriedades do objeto
+  for (const key in monitoredObject) {
+    if (
+      typeof monitoredObject[key] === 'function' && 
+      !excludeMethods.includes(key)
+    ) {
+      // Substituir a função por uma versão monitorada
+      monitoredObject[key] = monitorFunction(
+        monitoredObject[key],
+        {
+          functionName: `${options.objectName}.${key}`,
+          component: options.component,
+          context: options.context,
+          severity: options.severity
+        }
+      );
+    }
+  }
+  
+  return monitoredObject;
+}
+
 export default {
   logError,
   getLogs,
@@ -226,5 +332,7 @@ export default {
   removeOldLogs,
   getLogsBySeverity,
   getLogsByComponent,
+  monitorFunction,
+  monitorObject,
   ErrorSeverity
 };
