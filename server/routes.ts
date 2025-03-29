@@ -278,6 +278,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const creator = await storage.getUser(event.creatorId);
           const participants = await storage.getParticipants(event.id);
           
+          // Adicionar informações do usuário para cada participante
+          const participantsWithDetails = await Promise.all(
+            participants.map(async (participant) => {
+              const user = await storage.getUser(participant.userId);
+              return {
+                ...participant,
+                user: user ? {
+                  id: user.id,
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  profileImage: user.profileImage
+                } : null
+              };
+            })
+          );
+          
           return {
             ...event,
             category: {
@@ -291,7 +307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               lastName: creator?.lastName || "Desconhecido",
               profileImage: creator?.profileImage || null
             },
-            participants: participants
+            participants: participantsWithDetails
           };
         })
       );
