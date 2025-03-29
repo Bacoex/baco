@@ -198,7 +198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existingParticipation) {
         return res.status(400).json({ message: "Você já está participando deste evento" });
       }
-
+      
       const participation = await storage.createParticipation({
         eventId,
         userId,
@@ -216,9 +216,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } : null
       });
     } catch (err) {
+      console.error("Erro ao participar do evento:", err);
       res.status(500).json({ message: "Erro ao participar do evento" });
     }
   });
+  
+  // Rota para verificar participação em evento específico
+  app.get("/api/events/:id/participation", ensureAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      const participation = await storage.getParticipation(event.id, userId);
+      if (participation) {
+        return res.json(participation);
+      } else {
+        return res.status(404).json({ message: "Participação não encontrada" });
+      }
+    } catch (error) {
+      console.error("Erro ao verificar participação:", error);
+      return res.status(500).json({ message: "Erro interno ao verificar participação" });
+    }
+  });
+  
+  // Rota para cancelar participação em evento específico (alternativa mais semântica)
+  app.post("/api/events/:id/cancel-participation", ensureAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      const participation = await storage.getParticipation(event.id, userId);
+      if (!participation) {
+        return res.status(404).json({ message: "Participação não encontrada" });
+      }
+      
+      await storage.removeParticipation(participation.id);
+      return res.status(200).json({ message: "Participação cancelada com sucesso" });
+    } catch (error) {
+      console.error("Erro ao cancelar participação:", error);
+      return res.status(500).json({ message: "Erro interno ao cancelar participação" });
+    }
+  });
+  
+
 
   /**
    * Rotas de gerenciamento de participantes
