@@ -509,25 +509,27 @@ export default function ViewEventModal({
                               </Button>
                             )}
                             
-                            {(participant.status === 'confirmed' || participant.status === 'approved') && onRemoveParticipant && (
+                            {/* Botão de revogar para aprovados e rejeitados */}
+                            {(participant.status === 'approved' || participant.status === 'rejected') && onRevertParticipant && (
                               <Button 
                                 size="sm" 
                                 variant="outline" 
-                                className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white w-full"
-                                onClick={() => onRemoveParticipant(participant.id)}
+                                className="text-amber-500 border-amber-500 hover:bg-amber-500 hover:text-white w-full"
+                                onClick={() => onRevertParticipant(participant.id)}
                               >
-                                Remover participante
+                                Revogar decisão
                               </Button>
                             )}
                             
-                            {participant.status === 'rejected' && onRevertParticipant && (
+                            {/* Botão para remover participante */ }
+                            {onRemoveParticipant && (
                               <Button 
                                 size="sm" 
                                 variant="outline" 
-                                className="text-blue-500 border-blue-500 hover:bg-blue-500 hover:text-white w-full"
-                                onClick={() => onRevertParticipant(participant.id)}
+                                className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white w-full mt-1"
+                                onClick={() => onRemoveParticipant(participant.id)}
                               >
-                                Reverter para pendente
+                                Remover participante
                               </Button>
                             )}
                           </div>

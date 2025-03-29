@@ -1,4 +1,4 @@
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, RotateCcw } from "lucide-react";
 import { getUserDisplayName } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -102,6 +102,32 @@ export function ParticipantItem({
                 <XCircle className="h-5 w-5" />
               </Button>
             </>
+          )}
+          
+          {/* Botão de reverter para candidaturas já avaliadas (approved/rejected) */}
+          {(status === 'approved' || status === 'rejected') && onRevert && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-amber-600 hover:text-amber-800 hover:bg-amber-100"
+              onClick={() => onRevert(participant.id)}
+              title="Revogar decisão"
+            >
+              <RotateCcw className="h-5 w-5" />
+            </Button>
+          )}
+          
+          {/* Botão de remover para todos os status */}
+          {onRemove && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-gray-600 hover:text-gray-800 hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => onRemove(participant.id)}
+              title="Remover participante"
+            >
+              <XCircle className="h-5 w-5" />
+            </Button>
           )}
         </div>
       )}
