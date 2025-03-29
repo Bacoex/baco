@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { LogOut, Menu, User, HelpCircle, Info, Bell } from "lucide-react";
+import { LogOut, Menu, User, HelpCircle, Info, Bell, AlertCircle } from "lucide-react";
 import { NotificationsMenu } from "@/components/ui/notifications-menu";
 
 export function Header() {
@@ -75,6 +75,12 @@ export function Header() {
                 <Link href="/about">
                   <Info className="mr-2 h-4 w-4" />
                   Sobre
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/error-logs">
+                  <AlertCircle className="mr-2 h-4 w-4" />
+                  Logs de Erros
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleLogout}>

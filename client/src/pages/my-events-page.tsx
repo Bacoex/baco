@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/use-notifications";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getUserDisplayName } from "@/lib/utils";
+import { logError, ErrorSeverity } from "@/lib/errorLogger";
 import { useLocation } from "wouter";
 import { Loader2, Calendar, MapPin, Clock, Users, Edit, Trash2, CheckCircle, XCircle, MessageSquare, Plus, Heart, HeartOff } from "lucide-react";
 import {
@@ -495,6 +496,19 @@ export default function MyEventsPage() {
       }
     },
     onError: (error: Error) => {
+      // Registra o erro no sistema de log
+      logError(
+        `Erro ao aprovar participante: ${error.message}`, 
+        ErrorSeverity.ERROR, 
+        {
+          userId: user?.id,
+          context: 'ApproveParticipant',
+          component: 'MyEventsPage',
+          error: error,
+          additionalData: { timestamp: new Date().toISOString() }
+        }
+      );
+
       toast({
         title: "Erro ao aprovar participante",
         description: error.message,
@@ -565,6 +579,19 @@ export default function MyEventsPage() {
       }
     },
     onError: (error: Error) => {
+      // Registra o erro no sistema de log
+      logError(
+        `Erro ao rejeitar participante: ${error.message}`, 
+        ErrorSeverity.ERROR, 
+        {
+          userId: user?.id,
+          context: 'RejectParticipant',
+          component: 'MyEventsPage',
+          error: error,
+          additionalData: { timestamp: new Date().toISOString() }
+        }
+      );
+
       toast({
         title: "Erro ao rejeitar participante",
         description: error.message,
@@ -631,6 +658,19 @@ export default function MyEventsPage() {
       }
     },
     onError: (error: Error) => {
+      // Registra o erro no sistema de log
+      logError(
+        `Erro ao remover participante: ${error.message}`, 
+        ErrorSeverity.ERROR, 
+        {
+          userId: user?.id,
+          context: 'RemoveParticipant',
+          component: 'MyEventsPage',
+          error: error,
+          additionalData: { timestamp: new Date().toISOString() }
+        }
+      );
+
       toast({
         title: "Erro ao remover participante",
         description: error.message,
@@ -697,6 +737,19 @@ export default function MyEventsPage() {
       }
     },
     onError: (error: Error) => {
+      // Registra o erro no sistema de log
+      logError(
+        `Erro ao reverter candidatura: ${error.message}`, 
+        ErrorSeverity.ERROR, 
+        {
+          userId: user?.id,
+          context: 'RevertParticipant',
+          component: 'MyEventsPage',
+          error: error,
+          additionalData: { timestamp: new Date().toISOString() }
+        }
+      );
+
       toast({
         title: "Erro ao reverter candidatura",
         description: error.message,
