@@ -149,18 +149,31 @@ export default function EventCard({
       } else if (participationQuery.data) {
         participationId = participationQuery.data.id;
       } else {
-        throw new Error('Informações de participação não encontradas');
+        // Se não temos o ID da participação, tentamos buscar novamente
+        const refreshResponse = await fetch(`/api/events/${event.id}/participation`);
+        if (!refreshResponse.ok) {
+          throw new Error('Não foi possível encontrar sua participação');
+        }
+        
+        const refreshData = await refreshResponse.json();
+        if (!refreshData || !refreshData.id) {
+          throw new Error('Informações de participação não encontradas');
+        }
+        
+        participationId = refreshData.id;
       }
       
       const response = await fetch(`/api/participants/${participationId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        credentials: 'include'
       });
 
       if (!response.ok) {
-        throw new Error('Falha ao cancelar participação');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Falha ao cancelar participação');
       }
 
       // Atualiza o estado local e na API
@@ -173,9 +186,10 @@ export default function EventCard({
         description: "Você não está mais participando deste evento."
       });
     } catch (error) {
+      console.error('Erro ao cancelar participação:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível cancelar sua participação.",
+        description: error instanceof Error ? error.message : "Não foi possível cancelar sua participação.",
         variant: "destructive"
       });
     }
