@@ -12,10 +12,10 @@ export enum ErrorSeverity {
 
 export interface ErrorLogEntry {
   timestamp: string;
-  message: string;
+  message: string;  // Sempre será string depois do processamento em logError
   severity: ErrorSeverity;
   userId?: number;
-  context?: string;
+  context?: string;  // Sempre será string depois do processamento em logError
   component?: string;
   errorStack?: string;
   additionalData?: any;
@@ -37,22 +37,36 @@ const LOG_RETENTION_DAYS = 14;
  * @param options Opções adicionais
  */
 export function logError(
-  message: string,
+  message: any,
   severity: ErrorSeverity = ErrorSeverity.ERROR,
   options: {
     userId?: number;
-    context?: string;
+    context?: any;
     component?: string;
     error?: Error;
     additionalData?: any;
   } = {}
 ): void {
+  // Garantir que a mensagem seja uma string
+  const messageStr = typeof message === 'string' 
+    ? message 
+    : (message instanceof Error 
+      ? message.message 
+      : JSON.stringify(message));
+  
+  // Garantir que o contexto seja uma string
+  const contextStr = options.context 
+    ? (typeof options.context === 'string' 
+      ? options.context 
+      : JSON.stringify(options.context))
+    : undefined;
+  
   const entry: ErrorLogEntry = {
     timestamp: new Date().toISOString(),
-    message,
+    message: messageStr,
     severity,
     userId: options.userId,
-    context: options.context,
+    context: contextStr,
     component: options.component,
     errorStack: options.error?.stack,
     additionalData: options.additionalData
@@ -71,7 +85,7 @@ export function logError(
   
   // Log no console para facilitar o debugging imediato
   const consoleMethod = getConsoleMethodForSeverity(severity);
-  consoleMethod(`[${severity.toUpperCase()}] ${message}`);
+  consoleMethod(`[${severity.toUpperCase()}] ${messageStr}`);
   
   if (options.error) {
     console.error(options.error);

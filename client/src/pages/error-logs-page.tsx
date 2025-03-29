@@ -244,10 +244,10 @@ export default function ErrorLogsPage() {
                         {formatDateTime(log.timestamp)}
                       </span>
                     </div>
-                    <CardTitle className="text-lg mt-2">{log.message}</CardTitle>
+                    <CardTitle className="text-lg mt-2">{typeof log.message === 'string' ? log.message : JSON.stringify(log.message)}</CardTitle>
                     {log.context && (
                       <CardDescription>
-                        Contexto: {log.context}
+                        Contexto: {typeof log.context === 'string' ? log.context : JSON.stringify(log.context)}
                       </CardDescription>
                     )}
                   </CardHeader>
