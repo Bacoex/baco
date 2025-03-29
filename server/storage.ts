@@ -997,9 +997,36 @@ export class MemStorage implements IStorage {
   }
 
   async deleteNotificationForUser(recipientId: number): Promise<void> {
-    const index = this.notificationRecipients.findIndex(r => r.id === recipientId);
-    if (index !== -1) {
-      this.notificationRecipients[index].deletedAt = new Date();
+    // Encontrar o destinatário para remover
+    const recipient = this.notificationRecipients.find(r => r.id === recipientId);
+    
+    // Se não encontrou, não há nada a fazer
+    if (!recipient) {
+      console.log(`Recipiente ${recipientId} não encontrado para remoção`);
+      return;
+    }
+    
+    // Salvar o ID da notificação antes de remover o destinatário
+    const notificationId = recipient.notificationId;
+    
+    console.log(`Removendo definitivamente a notificação para o recipiente ${recipientId} (notificação ${notificationId})`);
+    
+    // Remover o destinatário
+    const recipientIndex = this.notificationRecipients.findIndex(r => r.id === recipientId);
+    if (recipientIndex !== -1) {
+      this.notificationRecipients.splice(recipientIndex, 1);
+    }
+    
+    // Verificar se ainda existem outros destinatários para esta notificação
+    const hasOtherRecipients = this.notificationRecipients.some(r => r.notificationId === notificationId);
+    
+    // Se não há mais destinatários, remover a notificação
+    if (!hasOtherRecipients) {
+      const notificationIndex = this.notifications.findIndex(n => n.id === notificationId);
+      if (notificationIndex !== -1) {
+        console.log(`Removendo definitivamente a notificação ${notificationId} por não ter mais destinatários`);
+        this.notifications.splice(notificationIndex, 1);
+      }
     }
   }
   

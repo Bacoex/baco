@@ -40,6 +40,17 @@ export function NotificationsMenu() {
   // Função para remover uma notificação
   const handleRemoveNotification = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
+    
+    // Encontrar a notificação pelo ID para registro
+    const notification = notifications.find(n => n.id === id);
+    
+    if (notification) {
+      console.log(`Excluindo notificação: ${id}, tipo: ${notification.type}, título: ${notification.title}`);
+      if (notification.recipientId) {
+        console.log(`Notificação tem ID de recipiente no backend: ${notification.recipientId}`);
+      }
+    }
+    
     removeNotification(id);
   };
 
@@ -127,10 +138,7 @@ export function NotificationsMenu() {
                       variant="ghost" 
                       size="icon"
                       className="h-4 w-4"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeNotification(notification.id);
-                      }}
+                      onClick={(e) => handleRemoveNotification(e, notification.id)}
                     >
                       <X className="h-3 w-3" />
                     </Button>

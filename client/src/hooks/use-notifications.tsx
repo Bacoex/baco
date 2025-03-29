@@ -248,9 +248,27 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   };
 
   // Remover notificação
-  const removeNotification = (id: string) => {
+  const removeNotification = async (id: string) => {
+    // Busca a notificação pelo ID
+    const notification = notifications.find(n => n.id === id);
+    if (!notification) return;
+    
+    // Remove do estado local
     const updatedNotifications = notifications.filter(notification => notification.id !== id);
     setNotifications(updatedNotifications);
+    
+    // Se a notificação veio da API (tem o formato 'api-X'), remove também no backend
+    if (id.startsWith('api-') && notification.recipientId) {
+      try {
+        console.log(`Excluindo notificação ${notification.recipientId} no backend`);
+        await apiRequest('DELETE', `/api/notifications/${notification.recipientId}`);
+        // Invalidar a query para que seja buscada novamente
+        queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      } catch (error) {
+        console.error('Erro ao excluir notificação no backend:', error);
+        // Mesmo em caso de erro, mantemos a UI consistente removendo localmente
+      }
+    }
     
     // Atualiza localStorage manualmente
     if (user && updatedNotifications.length > 0) {
@@ -272,7 +290,29 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   };
 
   // Remover todas as notificações
-  const removeAllNotifications = () => {
+  const removeAllNotifications = async () => {
+    // Verificar se há notificações da API para remover
+    const apiNotifications = notifications.filter(n => n.id.startsWith('api-') && n.recipientId);
+    
+    // Se houver notificações da API, tentar removê-las uma a uma no backend
+    if (apiNotifications.length > 0) {
+      console.log(`Removendo ${apiNotifications.length} notificações no backend`);
+      
+      for (const notification of apiNotifications) {
+        if (notification.recipientId) {
+          try {
+            await apiRequest('DELETE', `/api/notifications/${notification.recipientId}`);
+          } catch (error) {
+            console.error(`Erro ao excluir notificação ${notification.recipientId} no backend:`, error);
+          }
+        }
+      }
+      
+      // Invalidar a query para que seja buscada novamente
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+    }
+    
+    // Remover todas as notificações no estado local
     setNotifications([]);
     
     // Limpar localStorage

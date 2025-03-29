@@ -570,6 +570,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para marcar todas as notificações como lidas
+  app.patch("/api/notifications/all/read", ensureAuthenticated, async (req, res) => {
+    try {
+      // Buscar todas as notificações do usuário
+      const userNotifications = await storage.getNotificationsByUser(req.user!.id);
+      
+      // Marcar cada uma como lida
+      for (const item of userNotifications) {
+        await storage.markNotificationAsRead(item.recipient.id);
+      }
+      
+      res.json({ message: "Todas as notificações marcadas como lidas" });
+    } catch (err) {
+      console.error("Erro ao marcar todas notificações como lidas:", err);
+      res.status(500).json({ message: "Erro ao marcar notificações como lidas" });
+    }
+  });
+
+  // Rota para excluir uma notificação
+  app.delete("/api/notifications/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      await storage.deleteNotificationForUser(parseInt(req.params.id));
+      res.json({ message: "Notificação removida" });
+    } catch (err) {
+      console.error("Erro ao remover notificação:", err);
+      res.status(500).json({ message: "Erro ao remover notificação" });
+    }
+  });
+
   // Criar servidor HTTP
   const httpServer = createServer(app);
   return httpServer;
