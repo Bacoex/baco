@@ -24,6 +24,7 @@ import { useLocation } from "wouter";
 import { ManageCoOrganizersDialog } from "@/components/ui/manage-co-organizers-dialog";
 import { ShareEventDialog } from "@/components/ui/share-event-dialog";
 import { EditEventModal } from "@/components/ui/edit-event-modal";
+import { queryClient } from "@/lib/queryClient";
 
 /**
  * Interface do evento com todos os dados necessários para exibição
@@ -214,7 +215,12 @@ export default function ViewEventModal({
         });
       }
       
-      // Fecha o modal para forçar uma atualização
+      // Invalida todas as queries relevantes para atualizar a interface
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participation`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/events/participating'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+      
+      // Fecha o modal
       onClose();
       
       toast({
@@ -223,11 +229,6 @@ export default function ViewEventModal({
           ? "Sua candidatura foi enviada com sucesso!" 
           : "Você está participando deste evento!",
       });
-      
-      // Recarrega a lista de eventos para atualizar a interface
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
       
     } catch (error) {
       toast({
@@ -255,18 +256,18 @@ export default function ViewEventModal({
         throw new Error(errorData.message || 'Erro ao cancelar participação');
       }
       
-      // Fecha o modal para forçar uma atualização
+      // Invalida todas as queries relevantes para atualizar a interface
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participation`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/events/participating'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+      
+      // Fecha o modal
       onClose();
       
       toast({
         title: "Participação cancelada",
         description: "Você não está mais participando deste evento.",
       });
-      
-      // Recarrega a lista de eventos para atualizar a interface
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
       
     } catch (error) {
       toast({
@@ -669,11 +670,14 @@ export default function ViewEventModal({
           isOpen={isEditEventModalOpen}
           onClose={() => {
             setIsEditEventModalOpen(false);
-            // Fechar o modal principal e recarregar para mostrar as atualizações
+            
+            // Invalidar todas as queries relevantes para atualizar a interface
+            queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}`] });
+            queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/user/events/creator'] });
+            
+            // Fechar o modal principal
             onClose();
-            setTimeout(() => {
-              window.location.reload();
-            }, 1000);
           }}
           eventId={event.id}
         />

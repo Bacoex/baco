@@ -73,21 +73,35 @@ export default function EventCard({
         const res = await fetch(`/api/events/${event.id}/participation`, {
           credentials: 'include'
         });
-        if (!res.ok) return null;
-        return await res.json();
+        
+        // Se o status for 404, significa que o usuário não está participando
+        if (res.status === 404) return null;
+        
+        // Se houver qualquer outro erro
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(errorText || `Erro ao verificar participação: ${res.status}`);
+        }
+        
+        // Tenta fazer o parse do JSON, se falhar retorna null
+        try {
+          return await res.json();
+        } catch (jsonError) {
+          console.warn("Resposta não é JSON válido:", jsonError);
+          return null;
+        }
       } catch (error) {
-        // Registra o erro no sistema de logs
-        // Use error logger
-        console.error(`Erro ao verificar participação no evento ${event.id}`, error);
-        console.error('Erro ao verificar participação:', error);
+        // Registra o erro no sistema de logs com mais detalhes
+        console.error(`Erro ao verificar participação no evento ${event.id}:`, 
+          error instanceof Error ? error.message : 'Erro desconhecido');
         return null;
       }
     },
-    enabled: !!user,
-    staleTime: 0, // Nunca considerar os dados como "stale"
+    enabled: !!user && !isCreator, // Só verificar participação se o usuário estiver logado e não for o criador
+    staleTime: 60000, // Considerar os dados frescos por 1 minuto
     refetchOnMount: true, // Refetch sempre que o componente montar
     refetchOnWindowFocus: true, // Refetch quando a janela ganhar foco
-    retry: 2 // Tentar novamente 2 vezes em caso de erro
+    retry: 1 // Reduzir o número de tentativas para evitar muitas requisições em caso de erro
   });
 
   // Atualiza o estado isParticipating com base no participation prop ou no resultado da query
@@ -120,6 +134,16 @@ export default function EventCard({
   // Função para participar do evento
   const handleParticipate = async () => {
     try {
+      // Se já está participando, evita enviar a requisição
+      if (isParticipating) {
+        toast({
+          title: "Atenção",
+          description: "Você já está participando deste evento.",
+          variant: "default"
+        });
+        return;
+      }
+
       const response = await fetch(`/api/events/${event.id}/participate`, {
         method: 'POST',
         headers: {
@@ -128,26 +152,42 @@ export default function EventCard({
         credentials: 'include'
       });
 
+      // Tenta ler a resposta como JSON para pegar mensagens de erro específicas
+      let responseData;
+      try {
+        responseData = await response.json();
+      } catch (e) {
+        // Se não for JSON, continua com o fluxo normal
+      }
+
       if (!response.ok) {
+        // Se temos uma mensagem de erro específica da API, usamos ela
+        if (responseData && responseData.message) {
+          throw new Error(responseData.message);
+        }
         throw new Error('Falha ao participar do evento');
       }
 
       // Atualiza o estado local e na API
       setIsParticipating(true);
+      
+      // Invalidação de queries em cascata para garantir consistência
       queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participation`] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/events/participating'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
       
       toast({
         title: "Sucesso!",
         description: "Sua solicitação foi enviada com sucesso."
       });
     } catch (error) {
-      // Registra o erro no sistema de logs
-      console.error(`Erro ao participar do evento ${event.id}`, error);
+      // Registra o erro no sistema de logs com detalhes
+      console.error(`Erro ao participar do evento ${event.id}:`, 
+        error instanceof Error ? error.message : 'Erro desconhecido');
       
       toast({
         title: "Erro",
-        description: "Não foi possível participar do evento.",
+        description: error instanceof Error ? error.message : "Não foi possível participar do evento.",
         variant: "destructive"
       });
     }
@@ -156,6 +196,16 @@ export default function EventCard({
   // Função para cancelar participação
   const handleCancelParticipation = async () => {
     try {
+      // Se não está participando, evita enviar a requisição
+      if (!isParticipating) {
+        toast({
+          title: "Atenção",
+          description: "Você não está participando deste evento.",
+          variant: "default"
+        });
+        return;
+      }
+      
       let participationId;
       
       // Pegamos o ID da participação das props ou da query
@@ -164,20 +214,42 @@ export default function EventCard({
       } else if (participationQuery.data) {
         participationId = participationQuery.data.id;
       } else {
-        // Se não temos o ID da participação, tentamos buscar novamente
-        const refreshResponse = await fetch(`/api/events/${event.id}/participation`, {
-          credentials: 'include'
-        });
-        if (!refreshResponse.ok) {
+        // Se não temos o ID da participação, tentamos buscar novamente com mais robustez
+        try {
+          const refreshResponse = await fetch(`/api/events/${event.id}/participation`, {
+            credentials: 'include'
+          });
+          
+          if (refreshResponse.status === 404) {
+            // Usuário não está participando, então atualizamos o estado local
+            setIsParticipating(false);
+            toast({
+              title: "Informação",
+              description: "Você já não está participando deste evento.",
+            });
+            return;
+          }
+          
+          if (!refreshResponse.ok) {
+            throw new Error(`Falha ao verificar participação: ${refreshResponse.status}`);
+          }
+          
+          const refreshData = await refreshResponse.json();
+          if (!refreshData || !refreshData.id) {
+            throw new Error('Informações de participação não encontradas');
+          }
+          
+          participationId = refreshData.id;
+        } catch (error) {
+          console.error(`Erro ao verificar participação para cancelar: ${event.id}`, error);
           throw new Error('Não foi possível encontrar sua participação');
         }
-        
-        const refreshData = await refreshResponse.json();
-        if (!refreshData || !refreshData.id) {
-          throw new Error('Informações de participação não encontradas');
-        }
-        
-        participationId = refreshData.id;
+      }
+      
+      // Se mesmo após a verificação não temos um ID, interrompemos
+      if (!participationId) {
+        setIsParticipating(false);
+        throw new Error('Não foi possível encontrar seu registro de participação');
       }
       
       const response = await fetch(`/api/participants/${participationId}`, {
@@ -188,22 +260,38 @@ export default function EventCard({
         credentials: 'include'
       });
 
+      // Tenta ler a resposta como JSON para pegar mensagens de erro específicas
+      let responseData;
+      try {
+        responseData = await response.json();
+      } catch (e) {
+        // Se não for JSON, continua com o fluxo normal
+      }
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Falha ao cancelar participação');
+        // Se temos uma mensagem de erro específica da API, usamos ela
+        if (responseData && responseData.message) {
+          throw new Error(responseData.message);
+        }
+        throw new Error('Falha ao cancelar participação');
       }
 
       // Atualiza o estado local e na API
       setIsParticipating(false);
+      
+      // Invalidação de queries em cascata para garantir consistência
       queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participation`] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/events/participating'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
       
       toast({
         title: "Participação cancelada",
         description: "Você não está mais participando deste evento."
       });
     } catch (error) {
-      console.error('Erro ao cancelar participação:', error);
+      console.error('Erro ao cancelar participação:', 
+        error instanceof Error ? error.message : 'Erro desconhecido');
+      
       toast({
         title: "Erro",
         description: error instanceof Error ? error.message : "Não foi possível cancelar sua participação.",
