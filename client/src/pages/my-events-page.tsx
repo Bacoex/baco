@@ -90,11 +90,24 @@ interface Event {
 }
 
 // Componente para o card de evento
-function EventCard({ event, isCreator = false, participation = null, onRemove }: { 
+function EventCard({ 
+  event, 
+  isCreator = false, 
+  participation = null, 
+  onRemove,
+  onApprove,
+  onReject,
+  onRemoveParticipant,
+  onRevertParticipant
+}: { 
   event: Event, 
   isCreator?: boolean,
   participation?: { id: number, status: string } | null,
-  onRemove?: (eventId: number) => void
+  onRemove?: (eventId: number) => void,
+  onApprove?: (participantId: number) => void,
+  onReject?: (participantId: number) => void,
+  onRemoveParticipant?: (participantId: number) => void,
+  onRevertParticipant?: (participantId: number) => void
 }) {
   const { toast } = useToast();
   const [showParticipants, setShowParticipants] = useState(false);
@@ -300,6 +313,10 @@ function EventCard({ event, isCreator = false, participation = null, onRemove }:
         eventName={event.name}
         eventType={event.eventType}
         participants={event.participants || []}
+        onApprove={onApprove}
+        onReject={onReject}
+        onRemove={onRemoveParticipant}
+        onRevert={onRevertParticipant}
       />
       
       {/* Modal para chat do evento */}
@@ -690,6 +707,28 @@ export default function MyEventsPage() {
     }
   };
   
+  // Função para aprovar um participante
+  const handleApproveParticipant = (participantId: number) => {
+    approveParticipantMutation.mutate(participantId);
+  };
+  
+  // Função para rejeitar um participante
+  const handleRejectParticipant = (participantId: number) => {
+    rejectParticipantMutation.mutate(participantId);
+  };
+  
+  // Função para remover um participante
+  const handleRemoveParticipant = (participantId: number) => {
+    if (window.confirm("Tem certeza que deseja remover este participante?")) {
+      removeParticipantMutation.mutate(participantId);
+    }
+  };
+  
+  // Função para reverter uma candidatura rejeitada para pendente
+  const handleRevertParticipant = (participantId: number) => {
+    revertParticipantMutation.mutate(participantId);
+  };
+  
   // Os manipuladores de participantes foram removidos conforme solicitado
   
   // Os handlers para seguir/deixar de seguir eventos foram removidos
@@ -765,6 +804,10 @@ export default function MyEventsPage() {
                       event={event} 
                       isCreator={true}
                       onRemove={handleRemoveEvent}
+                      onApprove={handleApproveParticipant}
+                      onReject={handleRejectParticipant}
+                      onRemoveParticipant={handleRemoveParticipant}
+                      onRevertParticipant={handleRevertParticipant}
                     />
                   ))}
                 </div>

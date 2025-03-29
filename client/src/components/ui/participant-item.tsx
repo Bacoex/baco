@@ -29,13 +29,21 @@ interface ParticipantItemProps {
   eventType: "public" | "private_ticket" | "private_application";
   statusColors: Record<string, string>;
   statusText: Record<string, string>;
+  onApprove?: (participantId: number) => void;
+  onReject?: (participantId: number) => void;
+  onRemove?: (participantId: number) => void;
+  onRevert?: (participantId: number) => void;
 }
 
 export function ParticipantItem({
   participant,
   eventType,
   statusColors,
-  statusText
+  statusText,
+  onApprove,
+  onReject,
+  onRemove,
+  onRevert
 }: ParticipantItemProps) {
   // Status colors para os badges
   const status = participant.status;
@@ -69,7 +77,34 @@ export function ParticipantItem({
         </div>
       </div>
       
-      {/* Os botões de ação para gerenciamento de participantes foram removidos */}
+      {/* Exibe os botões de ação apenas para eventos do tipo candidatura */}
+      {eventType === 'private_application' && (
+        <div className="flex space-x-1">
+          {/* Botões para candidaturas pendentes */}
+          {status === 'pending' && onApprove && onReject && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-green-600 hover:text-green-800 hover:bg-green-100"
+                onClick={() => onApprove(participant.id)}
+                title="Aprovar"
+              >
+                <CheckCircle className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-red-600 hover:text-red-800 hover:bg-red-100"
+                onClick={() => onReject(participant.id)}
+                title="Rejeitar"
+              >
+                <XCircle className="h-5 w-5" />
+              </Button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
