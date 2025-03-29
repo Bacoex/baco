@@ -367,6 +367,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao remover participante" });
     }
   });
+  
+  // Endpoint para cancelar participação em um evento (geral, tanto para usuários quanto criadores)
+  app.delete("/api/participants/:participantId", ensureAuthenticated, async (req, res) => {
+    try {
+      const participantId = parseInt(req.params.participantId);
+      const userId = req.user!.id;
+      
+      // Buscar o participante
+      const participant = await storage.getParticipant(participantId);
+      if (!participant) {
+        return res.status(404).json({ message: 'Participação não encontrada' });
+      }
+      
+      // Verificar se o participante pertence ao usuário logado ou se é o criador do evento
+      if (participant.userId !== userId) {
+        const event = await storage.getEvent(participant.eventId);
+        
+        // Se não for do usuário, verificar se o usuário é o criador do evento
+        if (!event || event.creatorId !== userId) {
+          return res.status(403).json({ message: 'Você não tem permissão para cancelar esta participação' });
+        }
+      }
+      
+      // Remover participante
+      await storage.removeParticipation(participantId);
+      
+      return res.status(200).json({ message: 'Participação cancelada com sucesso' });
+    } catch (error) {
+      console.error('Erro ao cancelar participação:', error);
+      return res.status(500).json({ message: 'Erro interno ao processar a solicitação' });
+    }
+  });
 
   /**
    * Rotas de Eventos do Usuário

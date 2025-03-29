@@ -241,7 +241,11 @@ export default function ViewEventModal({
   // Função para cancelar participação
   const handleCancelParticipation = async () => {
     try {
-      const response = await fetch(`/api/events/${event.id}/cancel-participation`, {
+      if (!userParticipation) {
+        throw new Error('Não foi possível encontrar sua participação');
+      }
+      
+      const response = await fetch(`/api/participants/${userParticipation.id}`, {
         method: 'DELETE',
         credentials: 'include'
       });
