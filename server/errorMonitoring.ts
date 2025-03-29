@@ -4,8 +4,11 @@
  */
 import { storage } from "./storage";
 
-// Aplicar monitoramento automático no objeto storage
-export const monitoredStorage = monitorServerObject(storage, 'StorageService', ['sessionStore']);
+// Não aplicamos o monitoramento imediatamente, pois o storage pode não estar completamente inicializado
+// O monitoredStorage será criado através da função abaixo
+export function getMonitoredStorage() {
+  return monitorServerObject(storage, 'StorageService', ['sessionStore']);
+}
 
 // Níveis de severidade de erro
 export enum ErrorSeverity {

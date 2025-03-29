@@ -9,7 +9,7 @@ import {
   insertEventParticipantSchema, 
   insertEventSubcategorySchema 
 } from "@shared/schema";
-import { errorMonitoringMiddleware, monitoredStorage } from "./errorMonitoring";
+import { errorMonitoringMiddleware, getMonitoredStorage } from "./errorMonitoring";
 
 /**
  * Registra todas as rotas da API
@@ -47,6 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.get("/api/categories", async (req, res) => {
     try {
+      const monitoredStorage = getMonitoredStorage();
       const categories = await monitoredStorage.getCategories();
       res.json(categories);
     } catch (err) {
@@ -558,9 +559,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.get("/api/notifications", ensureAuthenticated, async (req, res) => {
     try {
+      const monitoredStorage = getMonitoredStorage();
       const notifications = await monitoredStorage.getNotificationsByUser(req.user!.id);
       res.json(notifications);
     } catch (err) {
+      console.error("Erro ao buscar notificações:", err);
       res.status(500).json({ message: "Erro ao buscar notificações" });
     }
   });
@@ -595,6 +598,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota para excluir uma notificação
   app.delete("/api/notifications/:id", ensureAuthenticated, async (req, res) => {
     try {
+      const monitoredStorage = getMonitoredStorage();
       await monitoredStorage.deleteNotificationForUser(parseInt(req.params.id));
       res.json({ message: "Notificação removida" });
     } catch (err) {
