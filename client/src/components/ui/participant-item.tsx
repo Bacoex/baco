@@ -96,7 +96,7 @@ export function ParticipantItem({
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 text-red-600 hover:text-red-800 hover:bg-red-100"
-                onClick={debounce(() => onReject(participant.id), 500)}
+                onClick={() => onReject(participant.id)}
                 title="Rejeitar"
               >
                 <XCircle className="h-5 w-5" />
