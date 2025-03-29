@@ -114,7 +114,7 @@ export default function ViewEventModal({
   const eventTypeDisplay = {
     'public': 'Público',
     'private_ticket': 'Privado (Ingresso)',
-    'private_application': 'Privado (Candidatura)'
+    'private_application': 'Experienciar'
   }[event.eventType];
   
   // Estado para abrir/fechar o diálogo de gerenciamento de co-organizadores
@@ -198,10 +198,10 @@ export default function ViewEventModal({
       
       // Criar notificação para o usuário participante 
       if (event.eventType === 'private_application') {
-        // Adiciona notificação que a candidatura está pendente de aprovação
+        // Adiciona notificação que o pedido para experienciar está pendente de aprovação
         addNotification({
-          title: "Candidatura enviada",
-          message: `Sua candidatura para o evento "${event.name}" foi enviada e está aguardando aprovação do organizador.`,
+          title: "Experienciar enviado",
+          message: `Seu pedido para experienciar o evento "${event.name}" foi enviado e está aguardando aprovação do organizador.`,
           type: "participant_pending",
           eventId: event.id
         });
@@ -226,7 +226,7 @@ export default function ViewEventModal({
       toast({
         title: "Sucesso!",
         description: event.eventType === 'private_application' 
-          ? "Sua candidatura foi enviada com sucesso!" 
+          ? "Seu pedido para experienciar foi enviado com sucesso!" 
           : "Você está participando deste evento!",
       });
       
@@ -420,27 +420,27 @@ export default function ViewEventModal({
                     </Button>
                   ) : (
                     <Button onClick={handleParticipate}>
-                      {event.eventType === 'private_application' ? 'Candidatar-se' : 'Participar'}
+                      {event.eventType === 'private_application' ? 'Experienciar' : 'Participar'}
                     </Button>
                   )
                 )}
                 
-                {/* Botões de status para candidatos (quando não é criador mas é candidato) */}
-                {/* Candidatura pendente */}
+                {/* Botões de status para experienciar (quando não é criador mas solicitou experienciar) */}
+                {/* Experienciar pendente */}
                 {!isCreator && isParticipant && event.eventType === 'private_application' && participationStatus === 'pending' && (
                   <Button disabled className="bg-amber-500 hover:bg-amber-500">
-                    Candidatura Pendente
+                    Experienciar Pendente
                   </Button>
                 )}
                 
-                {/* Candidatura rejeitada */}
+                {/* Experienciar rejeitado */}
                 {!isCreator && isParticipant && event.eventType === 'private_application' && participationStatus === 'rejected' && (
                   <div className="space-x-2">
                     <Button disabled variant="destructive" className="opacity-60">
-                      Candidatura Rejeitada
+                      Experienciar Rejeitado
                     </Button>
                     <Button onClick={handleParticipate}>
-                      Candidatar-se Novamente
+                      Experienciar Novamente
                     </Button>
                   </div>
                 )}
@@ -598,7 +598,7 @@ export default function ViewEventModal({
             
             {/* Tab de chat */}
             <TabsContent value="chat">
-              {/* Verificar se o evento é do tipo que permite chat (privado ou com candidatura) */}
+              {/* Verificar se o evento é do tipo que permite chat (privado ou com experienciar) */}
               {event.eventType === 'public' ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <MessageSquareX className="h-12 w-12 mx-auto text-gray-400 mb-2" />

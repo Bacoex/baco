@@ -297,7 +297,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
                         <label htmlFor="event-application" className="cursor-pointer flex items-center">
                           <Users className="h-4 w-4 mr-2 text-orange-500" />
                           <div>
-                            <div className="font-medium">Evento com Candidatura</div>
+                            <div className="font-medium">Experienciar</div>
                             <div className="text-sm text-gray-500">Participantes precisam se candidatar e ser aprovados.</div>
                           </div>
                         </label>
@@ -623,7 +623,7 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
               <div className="bg-orange-50 p-4 rounded-md border border-orange-200">
                 <h4 className="text-sm font-medium flex items-center mb-2">
                   <Users className="h-4 w-4 mr-2 text-orange-500" />
-                  Evento com Candidatura
+                  Experienciar
                 </h4>
                 <p className="text-sm text-gray-600 mb-3">
                   As pessoas interessadas precisarão se candidatar para participar do seu evento.
