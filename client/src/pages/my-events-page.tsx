@@ -362,10 +362,10 @@ export default function MyEventsPage() {
 
   // Buscar eventos criados pelo usuário
   const createdEventsQuery = useQuery({
-    queryKey: ["/api/user/events/created"],
+    queryKey: ["/api/user/events/creator"],
     queryFn: async () => {
       try {
-        const res = await apiRequest("GET", "/api/user/events/created");
+        const res = await apiRequest("GET", "/api/user/events/creator");
         if (!res.ok) {
           throw new Error("Erro ao buscar eventos");
         }
@@ -415,7 +415,7 @@ export default function MyEventsPage() {
     },
     onSuccess: () => {
       // Invalidar múltiplas queries para garantir que todos os dados sejam atualizados
-      queryClient.invalidateQueries({ queryKey: ["/api/user/events/created"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/events/creator"] });
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
 
       toast({
@@ -444,7 +444,7 @@ export default function MyEventsPage() {
       return res.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user/events/created"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/events/creator"] });
 
       // Exibe uma notificação toast para feedback imediato
       toast({
@@ -514,7 +514,7 @@ export default function MyEventsPage() {
       return res.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user/events/created"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/events/creator"] });
 
       // Exibe uma notificação toast para feedback imediato
       toast({
@@ -580,7 +580,7 @@ export default function MyEventsPage() {
       return res.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user/events/created"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/events/creator"] });
 
       // Exibe uma notificação toast para feedback imediato
       toast({
@@ -646,7 +646,7 @@ export default function MyEventsPage() {
       return res.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user/events/created"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/events/creator"] });
 
       // Exibe uma notificação toast para feedback imediato
       toast({
