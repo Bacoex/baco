@@ -40,26 +40,36 @@ export async function apiRequest(
 
   await throwIfResNotOk(res);
   
-  // Verifica se a requisição espera uma resposta JSON (apenas para avisar no console)
+  // Para respostas 204 (No Content), não precisamos verificar o content type
+  if (res.status === 204) {
+    return res;
+  }
+  
+  // Verifica se a requisição espera uma resposta JSON
   const contentType = res.headers.get("content-type");
   if (contentType && !contentType.includes("application/json")) {
     console.warn(`Resposta não é JSON: ${url} retornou ${contentType}`);
     
-    // Registra o aviso usando o sistema de log
-    logError(
-      `Requisição ${method} para ${url} retornou conteúdo não-JSON: ${contentType}`,
-      ErrorSeverity.WARNING,
-      {
-        context: 'API Request',
-        component: 'QueryClient',
-        additionalData: { 
-          status: res.status,
-          url: res.url,
-          contentType: contentType,
-          timestamp: new Date().toISOString()
+    // Registra o aviso usando o sistema de log apenas se não for text/plain
+    // já que isso é comum para algumas APIs e não representa um erro real
+    if (!contentType.includes("text/plain")) {
+      logError(
+        `Requisição ${method} para ${url} retornou conteúdo não-JSON: ${contentType}`,
+        ErrorSeverity.WARNING,
+        {
+          context: 'API Request',
+          component: 'QueryClient',
+          additionalData: { 
+            status: res.status,
+            url: res.url,
+            contentType: contentType,
+            timestamp: new Date().toISOString()
+          }
         }
-      }
-    );
+      );
+    } else {
+      console.log(`Resposta text/plain para ${url} (OK para algumas APIs)`);
+    }
   }
   
   return res;
@@ -80,7 +90,24 @@ export const getQueryFn: <T>(options: {
     }
 
     await throwIfResNotOk(res);
-    return await res.json();
+    
+    // Verificar se a resposta é JSON
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      return await res.json();
+    } else if (res.status === 204 || contentType?.includes("text/plain")) {
+      // Para respostas 204 (No Content) ou texto, retornar null
+      console.warn(`Resposta não é JSON: ${queryKey[0]} retornou ${contentType}`);
+      return null;
+    } else {
+      try {
+        // Tentar fazer parse do JSON mesmo assim
+        return await res.json();
+      } catch (e) {
+        console.warn(`Falha ao fazer parse de JSON para ${queryKey[0]}:`, e);
+        return null;
+      }
+    }
   };
 
 export const queryClient = new QueryClient({

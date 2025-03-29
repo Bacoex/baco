@@ -68,59 +68,59 @@ export default function EventCard({
   // Verifica se o usuário já está participando do evento
   const participationQuery = useQuery({
     queryKey: [`/api/events/${event.id}/participation`, user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      try {
-        const res = await fetch(`/api/events/${event.id}/participation`, {
-          credentials: 'include'
-        });
-        
-        // Se o status for 404, significa que o usuário não está participando
-        if (res.status === 404) return null;
-        
-        // Se houver qualquer outro erro
-        if (!res.ok) {
-          const errorText = await res.text();
-          throw new Error(errorText || `Erro ao verificar participação: ${res.status}`);
-        }
-        
-        // Tenta fazer o parse do JSON, se falhar retorna null
-        try {
-          return await res.json();
-        } catch (jsonError) {
-          console.warn("Resposta não é JSON válido:", jsonError);
-          return null;
-        }
-      } catch (error) {
-        // Registra o erro no sistema de logs com mais detalhes
-        console.error(`Erro ao verificar participação no evento ${event.id}:`, 
-          error instanceof Error ? error.message : 'Erro desconhecido');
-        return null;
-      }
-    },
+    // Usamos o queryFn padrão do queryClient que já foi configurado para lidar com erros e respostas não-JSON
     enabled: !!user && !isCreator, // Só verificar participação se o usuário estiver logado e não for o criador
-    staleTime: 60000, // Considerar os dados frescos por 1 minuto
+    staleTime: 30000, // Considerar os dados frescos por 30 segundos
     refetchOnMount: true, // Refetch sempre que o componente montar
     refetchOnWindowFocus: true, // Refetch quando a janela ganhar foco
-    retry: 1 // Reduzir o número de tentativas para evitar muitas requisições em caso de erro
+    retry: 1, // Reduzir o número de tentativas para evitar muitas requisições em caso de erro
+    refetchInterval: 10000 // Refetch a cada 10 segundos para garantir dados atualizados
   });
 
   // Atualiza o estado isParticipating e participationStatus com base no participation prop ou no resultado da query
   useEffect(() => {
+    // Log para debug
+    console.debug(`EventCard ${event.id} - Atualizando status de participação:`, {
+      participation,
+      queryData: participationQuery.data,
+      queryError: participationQuery.error,
+      queryStatus: participationQuery.status,
+      isLoading: participationQuery.isLoading,
+      isFetching: participationQuery.isFetching,
+    });
+
     if (participation) {
       // Se já temos informação de participação via props, usamos ela
       setIsParticipating(true);
       setParticipationStatus(participation.status);
+      console.debug(`Usando status via props: ${participation.status} (ID: ${participation.id})`);
     } else if (participationQuery.data) {
       // Se a query retornou dados, o usuário está participando
-      setIsParticipating(true);
-      setParticipationStatus(participationQuery.data.status);
+      // Verificar se o objeto tem a propriedade status
+      if (typeof participationQuery.data === 'object' && participationQuery.data !== null) {
+        // Se tiver um ID mas não tiver status, assumimos approved como padrão
+        const status = participationQuery.data.status || 'approved';
+        setIsParticipating(true);
+        setParticipationStatus(status);
+        console.debug(`Usando status via query: ${status} (ID: ${participationQuery.data.id})`);
+      } else {
+        // Se a data retornada não for um objeto válido, assumimos que não está participando
+        setIsParticipating(false);
+        setParticipationStatus(null);
+        console.debug('Query retornou dados inválidos, assumindo não-participação');
+      }
+    } else if (participationQuery.error) {
+      // Se houve erro na query, assumimos que não está participando
+      setIsParticipating(false);
+      setParticipationStatus(null);
+      console.debug('Query retornou erro, assumindo não-participação', participationQuery.error);
     } else {
       // Caso contrário, não está participando
       setIsParticipating(false);
       setParticipationStatus(null);
+      console.debug('Sem dados de participação, usuário não está participando');
     }
-  }, [participation, participationQuery.data]);
+  }, [participation, participationQuery.data, participationQuery.error, participationQuery.status, event.id]);
 
   useEffect(() => {
     const handleOpenEvent = (e: CustomEvent) => {
@@ -148,6 +148,8 @@ export default function EventCard({
         return;
       }
 
+      console.log(`Tentando participar do evento ${event.id}...`);
+      
       const response = await fetch(`/api/events/${event.id}/participate`, {
         method: 'POST',
         headers: {
@@ -156,12 +158,28 @@ export default function EventCard({
         credentials: 'include'
       });
 
+      // Mostrar o status da resposta para diagnóstico
+      console.log(`Resposta da API de participação - Status: ${response.status}`);
+      console.log(`Content-Type: ${response.headers.get('content-type')}`);
+      
       // Tenta ler a resposta como JSON para pegar mensagens de erro específicas
       let responseData;
       try {
+        // Clone a resposta para poder ler o corpo duas vezes (para debug)
+        const respClone = response.clone();
         responseData = await response.json();
+        
+        // Log para debug
+        console.log(`Resposta de participação (json):`, responseData);
       } catch (e) {
-        // Se não for JSON, continua com o fluxo normal
+        // Se não for JSON, tenta ler como texto para debug
+        console.warn(`Resposta não é JSON válido ao participar do evento ${event.id}:`, e);
+        try {
+          const text = await response.text();
+          console.log(`Resposta como texto:`, text);
+        } catch (textError) {
+          console.error(`Não foi possível ler a resposta nem como texto:`, textError);
+        }
       }
 
       if (!response.ok) {
@@ -214,22 +232,42 @@ export default function EventCard({
         return;
       }
       
+      console.log(`Tentando cancelar participação no evento ${event.id}...`);
+      console.log(`Estado atual:`, {
+        isParticipating,
+        participationStatus,
+        participationViaProps: participation,
+        participationViaQuery: participationQuery.data
+      });
+      
       let participationId;
       
       // Pegamos o ID da participação das props ou da query
       if (participation) {
         participationId = participation.id;
-      } else if (participationQuery.data) {
-        participationId = participationQuery.data.id;
+        console.log(`Usando ID de participação via props: ${participationId}`);
+      } else if (participationQuery.data && typeof participationQuery.data === 'object') {
+        // Verificar se o objeto tem a propriedade id antes de acessá-la
+        if ('id' in participationQuery.data) {
+          participationId = participationQuery.data.id;
+          console.log(`Usando ID de participação via query: ${participationId}`);
+        } else {
+          console.warn('Objeto de participação não possui a propriedade id:', participationQuery.data);
+        }
       } else {
+        console.log('Tentando buscar dados de participação da API diretamente...');
         // Se não temos o ID da participação, tentamos buscar novamente com mais robustez
         try {
           const refreshResponse = await fetch(`/api/events/${event.id}/participation`, {
             credentials: 'include'
           });
           
+          console.log(`Resposta de verificação - Status: ${refreshResponse.status}`);
+          console.log(`Content-Type: ${refreshResponse.headers.get('content-type')}`);
+          
           if (refreshResponse.status === 404) {
             // Usuário não está participando, então atualizamos o estado local
+            console.log('API retornou 404 - usuário não está participando');
             setIsParticipating(false);
             toast({
               title: "Informação",
@@ -242,12 +280,24 @@ export default function EventCard({
             throw new Error(`Falha ao verificar participação: ${refreshResponse.status}`);
           }
           
-          const refreshData = await refreshResponse.json();
-          if (!refreshData || !refreshData.id) {
-            throw new Error('Informações de participação não encontradas');
+          let refreshData;
+          try {
+            refreshData = await refreshResponse.json();
+            console.log('Dados de participação recebidos:', refreshData);
+          } catch (jsonError) {
+            console.error('Erro ao fazer parse da resposta como JSON:', jsonError);
+            const text = await refreshResponse.text();
+            console.log('Resposta como texto:', text);
+            throw new Error('Resposta não é um JSON válido');
+          }
+          
+          if (!refreshData || typeof refreshData !== 'object' || !('id' in refreshData)) {
+            console.error('Dados de participação inválidos:', refreshData);
+            throw new Error('Informações de participação não encontradas ou inválidas');
           }
           
           participationId = refreshData.id;
+          console.log(`ID de participação obtido da API: ${participationId}`);
         } catch (error) {
           console.error(`Erro ao verificar participação para cancelar: ${event.id}`, error);
           throw new Error('Não foi possível encontrar sua participação');
@@ -260,6 +310,8 @@ export default function EventCard({
         throw new Error('Não foi possível encontrar seu registro de participação');
       }
       
+      console.log(`Enviando requisição DELETE para /api/participants/${participationId}`);
+      
       const response = await fetch(`/api/participants/${participationId}`, {
         method: 'DELETE',
         headers: {
@@ -268,12 +320,27 @@ export default function EventCard({
         credentials: 'include'
       });
 
+      console.log(`Resposta de cancelamento - Status: ${response.status}`);
+      console.log(`Content-Type: ${response.headers.get('content-type')}`);
+      
       // Tenta ler a resposta como JSON para pegar mensagens de erro específicas
       let responseData;
       try {
+        // Clone a resposta para poder ler o corpo duas vezes (para debug)
+        const respClone = response.clone();
         responseData = await response.json();
+        
+        // Log para debug
+        console.log(`Resposta de cancelamento (json):`, responseData);
       } catch (e) {
-        // Se não for JSON, continua com o fluxo normal
+        // Se não for JSON, tenta ler como texto para debug
+        console.warn(`Resposta não é JSON válido ao cancelar participação:`, e);
+        try {
+          const text = await response.text();
+          console.log(`Resposta como texto:`, text);
+        } catch (textError) {
+          console.error(`Não foi possível ler a resposta nem como texto:`, textError);
+        }
       }
 
       if (!response.ok) {
