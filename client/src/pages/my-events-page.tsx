@@ -90,15 +90,11 @@ interface Event {
 }
 
 // Componente para o card de evento
-function EventCard({ event, isCreator = false, participation = null, onApprove, onReject, onRemove, onRemoveParticipant, onRevertParticipant }: { 
+function EventCard({ event, isCreator = false, participation = null, onRemove }: { 
   event: Event, 
   isCreator?: boolean,
   participation?: { id: number, status: string } | null,
-  onApprove?: (participantId: number) => void,
-  onReject?: (participantId: number) => void,
-  onRemove?: (eventId: number) => void,
-  onRemoveParticipant?: (participantId: number) => void,
-  onRevertParticipant?: (participantId: number) => void
+  onRemove?: (eventId: number) => void
 }) {
   const { toast } = useToast();
   const [showParticipants, setShowParticipants] = useState(false);
@@ -304,10 +300,6 @@ function EventCard({ event, isCreator = false, participation = null, onApprove, 
         eventName={event.name}
         eventType={event.eventType}
         participants={event.participants || []}
-        onApprove={onApprove}
-        onReject={onReject}
-        onRemove={onRemoveParticipant}
-        onRevert={onRevertParticipant}
       />
       
       {/* Modal para chat do evento */}
@@ -698,23 +690,7 @@ export default function MyEventsPage() {
     }
   };
   
-  const handleApproveParticipant = (participantId: number) => {
-    approveParticipantMutation.mutate(participantId);
-  };
-  
-  const handleRejectParticipant = (participantId: number) => {
-    rejectParticipantMutation.mutate(participantId);
-  };
-  
-  const handleRemoveParticipant = (participantId: number) => {
-    if (window.confirm("Tem certeza que deseja remover este participante?")) {
-      removeParticipantMutation.mutate(participantId);
-    }
-  };
-  
-  const handleRevertParticipant = (participantId: number) => {
-    revertParticipantMutation.mutate(participantId);
-  };
+  // Os manipuladores de participantes foram removidos conforme solicitado
   
   // Os handlers para seguir/deixar de seguir eventos foram removidos
   
@@ -789,10 +765,6 @@ export default function MyEventsPage() {
                       event={event} 
                       isCreator={true}
                       onRemove={handleRemoveEvent}
-                      onApprove={handleApproveParticipant}
-                      onReject={handleRejectParticipant}
-                      onRemoveParticipant={handleRemoveParticipant}
-                      onRevertParticipant={handleRevertParticipant}
                     />
                   ))}
                 </div>

@@ -16,10 +16,6 @@ interface ParticipantsDialogProps {
   eventName: string;
   eventType: "public" | "private_ticket" | "private_application";
   participants: ParticipantWithUser[];
-  onApprove?: (participantId: number) => void;
-  onReject?: (participantId: number) => void;
-  onRemove?: (participantId: number) => void;
-  onRevert?: (participantId: number) => void;
 }
 
 export function ParticipantsDialog({
@@ -27,11 +23,7 @@ export function ParticipantsDialog({
   onOpenChange,
   eventName,
   eventType,
-  participants,
-  onApprove,
-  onReject,
-  onRemove,
-  onRevert
+  participants
 }: ParticipantsDialogProps) {
   // Cores para os badges de status
   const statusColors = {
@@ -68,10 +60,6 @@ export function ParticipantsDialog({
                 key={participant.id}
                 participant={participant}
                 eventType={eventType}
-                onApprove={onApprove}
-                onReject={onReject}
-                onRemove={onRemove}
-                onRevert={onRevert}
                 statusColors={statusColors}
                 statusText={statusText}
               />

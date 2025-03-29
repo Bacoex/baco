@@ -27,10 +27,6 @@ export interface ParticipantWithUser {
 interface ParticipantItemProps {
   participant: ParticipantWithUser;
   eventType: "public" | "private_ticket" | "private_application";
-  onApprove?: (participantId: number) => void;
-  onReject?: (participantId: number) => void;
-  onRemove?: (participantId: number) => void;
-  onRevert?: (participantId: number) => void;
   statusColors: Record<string, string>;
   statusText: Record<string, string>;
 }
@@ -38,10 +34,6 @@ interface ParticipantItemProps {
 export function ParticipantItem({
   participant,
   eventType,
-  onApprove,
-  onReject,
-  onRemove,
-  onRevert,
   statusColors,
   statusText
 }: ParticipantItemProps) {
@@ -77,51 +69,7 @@ export function ParticipantItem({
         </div>
       </div>
       
-      {/* Botões de ação para candidatos pendentes */}
-      {eventType === 'private_application' && status === 'pending' && (
-        <div className="flex space-x-1">
-          <Button 
-            size="icon" 
-            variant="ghost" 
-            className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-100"
-            onClick={() => onApprove && onApprove(participant.id)}
-          >
-            <CheckCircle className="h-5 w-5" />
-          </Button>
-          <Button 
-            size="icon" 
-            variant="ghost" 
-            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-100"
-            onClick={() => onReject && onReject(participant.id)}
-          >
-            <XCircle className="h-5 w-5" />
-          </Button>
-        </div>
-      )}
-      
-      {/* Botão para remover participante aprovado */}
-      {eventType === 'private_application' && status === 'approved' && (
-        <Button 
-          size="icon" 
-          variant="ghost" 
-          className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-100"
-          onClick={() => onRemove && onRemove(participant.id)}
-        >
-          <XCircle className="h-5 w-5" />
-        </Button>
-      )}
-      
-      {/* Botão para reverter rejeição */}
-      {eventType === 'private_application' && status === 'rejected' && (
-        <Button 
-          size="icon" 
-          variant="ghost" 
-          className="h-8 w-8 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-100"
-          onClick={() => onRevert && onRevert(participant.id)}
-        >
-          <CheckCircle className="h-5 w-5" />
-        </Button>
-      )}
+      {/* Os botões de ação para gerenciamento de participantes foram removidos */}
     </div>
   );
 }
