@@ -442,7 +442,16 @@ export default function MyEventsPage() {
   const approveParticipantMutation = useMutation({
     mutationFn: async (participantId: number) => {
       const res = await apiRequest("PATCH", `/api/participants/${participantId}/approve`, { status: "approved" });
-      return res.json();
+      
+      // Verificar se a resposta é um JSON válido
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        return res.json();
+      } else {
+        // Se não for JSON, capturar o texto da resposta para diagnóstico
+        const text = await res.text();
+        throw new Error(`Resposta não-JSON recebida: ${res.status} ${res.statusText}. Conteúdo: ${text.substring(0, 150)}...`);
+      }
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/user/events/creator"] });
@@ -525,7 +534,16 @@ export default function MyEventsPage() {
         description: "Rejeitando participação...",
       });
       const res = await apiRequest("PATCH", `/api/participants/${participantId}/reject`, { status: "rejected" });
-      return res.json();
+      
+      // Verificar se a resposta é um JSON válido
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        return res.json();
+      } else {
+        // Se não for JSON, capturar o texto da resposta para diagnóstico
+        const text = await res.text();
+        throw new Error(`Resposta não-JSON recebida: ${res.status} ${res.statusText}. Conteúdo: ${text.substring(0, 150)}...`);
+      }
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/user/events/creator"] });
@@ -604,7 +622,16 @@ export default function MyEventsPage() {
   const removeParticipantMutation = useMutation({
     mutationFn: async (participantId: number) => {
       const res = await apiRequest("DELETE", `/api/participants/${participantId}/remove`);
-      return res.json();
+      
+      // Verificar se a resposta é um JSON válido
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        return res.json();
+      } else {
+        // Se não for JSON, capturar o texto da resposta para diagnóstico
+        const text = await res.text();
+        throw new Error(`Resposta não-JSON recebida: ${res.status} ${res.statusText}. Conteúdo: ${text.substring(0, 150)}...`);
+      }
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/user/events/creator"] });
@@ -683,7 +710,16 @@ export default function MyEventsPage() {
   const revertParticipantMutation = useMutation({
     mutationFn: async (participantId: number) => {
       const res = await apiRequest("PATCH", `/api/participants/${participantId}/revert`, { status: "pending" });
-      return res.json();
+      
+      // Verificar se a resposta é um JSON válido
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        return res.json();
+      } else {
+        // Se não for JSON, capturar o texto da resposta para diagnóstico
+        const text = await res.text();
+        throw new Error(`Resposta não-JSON recebida: ${res.status} ${res.statusText}. Conteúdo: ${text.substring(0, 150)}...`);
+      }
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/user/events/creator"] });
