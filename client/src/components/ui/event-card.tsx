@@ -69,14 +69,21 @@ export default function EventCard({
     queryFn: async () => {
       if (!user) return null;
       try {
-        const res = await fetch(`/api/events/${event.id}/participation`);
+        const res = await fetch(`/api/events/${event.id}/participation`, {
+          credentials: 'include'
+        });
         if (!res.ok) return null;
         return await res.json();
       } catch (error) {
+        console.error('Erro ao verificar participação:', error);
         return null;
       }
     },
     enabled: !!user,
+    staleTime: 0, // Nunca considerar os dados como "stale"
+    refetchOnMount: true, // Refetch sempre que o componente montar
+    refetchOnWindowFocus: true, // Refetch quando a janela ganhar foco
+    retry: 2 // Tentar novamente 2 vezes em caso de erro
   });
 
   // Atualiza o estado isParticipating com base no participation prop ou no resultado da query
@@ -113,7 +120,8 @@ export default function EventCard({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -150,7 +158,9 @@ export default function EventCard({
         participationId = participationQuery.data.id;
       } else {
         // Se não temos o ID da participação, tentamos buscar novamente
-        const refreshResponse = await fetch(`/api/events/${event.id}/participation`);
+        const refreshResponse = await fetch(`/api/events/${event.id}/participation`, {
+          credentials: 'include'
+        });
         if (!refreshResponse.ok) {
           throw new Error('Não foi possível encontrar sua participação');
         }
