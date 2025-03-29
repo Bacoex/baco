@@ -325,9 +325,9 @@ function EventCard({ event, isCreator = false, participation = null, onApprove, 
                       </Avatar>
                     </Eneagon>
                     <div className="ml-3">
-                      <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-primary">
+                      <div className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-primary">
                         {getUserDisplayName({ firstName: participant.user?.firstName || "", lastName: participant.user?.lastName || "" })}
-                      </p>
+                      </div>
                       <Badge className={`${statusColors[participant.status]} text-xs mt-1`}>
                         {statusText[participant.status]}
                       </Badge>
