@@ -47,10 +47,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.get("/api/categories", async (req, res) => {
     try {
-      const monitoredStorage = getMonitoredStorage();
-      const categories = await monitoredStorage.getCategories();
+      const categories = await storage.getCategories();
       res.json(categories);
     } catch (err) {
+      console.error("Erro ao buscar categorias:", err);
       res.status(500).json({ message: "Erro ao buscar categorias" });
     }
   });
@@ -559,8 +559,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.get("/api/notifications", ensureAuthenticated, async (req, res) => {
     try {
-      const monitoredStorage = getMonitoredStorage();
-      const notifications = await monitoredStorage.getNotificationsByUser(req.user!.id);
+      const notifications = await storage.getNotificationsByUser(req.user!.id);
       res.json(notifications);
     } catch (err) {
       console.error("Erro ao buscar notificações:", err);
@@ -598,8 +597,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota para excluir uma notificação
   app.delete("/api/notifications/:id", ensureAuthenticated, async (req, res) => {
     try {
-      const monitoredStorage = getMonitoredStorage();
-      await monitoredStorage.deleteNotificationForUser(parseInt(req.params.id));
+      await storage.deleteNotificationForUser(parseInt(req.params.id));
       res.json({ message: "Notificação removida" });
     } catch (err) {
       console.error("Erro ao remover notificação:", err);
