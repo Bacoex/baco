@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/use-auth";
 import ViewEventModal from "@/components/ui/view-event-modal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
+
 interface EventProps {
   event: {
     id: number;
@@ -75,6 +76,9 @@ export default function EventCard({
         if (!res.ok) return null;
         return await res.json();
       } catch (error) {
+        // Registra o erro no sistema de logs
+        // Use error logger
+        console.error(`Erro ao verificar participação no evento ${event.id}`, error);
         console.error('Erro ao verificar participação:', error);
         return null;
       }
@@ -130,14 +134,17 @@ export default function EventCard({
 
       // Atualiza o estado local e na API
       setIsParticipating(true);
-      queryClient.invalidateQueries([`/api/events/${event.id}/participation`]);
-      queryClient.invalidateQueries(['/api/user/events/participating']);
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participation`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/events/participating'] });
       
       toast({
         title: "Sucesso!",
         description: "Sua solicitação foi enviada com sucesso."
       });
     } catch (error) {
+      // Registra o erro no sistema de logs
+      console.error(`Erro ao participar do evento ${event.id}`, error);
+      
       toast({
         title: "Erro",
         description: "Não foi possível participar do evento.",
@@ -188,8 +195,8 @@ export default function EventCard({
 
       // Atualiza o estado local e na API
       setIsParticipating(false);
-      queryClient.invalidateQueries([`/api/events/${event.id}/participation`]);
-      queryClient.invalidateQueries(['/api/user/events/participating']);
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participation`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/events/participating'] });
       
       toast({
         title: "Participação cancelada",
