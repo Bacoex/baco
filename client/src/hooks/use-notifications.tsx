@@ -42,6 +42,9 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { isLoading: isNotificationsLoading } = useQuery({
     queryKey: ['/api/notifications'],
     enabled: !!user,
+    refetchInterval: 15000, // Atualizar a cada 15 segundos
+    staleTime: 5000, // Considerar dados frescos por 5 segundos
+    refetchOnWindowFocus: true, // Atualizar ao focar na janela
     queryFn: async () => {
       if (!user) return [];
       
@@ -97,17 +100,13 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         console.error('Erro ao buscar notificações:', error);
         return [];
       }
-    },
-    refetchInterval: 30000, // Atualiza a cada 30 segundos
-    refetchOnWindowFocus: false, // Evita múltiplas chamadas ao focar a janela
+    }
   });
   
   // Query para buscar informações do usuário e seus eventos
   const { isLoading: isUserEventsLoading } = useQuery({
     queryKey: ['/api/user/events/creator'],
     enabled: !!user,
-    refetchInterval: 10000, // Reduzido de 20s para 10s para obter atualizações mais rápidas
-    staleTime: 5000, // Reduzido para força verificações mais frequentes
     queryFn: async () => {
       if (!user) return [];
       console.log('[DEBUG-NOTIFICAÇÕES] Iniciando verificação de eventos com participantes pendentes...');
@@ -132,44 +131,62 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       
       console.log('Eventos com participantes pendentes:', eventsWithPendingParticipants);
       
-      // Criar notificações para eventos com participantes pendentes
+      // Verificar se já temos essas notificações no estado
+      // Para evitar duplicação, vamos manter um registro das notificações que já geramos
+      // em vez de tentar adicionar e depois filtrar
       if (eventsWithPendingParticipants.length > 0) {
-        const newNotifications: Notification[] = [];
+        // Coletar todos os IDs de notificações existentes
+        const existingIds = new Set(notifications.map(n => n.id));
+        const processedEventsParticipants = new Set<string>();
+        
+        // Para debug: registrar notificações existentes
+        console.log('Notificações existentes:', notifications.length, 
+          notifications.map(n => ({ id: n.id, title: n.title })));
         
         // Para cada evento com participantes pendentes
         eventsWithPendingParticipants.forEach((event: any) => {
-          // Contar participantes pendentes
+          // Obter participantes pendentes
           const pendingParticipants = event.participants.filter((p: any) => p.status === 'pending');
           
-          // Criar uma notificação para cada participante pendente
           pendingParticipants.forEach((participant: any) => {
-            const participantName = participant.user ? 
-              `${participant.user.firstName} ${participant.user.lastName}` : 
-              'Alguém';
+            // Criar um ID único baseado no evento e participante
+            const notificationId = `event-${event.id}-participant-${participant.id}`;
+            
+            // Verificar se já temos essa notificação
+            if (!existingIds.has(notificationId)) {
+              // Registrar que estamos processando essa combinação
+              processedEventsParticipants.add(notificationId);
               
-            // Usar ID estável para evitar duplicações
-            newNotifications.push({
-              id: `event-${event.id}-participant-${participant.id}`,
-              title: "Nova solicitação para seu evento",
-              message: `${participantName} quer participar do seu evento "${event.name}"`,
-              date: new Date(),
-              read: false,
-              type: "participant_request",
-              eventId: event.id
-            });
+              const participantName = participant.user ? 
+                `${participant.user.firstName} ${participant.user.lastName}` : 
+                'Alguém';
+                
+              // Adicionar nova notificação
+              setNotifications(prev => [
+                {
+                  id: notificationId,
+                  title: "Nova solicitação para seu evento",
+                  message: `${participantName} quer participar do seu evento "${event.name}"`,
+                  date: new Date(),
+                  read: false,
+                  type: "participant_request",
+                  eventId: event.id
+                },
+                ...prev
+              ]);
+              
+              console.log(`Adicionada notificação: ${notificationId} para ${participantName}`);
+            } else {
+              console.log(`Ignorando notificação já existente: ${notificationId}`);
+            }
           });
         });
         
-        // Adicionar novas notificações, evitando duplicatas por ID
-        if (newNotifications.length > 0) {
-          console.log('Adicionando novas notificações de solicitações:', newNotifications);
-          
-          setNotifications(prev => {
-            // Obter IDs de notificações existentes para evitar duplicatas
-            const existingIds = new Set(prev.map(n => n.id));
-            const uniqueNewNotifications = newNotifications.filter(n => !existingIds.has(n.id));
-            return [...uniqueNewNotifications, ...prev];
-          });
+        // Para debug: quantas novas notificações foram adicionadas
+        if (processedEventsParticipants.size > 0) {
+          console.log(`Adicionadas ${processedEventsParticipants.size} novas notificações.`);
+        } else {
+          console.log('Nenhuma nova notificação para adicionar.');
         }
       }
       
