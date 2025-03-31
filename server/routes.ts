@@ -221,10 +221,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           title: "Nova solicitação para seu evento",
           message: `${user?.firstName || 'Alguém'} ${user?.lastName || ''} quer experienciar o seu evento "${event.name}"`,
           type: "participant_request",
-          data: {
-            eventId: event.id,
-            participantId: participation.id
-          }
+          eventId: event.id,
+          sourceId: participation.id,
+          sourceType: "participation"
         });
         
         // Adicionar o criador do evento como destinatário
@@ -321,10 +320,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "approved"
       );
       
-      // Retorna objeto de notificação vazio até implementarmos notificações reais
+      // Criar notificação para o usuário solicitante
+      const notification = await storage.createNotification({
+        title: "Solicitação aprovada",
+        message: `Sua solicitação para experienciar o evento "${event.name}" foi aprovada!`,
+        type: "participation_approved",
+        eventId: event.id,
+        sourceId: participant.id,
+        sourceType: "participation"
+      });
+      
+      // Adicionar o usuário solicitante como destinatário
+      await storage.addNotificationRecipients(notification.id, [participant.userId]);
+      
+      console.log(`Criada notificação ${notification.id} para o solicitante ${participant.userId}`);
+      
       res.json({ 
         ...updatedParticipant,
-        notification: {} 
+        notification: {
+          forParticipant: {
+            title: notification.title,
+            message: notification.message,
+            userId: participant.userId
+          }
+        } 
       });
     } catch (err) {
       console.error("Erro ao aprovar participante:", err);
@@ -358,10 +377,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "rejected"
       );
       
-      // Retorna objeto de notificação vazio até implementarmos notificações reais
+      // Criar notificação para o usuário solicitante
+      const notification = await storage.createNotification({
+        title: "Solicitação não aprovada",
+        message: `Sua solicitação para experienciar o evento "${event.name}" não foi aprovada.`,
+        type: "participation_rejected",
+        eventId: event.id,
+        sourceId: participant.id,
+        sourceType: "participation"
+      });
+      
+      // Adicionar o usuário solicitante como destinatário
+      await storage.addNotificationRecipients(notification.id, [participant.userId]);
+      
+      console.log(`Criada notificação ${notification.id} para o solicitante ${participant.userId} (rejeição)`);
+      
       res.json({ 
         ...updatedParticipant,
-        notification: {} 
+        notification: {
+          forParticipant: {
+            title: notification.title,
+            message: notification.message,
+            userId: participant.userId
+          }
+        } 
       });
     } catch (err) {
       console.error("Erro ao rejeitar participante:", err);
