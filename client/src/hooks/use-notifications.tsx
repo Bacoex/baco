@@ -144,8 +144,9 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
               `${participant.user.firstName} ${participant.user.lastName}` : 
               'Alguém';
               
+            // Usar ID estável para evitar duplicações
             newNotifications.push({
-              id: `event-${event.id}-participant-${participant.id}-${Date.now()}`,
+              id: `event-${event.id}-participant-${participant.id}`,
               title: "Nova solicitação para seu evento",
               message: `${participantName} quer participar do seu evento "${event.name}"`,
               date: new Date(),

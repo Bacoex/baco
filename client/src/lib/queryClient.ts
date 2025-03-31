@@ -1,10 +1,31 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { logError, ErrorSeverity } from './errorLogger';
 
-async function throwIfResNotOk(res: Response) {
+async function throwIfResNotOk(res: Response, options?: { errorPassthrough?: boolean }) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
     const error = `${res.status}: ${text}`;
+
+    // Verificar se é código 404 e estamos usando errorPassthrough
+    if (res.status === 404 && options?.errorPassthrough) {
+      console.log(`Tratando erro 404 como valor vazio: ${res.url}`);
+      // Não lançar erro, apenas registrar como informação
+      logError(
+        `Recurso não encontrado: ${res.url}`,
+        ErrorSeverity.INFO,
+        {
+          context: 'API Request',
+          component: 'QueryClient',
+          additionalData: { 
+            status: res.status,
+            url: res.url,
+            statusText: res.statusText,
+            timestamp: new Date().toISOString()
+          }
+        }
+      );
+      return; // Retorna sem lançar erro
+    }
     
     // Registrar o erro usando o novo sistema de log
     logError(
@@ -80,7 +101,7 @@ export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
+  async ({ queryKey, meta }) => {
     const res = await fetch(queryKey[0] as string, {
       credentials: "include",
     });
@@ -89,7 +110,17 @@ export const getQueryFn: <T>(options: {
       return null;
     }
 
-    await throwIfResNotOk(res);
+    // Verificar se temos meta de errorPassthrough para tratar erros específicos (como 404)
+    const errorPassthrough = meta?.errorPassthrough === true;
+    
+    // Passar a opção de errorPassthrough para o método throwIfResNotOk
+    await throwIfResNotOk(res, { errorPassthrough });
+    
+    // Se não é OK mas não lançou erro (por causa do errorPassthrough), retornamos null
+    if (!res.ok) {
+      console.log(`Retornando null para resposta ${res.status} em ${res.url} (errorPassthrough)`);
+      return null;
+    }
     
     // Verificar se a resposta é JSON
     const contentType = res.headers.get("content-type");

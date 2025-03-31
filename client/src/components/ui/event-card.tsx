@@ -72,7 +72,11 @@ export default function EventCard({
     refetchOnMount: true, // Refetch sempre que o componente montar
     refetchOnWindowFocus: true, // Refetch quando a janela ganhar foco
     retry: 1, // Reduzir o número de tentativas para evitar muitas requisições em caso de erro
-    refetchInterval: 10000 // Refetch a cada 10 segundos para garantir dados atualizados
+    refetchInterval: 10000, // Refetch a cada 10 segundos para garantir dados atualizados
+    // Tratar código 404 (não participante) como sucesso com dados nulos, em vez de erro
+    meta: {
+      errorPassthrough: true
+    }
   });
 
   // Atualiza o estado isParticipating e participationStatus com base no participation prop ou no resultado da query
@@ -403,7 +407,12 @@ export default function EventCard({
 
       {isViewModalOpen && (
         <ViewEventModal
-          event={event}
+          event={{
+            ...event,
+            coordinates: '',
+            isActive: true,
+            createdAt: new Date(),
+          }}
           isOpen={isViewModalOpen}
           onClose={() => setIsViewModalOpen(false)}
         />
