@@ -66,17 +66,39 @@ export default function EventCard({
   // Verifica se o usuário já está participando do evento
   const participationQuery = useQuery({
     queryKey: [`/api/events/${event.id}/participation`, user?.id],
-    // Usamos o queryFn padrão do queryClient que já foi configurado para lidar com erros e respostas não-JSON
+    // Usamos queryFn manual para tratar 404 como "não participando" em vez de erro
+    queryFn: async () => {
+      try {
+        const response = await fetch(`/api/events/${event.id}/participation`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        // Se for 404, não considerar erro, apenas retornar null
+        if (response.status === 404) {
+          return null;
+        }
+        
+        // Para outros erros, lançar para ser capturado pelo TanStack Query
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText || 'Erro desconhecido'}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error("Erro ao verificar participação:", error);
+        throw error;
+      }
+    },
     enabled: !!user && !isCreator, // Só verificar participação se o usuário estiver logado e não for o criador
     staleTime: 5000, // Reduzido para atualizar mais rápido
     refetchOnMount: true, // Refetch sempre que o componente montar
     refetchOnWindowFocus: true, // Refetch quando a janela ganhar foco
     retry: 1, // Reduzir o número de tentativas para evitar muitas requisições em caso de erro
-    refetchInterval: 5000, // Reduzido para atualizar a cada 5 segundos
-    // Tratar código 404 (não participante) como sucesso com dados nulos, em vez de erro
-    meta: {
-      errorPassthrough: true
-    }
+    refetchInterval: 5000 // Reduzido para atualizar a cada 5 segundos
   });
 
   // Atualiza o estado isParticipating e participationStatus com base no participation prop ou no resultado da query
