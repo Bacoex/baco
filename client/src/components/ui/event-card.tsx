@@ -1,13 +1,28 @@
 import { format } from 'date-fns';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, MapPinIcon, UsersIcon } from 'lucide-react';
+import { 
+  CalendarIcon, 
+  MapPinIcon, 
+  Users as UsersIcon, 
+  CheckCircle, 
+  XCircle, 
+  RotateCcw,
+  User
+} from 'lucide-react';
 import ViewEventModal from './view-event-modal';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
+import { ParticipantsDialog } from './participants-dialog';
+import type { ParticipantWithUser } from './participant-item';
+import { logError, ErrorSeverity } from "@/lib/errorLogger";
+import { Badge } from "@/components/ui/badge";
+import { getUserDisplayName } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Eneagon } from "./eneagon";
 
 interface EventProps {
   event: {
@@ -62,6 +77,15 @@ export default function EventCard({
   const [isParticipating, setIsParticipating] = useState(false);
   const [participationStatus, setParticipationStatus] = useState<string | null>(participation?.status || null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isParticipantsDialogOpen, setIsParticipantsDialogOpen] = useState(false);
+  
+  // Query para buscar os participantes do evento (somente se o usuário for o criador)
+  const participantsQuery = useQuery({
+    queryKey: [`/api/events/${event.id}/participants`],
+    enabled: !!user && isCreator, // Só buscar se for o criador do evento
+    staleTime: 10000, // 10 segundos
+    refetchInterval: 15000 // Atualiza a cada 15 segundos
+  });
 
   // Verifica se o usuário já está participando do evento
   const participationQuery = useQuery({
@@ -335,6 +359,191 @@ export default function EventCard({
       });
     }
   };
+  
+  // Funções para gerenciar participantes (quando o usuário é o criador)
+  const handleApproveParticipant = async (participantId: number) => {
+    try {
+      const response = await fetch(`/api/participants/${participantId}/approve`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+        throw new Error(errorData.message || 'Erro ao aprovar participante');
+      }
+
+      // Invalidar queries para atualizar dados
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participants`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/events/creator'] });
+
+      toast({
+        title: 'Participante aprovado',
+        description: 'A notificação foi enviada ao participante.',
+      });
+    } catch (error) {
+      logError(
+        `Erro ao aprovar participante ${participantId}`,
+        ErrorSeverity.ERROR,
+        {
+          context: 'ApproveParticipant',
+          component: 'EventCard',
+          error: error instanceof Error ? error : new Error(String(error)),
+          additionalData: {
+            eventId: event.id,
+            participantId,
+          }
+        }
+      );
+
+      toast({
+        title: 'Erro',
+        description: error instanceof Error ? error.message : 'Não foi possível aprovar o participante.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleRejectParticipant = async (participantId: number) => {
+    try {
+      const response = await fetch(`/api/participants/${participantId}/reject`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+        throw new Error(errorData.message || 'Erro ao rejeitar participante');
+      }
+
+      // Invalidar queries para atualizar dados
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participants`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/events/creator'] });
+
+      toast({
+        title: 'Participante rejeitado',
+        description: 'A notificação foi enviada ao participante.',
+      });
+    } catch (error) {
+      logError(
+        `Erro ao rejeitar participante ${participantId}`,
+        ErrorSeverity.ERROR,
+        {
+          context: 'RejectParticipant',
+          component: 'EventCard',
+          error: error instanceof Error ? error : new Error(String(error)),
+          additionalData: {
+            eventId: event.id,
+            participantId,
+          }
+        }
+      );
+
+      toast({
+        title: 'Erro',
+        description: error instanceof Error ? error.message : 'Não foi possível rejeitar o participante.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleRemoveParticipant = async (participantId: number) => {
+    try {
+      const response = await fetch(`/api/participants/${participantId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+        throw new Error(errorData.message || 'Erro ao remover participante');
+      }
+
+      // Invalidar queries para atualizar dados
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participants`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/events/creator'] });
+
+      toast({
+        title: 'Participante removido',
+        description: 'O participante foi removido com sucesso.',
+      });
+    } catch (error) {
+      logError(
+        `Erro ao remover participante ${participantId}`,
+        ErrorSeverity.ERROR,
+        {
+          context: 'RemoveParticipant',
+          component: 'EventCard',
+          error: error instanceof Error ? error : new Error(String(error)),
+          additionalData: {
+            eventId: event.id,
+            participantId,
+          }
+        }
+      );
+
+      toast({
+        title: 'Erro',
+        description: error instanceof Error ? error.message : 'Não foi possível remover o participante.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleRevertParticipant = async (participantId: number) => {
+    try {
+      const response = await fetch(`/api/participants/${participantId}/revert`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+        throw new Error(errorData.message || 'Erro ao reverter status do participante');
+      }
+
+      // Invalidar queries para atualizar dados
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participants`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/events/creator'] });
+
+      toast({
+        title: 'Status revertido',
+        description: 'O status do participante foi revertido para pendente.',
+      });
+    } catch (error) {
+      logError(
+        `Erro ao reverter status do participante ${participantId}`,
+        ErrorSeverity.ERROR,
+        {
+          context: 'RevertParticipant',
+          component: 'EventCard',
+          error: error instanceof Error ? error : new Error(String(error)),
+          additionalData: {
+            eventId: event.id,
+            participantId,
+          }
+        }
+      );
+
+      toast({
+        title: 'Erro',
+        description: error instanceof Error ? error.message : 'Não foi possível reverter o status do participante.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   return (
     <>
@@ -391,7 +600,22 @@ export default function EventCard({
             
             {/* Botões de Ação */}
             <div className="flex items-center justify-between">
-              {!isCreator && (
+              {isCreator ? (
+                // Botão de gerenciamento de participantes para o criador
+                <Button 
+                  onClick={(e) => {
+                    e.stopPropagation(); // Impede que o clique do botão abra o modal
+                    setIsParticipantsDialogOpen(true);
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1"
+                >
+                  <UsersIcon className="h-4 w-4" />
+                  <span>Participantes</span>
+                </Button>
+              ) : (
+                // Botões de participação para não-criadores
                 isParticipating ? (
                   <Button 
                     onClick={(e) => {
@@ -441,6 +665,18 @@ export default function EventCard({
           }}
           isOpen={isViewModalOpen}
           onClose={() => setIsViewModalOpen(false)}
+        />
+      )}
+      
+      {isCreator && (
+        <ParticipantsDialog
+          eventId={event.id}
+          isOpen={isParticipantsDialogOpen}
+          onClose={() => setIsParticipantsDialogOpen(false)}
+          onApprove={handleApproveParticipant}
+          onReject={handleRejectParticipant}
+          onRemove={handleRemoveParticipant}
+          onRevert={handleRevertParticipant}
         />
       )}
     </>

@@ -1,4 +1,4 @@
-import { Users } from "lucide-react";
+import { Users, Loader2 } from "lucide-react";
 import { 
   Dialog, 
   DialogContent, 
@@ -9,13 +9,12 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ParticipantItem, ParticipantWithUser } from "./participant-item";
+import { useQuery } from "@tanstack/react-query";
 
 interface ParticipantsDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  eventName: string;
-  eventType: "public" | "private_ticket" | "private_application";
-  participants: ParticipantWithUser[];
+  eventId: number;
+  isOpen: boolean;
+  onClose: () => void;
   onApprove?: (participantId: number) => void;
   onReject?: (participantId: number) => void;
   onRemove?: (participantId: number) => void;
@@ -23,16 +22,39 @@ interface ParticipantsDialogProps {
 }
 
 export function ParticipantsDialog({
-  open,
-  onOpenChange,
-  eventName,
-  eventType,
-  participants,
+  eventId,
+  isOpen,
+  onClose,
   onApprove,
   onReject,
   onRemove,
   onRevert
 }: ParticipantsDialogProps) {
+  // Buscar informações do evento
+  const eventQuery = useQuery({
+    queryKey: [`/api/events/${eventId}`],
+    enabled: isOpen
+  });
+
+  // Buscar participantes do evento
+  const participantsQuery = useQuery({
+    queryKey: [`/api/events/${eventId}/participants`],
+    enabled: isOpen,
+    staleTime: 10000,
+    refetchInterval: 15000
+  });
+
+  // Extrair os dados necessários
+  const event = eventQuery.data || {};
+  const participants = (participantsQuery.data as ParticipantWithUser[] || []);
+  const eventName = (event as any)?.name || `Evento #${eventId}`;
+  // Garante que o eventType é um dos valores aceitáveis para a prop do ParticipantItem
+  const rawEventType = (event as any)?.eventType;
+  const eventType = (
+    rawEventType === 'private_application' || 
+    rawEventType === 'private_ticket' || 
+    rawEventType === 'public'
+  ) ? rawEventType : 'public' as const;
   // Cores para os badges de status
   const statusColors = {
     "confirmed": "bg-green-100 text-green-800 border-green-300",
@@ -50,7 +72,7 @@ export function ParticipantsDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent aria-describedby="participants-dialog-description" className="max-w-md">
         <DialogHeader>
           <DialogTitle>Participantes: {eventName}</DialogTitle>
@@ -61,7 +83,11 @@ export function ParticipantsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {participants && participants.length > 0 ? (
+        {participantsQuery.isLoading ? (
+          <div className="flex justify-center items-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
+          </div>
+        ) : participants && participants.length > 0 ? (
           <div className="space-y-4 max-h-96 overflow-y-auto">
             {participants.map((participant) => (
               <ParticipantItem
@@ -85,7 +111,7 @@ export function ParticipantsDialog({
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={onClose}>
             Fechar
           </Button>
         </DialogFooter>
