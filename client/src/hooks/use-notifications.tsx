@@ -58,13 +58,15 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
           
           // Transformar notificações da API para o formato do frontend
           const apiNotifications = data.map((item: any) => {
+            console.log("Mapeando notificação da API:", item.notification);
             return {
               id: `api-${item.recipient.id}`,
               title: item.notification.title,
               message: item.notification.message,
               date: new Date(item.notification.createdAt || Date.now()),
               read: item.recipient.read,
-              type: item.notification.type,
+              // Garantir que type nunca seja undefined
+              type: item.notification.type || "unknown",
               eventId: item.notification.eventId,
               // Manter o ID original do recipiente para operações como "marcar como lido"
               recipientId: item.recipient.id

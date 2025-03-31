@@ -26,8 +26,8 @@ export function NotificationsMenu() {
       // Para notificações de solicitações pendentes ou de candidatura, ir para a página Meus Eventos
       if (notification.type === 'participant_request' || 
           notification.type === 'event_application' || 
-          notification.type.includes('event_') || 
-          notification.type.includes('participant_')) {
+          (notification.type && notification.type.includes('event_')) || 
+          (notification.type && notification.type.includes('participant_'))) {
         console.log('Redirecionando para Meus Eventos após clicar na notificação:', notification);
         setLocation(`/my-events`);
       } else {
@@ -55,7 +55,12 @@ export function NotificationsMenu() {
   };
 
   // Função para obter o ícone adequado para cada tipo de notificação
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = (type: string | undefined) => {
+    // Se não houver tipo, retorna o ícone de sino padrão
+    if (!type) {
+      return <Bell className="h-4 w-4 mr-2" />;
+    }
+    
     // Verifica se o tipo contém determinadas palavras-chave
     if (type.includes('application') || type.includes('participant') || type.includes('request')) {
       return <UserCheck className="h-4 w-4 mr-2" />;
@@ -127,7 +132,7 @@ export function NotificationsMenu() {
               >
                 <span className="flex items-center w-full text-sm font-medium">
                   {getNotificationIcon(notification.type)}
-                  <span className="flex-1 truncate">{notification.title}</span>
+                  <span className="flex-1 truncate">{notification.title || 'Notificação'}</span>
                   <span className="flex items-center gap-1 ml-1">
                     {!notification.read && (
                       <Badge className="bg-blue-500 hover:bg-blue-600 px-1.5" variant="secondary">
