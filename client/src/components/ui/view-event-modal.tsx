@@ -590,7 +590,7 @@ export default function ViewEventModal({
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
-                    Nenhum participante registrado ainda.
+                    <span className="block">Nenhum participante registrado ainda.</span>
                   </div>
                 )}
               </div>

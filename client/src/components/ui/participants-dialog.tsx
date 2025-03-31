@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ParticipantItem, ParticipantWithUser } from "./participant-item";
 import { useQuery } from "@tanstack/react-query";
+import { logError, ErrorSeverity } from "@/lib/errorLogger";
 
 interface ParticipantsDialogProps {
   eventId: number;
@@ -36,6 +37,20 @@ export function ParticipantsDialog({
     enabled: isOpen
   });
 
+  // Registrar erro se ocorrer
+  if (eventQuery.error) {
+    logError(
+      `Erro ao buscar dados do evento ${eventId} para diálogo de participantes`,
+      ErrorSeverity.ERROR,
+      {
+        context: 'ParticipantsDialog',
+        component: 'EventQuery',
+        error: eventQuery.error instanceof Error ? eventQuery.error : new Error(String(eventQuery.error)),
+        additionalData: { eventId }
+      }
+    );
+  }
+
   // Buscar participantes do evento
   const participantsQuery = useQuery({
     queryKey: [`/api/events/${eventId}/participants`],
@@ -43,6 +58,20 @@ export function ParticipantsDialog({
     staleTime: 10000,
     refetchInterval: 15000
   });
+  
+  // Registrar erro se ocorrer
+  if (participantsQuery.error) {
+    logError(
+      `Erro ao buscar participantes do evento ${eventId}`,
+      ErrorSeverity.ERROR,
+      {
+        context: 'ParticipantsDialog',
+        component: 'ParticipantsQuery',
+        error: participantsQuery.error instanceof Error ? participantsQuery.error : new Error(String(participantsQuery.error)),
+        additionalData: { eventId }
+      }
+    );
+  }
 
   // Extrair os dados necessários
   const event = eventQuery.data || {};
@@ -72,7 +101,12 @@ export function ParticipantsDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={(isOpen: boolean) => {
+        if (!isOpen) onClose();
+      }}
+    >
       <DialogContent aria-describedby="participants-dialog-description" className="max-w-md">
         <DialogHeader>
           <DialogTitle>Participantes: {eventName}</DialogTitle>
@@ -106,7 +140,7 @@ export function ParticipantsDialog({
         ) : (
           <div className="text-center py-8">
             <Users className="h-12 w-12 mx-auto text-gray-400" />
-            <p className="mt-2 text-gray-500">Nenhum participante ainda.</p>
+            <span className="block mt-2 text-gray-500">Nenhum participante ainda.</span>
           </div>
         )}
 

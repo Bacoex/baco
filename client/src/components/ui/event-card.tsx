@@ -86,6 +86,22 @@ export default function EventCard({
     staleTime: 10000, // 10 segundos
     refetchInterval: 15000 // Atualiza a cada 15 segundos
   });
+  
+  // Registrar erro de busca de participantes, se houver
+  if (participantsQuery.error) {
+    logError(
+      `Erro ao buscar participantes do evento ${event.id} no card`,
+      ErrorSeverity.ERROR,
+      {
+        context: 'EventCard',
+        component: 'ParticipantsQuery',
+        error: participantsQuery.error instanceof Error 
+          ? participantsQuery.error 
+          : new Error(String(participantsQuery.error)),
+        additionalData: { eventId: event.id }
+      }
+    );
+  }
 
   // Verifica se o usuário já está participando do evento
   const participationQuery = useQuery({
