@@ -206,14 +206,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const user = await storage.getUser(userId);
+      const userData = user ? {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImage: user.profileImage
+      } : null;
+
+      // Criar notificação para o criador do evento se for um evento com aprovação necessária
+      let notificationForCreator = null;
+      if (event.eventType === 'private_application') {
+        // Criar a notificação
+        const notification = await storage.createNotification({
+          title: "Nova solicitação para seu evento",
+          message: `${user?.firstName || 'Alguém'} ${user?.lastName || ''} quer experienciar o seu evento "${event.name}"`,
+          type: "participant_request",
+          data: {
+            eventId: event.id,
+            participantId: participation.id
+          }
+        });
+        
+        // Adicionar o criador do evento como destinatário
+        await storage.addNotificationRecipients(notification.id, [event.creatorId]);
+        
+        console.log(`Criada notificação ${notification.id} para o criador do evento ${event.creatorId}`);
+      }
+
       res.status(201).json({
         ...participation,
-        user: user ? {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          profileImage: user.profileImage
-        } : null
+        user: userData
       });
     } catch (err) {
       console.error("Erro ao participar do evento:", err);
