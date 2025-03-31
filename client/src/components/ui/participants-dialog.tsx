@@ -37,20 +37,6 @@ export function ParticipantsDialog({
     enabled: isOpen
   });
 
-  // Registrar erro se ocorrer
-  if (eventQuery.error) {
-    logError(
-      `Erro ao buscar dados do evento ${eventId} para diálogo de participantes`,
-      ErrorSeverity.ERROR,
-      {
-        context: 'ParticipantsDialog',
-        component: 'EventQuery',
-        error: eventQuery.error instanceof Error ? eventQuery.error : new Error(String(eventQuery.error)),
-        additionalData: { eventId }
-      }
-    );
-  }
-
   // Buscar participantes do evento
   const participantsQuery = useQuery({
     queryKey: [`/api/events/${eventId}/participants`],
@@ -58,20 +44,6 @@ export function ParticipantsDialog({
     staleTime: 10000,
     refetchInterval: 15000
   });
-  
-  // Registrar erro se ocorrer
-  if (participantsQuery.error) {
-    logError(
-      `Erro ao buscar participantes do evento ${eventId}`,
-      ErrorSeverity.ERROR,
-      {
-        context: 'ParticipantsDialog',
-        component: 'ParticipantsQuery',
-        error: participantsQuery.error instanceof Error ? participantsQuery.error : new Error(String(participantsQuery.error)),
-        additionalData: { eventId }
-      }
-    );
-  }
 
   // Extrair os dados necessários
   const event = eventQuery.data || {};
