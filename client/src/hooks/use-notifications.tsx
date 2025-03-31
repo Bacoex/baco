@@ -73,12 +73,40 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
             } as Notification;
           });
           
+          // Eliminar qualquer duplicação baseada em título e mensagem de notificação
+          const deduplicatedApiNotifications = [];
+          const notificationSignatures = new Set();
+          
+          for (const notification of apiNotifications) {
+            // Cria uma assinatura única baseada no título, mensagem e tipo
+            const signature = `${notification.title}|${notification.message}|${notification.type || 'unknown'}`;
+            
+            // Se essa assinatura ainda não foi vista, adiciona à lista de notificações
+            if (!notificationSignatures.has(signature)) {
+              notificationSignatures.add(signature);
+              deduplicatedApiNotifications.push(notification);
+            } else {
+              console.log('Detectada notificação duplicada com assinatura:', signature);
+            }
+          }
+          
+          console.log(`Após deduplicação: ${deduplicatedApiNotifications.length} de ${apiNotifications.length} notificações`);
+          
           // Atualizar o estado de notificações com as novas da API
           setNotifications(prev => {
             // IDs atuais para evitar duplicatas
             const existingIds = new Set(prev.map(n => n.id));
-            // Filtrar notificações para incluir apenas as novas
-            const uniqueNewNotifications = apiNotifications.filter(n => !existingIds.has(n.id));
+            
+            // Evitar adicionar notificações semelhantes às existentes
+            const existingSignatures = new Set(
+              prev.map(n => `${n.title}|${n.message}|${n.type || 'unknown'}`)
+            );
+            
+            // Filtrar notificações para incluir apenas as novas e não similares às existentes
+            const uniqueNewNotifications = deduplicatedApiNotifications.filter(n => {
+              const signature = `${n.title}|${n.message}|${n.type || 'unknown'}`;
+              return !existingIds.has(n.id) && !existingSignatures.has(signature);
+            });
             
             if (uniqueNewNotifications.length > 0) {
               console.log(`Adicionando ${uniqueNewNotifications.length} novas notificações da API`);
