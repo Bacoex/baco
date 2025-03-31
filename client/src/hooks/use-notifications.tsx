@@ -106,8 +106,11 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { isLoading: isUserEventsLoading } = useQuery({
     queryKey: ['/api/user/events/creator'],
     enabled: !!user,
+    refetchInterval: 10000, // Reduzido de 20s para 10s para obter atualizações mais rápidas
+    staleTime: 5000, // Reduzido para força verificações mais frequentes
     queryFn: async () => {
       if (!user) return [];
+      console.log('[DEBUG-NOTIFICAÇÕES] Iniciando verificação de eventos com participantes pendentes...');
       const response = await apiRequest('GET', '/api/user/events/creator');
       const data = await response.json();
       
@@ -171,8 +174,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       }
       
       return data;
-    },
-    refetchInterval: 20000, // Atualiza a cada 20 segundos
+    }
   });
 
   // Efeito para carregar notificações do localStorage na inicialização

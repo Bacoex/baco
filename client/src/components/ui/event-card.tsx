@@ -68,11 +68,11 @@ export default function EventCard({
     queryKey: [`/api/events/${event.id}/participation`, user?.id],
     // Usamos o queryFn padrão do queryClient que já foi configurado para lidar com erros e respostas não-JSON
     enabled: !!user && !isCreator, // Só verificar participação se o usuário estiver logado e não for o criador
-    staleTime: 30000, // Considerar os dados frescos por 30 segundos
+    staleTime: 5000, // Reduzido para atualizar mais rápido
     refetchOnMount: true, // Refetch sempre que o componente montar
     refetchOnWindowFocus: true, // Refetch quando a janela ganhar foco
     retry: 1, // Reduzir o número de tentativas para evitar muitas requisições em caso de erro
-    refetchInterval: 10000, // Refetch a cada 10 segundos para garantir dados atualizados
+    refetchInterval: 5000, // Reduzido para atualizar a cada 5 segundos
     // Tratar código 404 (não participante) como sucesso com dados nulos, em vez de erro
     meta: {
       errorPassthrough: true
@@ -412,6 +412,10 @@ export default function EventCard({
             coordinates: '',
             isActive: true,
             createdAt: new Date(),
+            category: {
+              ...event.category,
+              id: typeof event.categoryId === 'number' ? event.categoryId : 1,
+            }
           }}
           isOpen={isViewModalOpen}
           onClose={() => setIsViewModalOpen(false)}
