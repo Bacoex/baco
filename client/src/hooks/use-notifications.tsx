@@ -73,20 +73,30 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
             } as Notification;
           });
           
-          // Eliminar qualquer duplicação baseada em título e mensagem de notificação
+          // Eliminar qualquer duplicação baseada em título, mensagem, tipo e eventId
           const deduplicatedApiNotifications: Notification[] = [];
           const notificationSignatures = new Set<string>();
+          const idMap = new Map<string, string>(); // Mapa para detectar duplicações por ID do backend
           
           for (const notification of apiNotifications) {
-            // Cria uma assinatura única baseada no título, mensagem e tipo
-            const signature = `${notification.title}|${notification.message}|${notification.type || 'unknown'}`;
+            // Cria uma assinatura única mais completa
+            const signature = `${notification.title}|${notification.message}|${notification.type || 'unknown'}|${notification.eventId || 'no-event'}`;
+            const apiId = notification.id.replace('api-', '');
             
-            // Se essa assinatura ainda não foi vista, adiciona à lista de notificações
-            if (!notificationSignatures.has(signature)) {
+            // Verifica se já temos uma notificação com essa assinatura ou ID similar
+            if (!notificationSignatures.has(signature) && !idMap.has(apiId)) {
               notificationSignatures.add(signature);
+              idMap.set(apiId, notification.id);
               deduplicatedApiNotifications.push(notification);
             } else {
-              console.log('Detectada notificação duplicada com assinatura:', signature);
+              console.warn(`[WARNING] Notificação duplicada detectada: ${notification.type}`, {
+                título: notification.title,
+                mensagem: notification.message,
+                eventId: notification.eventId,
+                id: notification.id,
+                signatureExistente: notificationSignatures.has(signature),
+                idExistente: idMap.has(apiId)
+              });
             }
           }
           
@@ -94,18 +104,32 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
           
           // Atualizar o estado de notificações com as novas da API
           setNotifications(prev => {
-            // IDs atuais para evitar duplicatas
-            const existingIds = new Set(prev.map(n => n.id));
+            // IDs atuais para evitar duplicatas (com melhor normalização)
+            const existingIds = new Set(prev.map(n => n.id.replace('api-', '')));
             
             // Evitar adicionar notificações semelhantes às existentes
             const existingSignatures = new Set(
-              prev.map(n => `${n.title}|${n.message}|${n.type || 'unknown'}`)
+              prev.map(n => `${n.title}|${n.message}|${n.type || 'unknown'}|${n.eventId || 'no-event'}`)
             );
             
             // Filtrar notificações para incluir apenas as novas e não similares às existentes
             const uniqueNewNotifications = deduplicatedApiNotifications.filter(n => {
-              const signature = `${n.title}|${n.message}|${n.type || 'unknown'}`;
-              return !existingIds.has(n.id) && !existingSignatures.has(signature);
+              const signature = `${n.title}|${n.message}|${n.type || 'unknown'}|${n.eventId || 'no-event'}`;
+              const normalizedId = n.id.replace('api-', '');
+              
+              // Verifica se a notificação já existe por ID ou assinatura
+              const isDuplicate = existingIds.has(normalizedId) || existingSignatures.has(signature);
+              
+              if (isDuplicate) {
+                console.warn(`[WARNING] Ignorando notificação já existente no state:`, { 
+                  id: n.id, 
+                  título: n.title,
+                  tipo: n.type,
+                  eventId: n.eventId
+                });
+              }
+              
+              return !isDuplicate;
             });
             
             if (uniqueNewNotifications.length > 0) {
@@ -432,24 +456,42 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       // Verificar se já existe uma notificação similar
       setNotifications(prev => {
         try {
-          // Criar uma assinatura única para a nova notificação que inclui eventId para maior precisão
-          const newSignature = `${newNotification.title}|${newNotification.message}|${newNotification.type || 'unknown'}|${newNotification.eventId || 'none'}`;
+          // Verifica notificações duplicadas de várias maneiras diferentes
           
-          // Verificar se já existe essa assinatura nas notificações atuais
+          // 1. Verificação por assinatura completa (mais rigorosa)
+          const newSignature = `${newNotification.title}|${newNotification.message}|${newNotification.type || 'unknown'}|${newNotification.eventId || 'none'}`;
           const existingSignatures = new Set(
             prev.map(n => `${n.title}|${n.message}|${n.type || 'unknown'}|${n.eventId || 'none'}`)
           );
           
-          // Também verificar duplicação baseada apenas em título e mensagem (caso o tipo ou eventId mudem)
-          const simpleDuplication = prev.some(n => 
-            n.title === newNotification.title && 
-            n.message === newNotification.message &&
-            n.eventId === newNotification.eventId
+          // 2. Verificação parcial por tipo e eventId - útil para eventos específicos
+          const typeAndEventMatch = prev.some(n => 
+            n.type === newNotification.type && 
+            n.eventId === newNotification.eventId &&
+            n.eventId !== undefined && 
+            n.eventId !== null
           );
           
+          // 3. Verificação por título e mensagem (mais flexível)
+          const titleAndMessageMatch = prev.some(n => 
+            n.title === newNotification.title && 
+            n.message === newNotification.message
+          );
+          
+          // Determinar se é uma duplicata por algum dos métodos
+          const isDuplicate = existingSignatures.has(newSignature) || 
+                              (typeAndEventMatch && titleAndMessageMatch);
+          
           // Se já existe uma notificação com a mesma assinatura, não adiciona
-          if (existingSignatures.has(newSignature) || simpleDuplication) {
-            console.log('Ignorando notificação duplicada:', newSignature);
+          if (isDuplicate) {
+            console.warn('[WARNING] Ignorando notificação duplicada:', {
+              tipo: newNotification.type,
+              título: newNotification.title, 
+              eventId: newNotification.eventId,
+              assinaturaExistente: existingSignatures.has(newSignature),
+              tipoEventoMatch: typeAndEventMatch,
+              títuloMensagemMatch: titleAndMessageMatch
+            });
             return prev;
           }
           

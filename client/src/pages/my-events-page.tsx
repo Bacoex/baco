@@ -620,16 +620,42 @@ export default function MyEventsPage() {
   // Mutação para aprovar participante
   const approveParticipantMutation = useMutation({
     mutationFn: async (participantId: number) => {
-      const res = await apiRequest("PATCH", `/api/participants/${participantId}/approve`, { status: "approved" });
+      try {
+        // Limpar notificações antigas relacionadas a aprovações para evitar duplicações
+        if (user) {
+          const userStorageKey = `baco-notifications-${user.id}`;
+          try {
+            const existingNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
+            
+            // Filtrar notificações relacionadas a aprovações
+            const filteredNotifications = existingNotifications.filter((n: any) => {
+              return !(n.type === "participation_approved" && 
+                      (n.title.includes("aprovad") || n.message.includes("aprovad")));
+            });
+            
+            if (filteredNotifications.length !== existingNotifications.length) {
+              localStorage.setItem(userStorageKey, JSON.stringify(filteredNotifications));
+              console.warn(`[PREVENÇÃO] Removidas ${existingNotifications.length - filteredNotifications.length} notificações antigas de aprovação para prevenir duplicações`);
+            }
+          } catch (e) {
+            console.error('Erro ao limpar notificações antigas:', e);
+          }
+        }
       
-      // Verificar se a resposta é um JSON válido
-      const contentType = res.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        return res.json();
-      } else {
-        // Se não for JSON, capturar o texto da resposta para diagnóstico
-        const text = await res.text();
-        throw new Error(`Resposta não-JSON recebida: ${res.status} ${res.statusText}. Conteúdo: ${text.substring(0, 150)}...`);
+        const res = await apiRequest("PATCH", `/api/participants/${participantId}/approve`, { status: "approved" });
+        
+        // Verificar se a resposta é um JSON válido
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          return res.json();
+        } else {
+          // Se não for JSON, capturar o texto da resposta para diagnóstico
+          const text = await res.text();
+          throw new Error(`Resposta não-JSON recebida: ${res.status} ${res.statusText}. Conteúdo: ${text.substring(0, 150)}...`);
+        }
+      } catch (error) {
+        console.error("Erro ao aprovar participante:", error);
+        throw error;
       }
     },
     onSuccess: (data) => {
@@ -734,6 +760,32 @@ export default function MyEventsPage() {
         title: "Processando...",
         description: "Rejeitando participação...",
       });
+      
+      try {
+        // Limpar notificações antigas relacionadas a rejeições para evitar duplicações
+        if (user) {
+          const userStorageKey = `baco-notifications-${user.id}`;
+          try {
+            const existingNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
+            
+            // Filtrar notificações relacionadas a rejeições
+            const filteredNotifications = existingNotifications.filter((n: any) => {
+              return !(n.type === "participation_rejected" && 
+                      (n.title.includes("rejeit") || n.message.includes("rejeit")));
+            });
+            
+            if (filteredNotifications.length !== existingNotifications.length) {
+              localStorage.setItem(userStorageKey, JSON.stringify(filteredNotifications));
+              console.warn(`[PREVENÇÃO] Removidas ${existingNotifications.length - filteredNotifications.length} notificações antigas de rejeição para prevenir duplicações`);
+            }
+          } catch (e) {
+            console.error('Erro ao limpar notificações antigas de rejeição:', e);
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao limpar notificações antigas:", error);
+      }
+      
       const res = await apiRequest("PATCH", `/api/participants/${participantId}/reject`, { status: "rejected" });
       
       // Verificar se a resposta é um JSON válido
@@ -844,6 +896,32 @@ export default function MyEventsPage() {
   // Mutação para remover participante (independente do status)
   const removeParticipantMutation = useMutation({
     mutationFn: async (participantId: number) => {
+      try {
+        // Limpar notificações antigas relacionadas a remoções para evitar duplicações
+        if (user) {
+          const userStorageKey = `baco-notifications-${user.id}`;
+          try {
+            const existingNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
+            
+            // Filtrar notificações relacionadas a remoções
+            const filteredNotifications = existingNotifications.filter((n: any) => {
+              return !(n.type && 
+                      (n.type.includes("remove") || n.type.includes("remov")) && 
+                      (n.title.includes("remov") || n.message.includes("remov")));
+            });
+            
+            if (filteredNotifications.length !== existingNotifications.length) {
+              localStorage.setItem(userStorageKey, JSON.stringify(filteredNotifications));
+              console.warn(`[PREVENÇÃO] Removidas ${existingNotifications.length - filteredNotifications.length} notificações antigas de remoção para prevenir duplicações`);
+            }
+          } catch (e) {
+            console.error('Erro ao limpar notificações antigas de remoção:', e);
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao limpar notificações antigas:", error);
+      }
+      
       const res = await apiRequest("DELETE", `/api/participants/${participantId}/remove`);
       
       // Verificar se a resposta é um JSON válido
