@@ -262,6 +262,21 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
   
+  /* Estilo para destacar um evento após clicar em uma notificação */
+  .highlighted-event {
+    @apply ring-4 ring-primary/70 ring-offset-2 transition-all;
+    animation: highlight-pulse 2s ease-in-out;
+  }
+  
+  @keyframes highlight-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 rgba(var(--primary), 0.4);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(var(--primary), 0.8);
+    }
+  }
+  
   /* Estilizações personalizadas com as cores da aplicação */
   .text-baco-blue {
     color: var(--baco-blue);

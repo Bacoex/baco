@@ -21,10 +21,15 @@ export function NotificationsMenu() {
   const handleNotificationClick = (notification: Notification) => {
     markAsRead(notification.id);
 
-    // Se for uma notificação relacionada a um evento, redirecionar para a página do evento
+    // Se for uma notificação relacionada a um evento, redirecionar para a página adequada
     if (notification.eventId) {
+      // Para notificações de aprovação de participação, ir para a página de eventos participando
+      if (notification.type === 'participation_approved') {
+        console.log('Redirecionando para Meus Eventos (Participando) após notificação de aprovação:', notification);
+        setLocation(`/my-events?tab=participating&highlight=${notification.eventId}`);
+      }
       // Para notificações de solicitações pendentes ou de candidatura, ir para a página Meus Eventos
-      if (notification.type === 'participant_request' || 
+      else if (notification.type === 'participant_request' || 
           notification.type === 'event_application' || 
           (notification.type && notification.type.includes('event_')) || 
           (notification.type && notification.type.includes('participant_'))) {
