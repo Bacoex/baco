@@ -51,12 +51,14 @@ export function setupAuth(app: Express) {
   // Configuração da sessão
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "baco-app-secret-key-change-in-production",
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
+      sameSite: 'lax'
     }
   };
 
@@ -202,12 +204,29 @@ export function setupAuth(app: Express) {
 
   // Rota de login
   app.post("/api/login", (req, res, next) => {
+    console.log("Login tentado para:", req.body.username);
+    
     passport.authenticate("local", (err, user, info) => {
-      if (err) return next(err);
-      if (!user) return res.status(401).json({ message: "CPF ou senha inválidos" });
+      if (err) {
+        console.error("Erro na autenticação:", err);
+        return next(err);
+      }
+      
+      if (!user) {
+        console.log("Login falhou para:", req.body.username);
+        return res.status(401).json({ message: "CPF ou senha inválidos" });
+      }
       
       req.login(user, (err) => {
-        if (err) return next(err);
+        if (err) {
+          console.error("Erro no login após autenticação:", err);
+          return next(err);
+        }
+        
+        console.log("Login bem-sucedido para:", user.firstName, user.lastName, "(ID:", user.id, ")");
+        
+        // Verificar se a sessão foi criada corretamente
+        console.log("Sessão criada:", req.session.id);
         
         // Remove a senha do objeto retornado
         const { password, ...userWithoutPassword } = user;
@@ -226,7 +245,14 @@ export function setupAuth(app: Express) {
 
   // Rota para obter o usuário atual
   app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
+    if (!req.isAuthenticated()) {
+      console.log("Tentativa de acesso não autenticada a /api/user");
+      console.log("Sessão:", req.session?.id || "sem sessão");
+      return res.sendStatus(401);
+    }
+    
+    console.log("Usuário autenticado acessando /api/user:", req.user?.id, req.user?.firstName);
+    console.log("Sessão ativa:", req.session.id);
     
     // Remove a senha do objeto retornado
     const { password, ...userWithoutPassword } = req.user as SelectUser;
