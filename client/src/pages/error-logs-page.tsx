@@ -26,7 +26,12 @@ import {
   clearLogs, 
   removeOldLogs, 
   ErrorSeverity, 
-  ErrorLogEntry 
+  ErrorLogEntry,
+  ErrorComponent,
+  getErrorStatistics,
+  logCreateEventError,
+  analyzeSelectNullError,
+  analyzeApiCallError
 } from '@/lib/errorLogger';
 import { 
   Loader2, 
@@ -145,6 +150,48 @@ export default function ErrorLogsPage() {
     );
   }
 
+  // Obter estatísticas de erros
+  const [errorStats, setErrorStats] = useState<{
+    totalErrors: number;
+    byComponent: Record<string, number>;
+    bySeverity: Record<string, number>;
+    recentErrors: number;
+  }>({
+    totalErrors: 0,
+    byComponent: {},
+    bySeverity: {},
+    recentErrors: 0
+  });
+
+  // Atualizar estatísticas ao carregar a página e quando os logs mudarem
+  useEffect(() => {
+    updateErrorStats();
+  }, [logs]);
+
+  // Função para atualizar estatísticas
+  const updateErrorStats = () => {
+    try {
+      const stats = getErrorStatistics();
+      setErrorStats(stats);
+    } catch (error) {
+      console.error("Erro ao calcular estatísticas de erros:", error);
+    }
+  };
+
+  // Função para testar o CreateEventModal
+  const createTestErrorLog = () => {
+    logCreateEventError("Teste de erro no modal de criação de eventos", 
+      new Error("Erro simulado para teste"), 
+      { subcategoryId: null, categoryId: 1, name: "Teste de evento" }
+    );
+    analyzeSelectNullError("subcategoryId", null);
+    toast({
+      title: "Log de teste criado",
+      description: "Um log de teste para o modal de criação de eventos foi gerado."
+    });
+    loadLogs();
+  };
+  
   return (
     <div className="flex flex-col min-h-screen bg-black">
       <NetworkBackground />
@@ -152,6 +199,66 @@ export default function ErrorLogsPage() {
 
       <main className="flex-grow px-4 pb-20 pt-28 relative z-10">
         <div className="container mx-auto max-w-6xl">
+          {/* Painel de estatísticas */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <Card className="bg-black/30 backdrop-blur-sm border-gray-700">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg text-white">Total de Erros</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-white">{errorStats.totalErrors}</p>
+                <p className="text-sm text-gray-400">
+                  <span className="font-semibold text-blue-400">{errorStats.recentErrors}</span> nas últimas 24h
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-black/30 backdrop-blur-sm border-gray-700">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg text-white">Por Severidade</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-1">
+                  {Object.entries(errorStats.bySeverity).map(([severity, count]) => (
+                    <div key={severity} className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                          severity === 'info' ? 'bg-blue-500' :
+                          severity === 'warning' ? 'bg-yellow-500' :
+                          severity === 'error' ? 'bg-red-500' :
+                          'bg-purple-500'
+                        }`} />
+                        <span className="text-sm text-gray-300">
+                          {severity === 'info' && 'Informação'}
+                          {severity === 'warning' && 'Aviso'}
+                          {severity === 'error' && 'Erro'}
+                          {severity === 'critical' && 'Crítico'}
+                        </span>
+                      </div>
+                      <span className="text-sm font-medium text-white">{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-black/30 backdrop-blur-sm border-gray-700 md:col-span-2">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg text-white">Por Componente</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.entries(errorStats.byComponent).map(([component, count]) => (
+                    <div key={component} className="flex justify-between items-center">
+                      <span className="text-sm text-gray-300">{component}</span>
+                      <span className="text-sm font-medium text-white">{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
           <div className="flex flex-col space-y-4 mb-6">
             <div className="flex justify-between items-center">
               <h1 className="text-xl font-semibold text-white">Log de Erros</h1>
@@ -189,16 +296,27 @@ export default function ErrorLogsPage() {
               </div>
             </div>
             
-            <div className="bg-black/40 backdrop-blur-sm border border-gray-700 rounded p-3 flex items-center">
-              <Clock className="h-5 w-5 text-blue-400 mr-2" />
-              <p className="text-sm text-gray-300">
-                Os logs são automaticamente excluídos após <span className="font-semibold text-white">14 dias</span>.
-                {oldLogsRemoved > 0 && 
-                  <span className="ml-2 italic">
-                    {oldLogsRemoved} logs antigos foram excluídos na última limpeza.
-                  </span>
-                }
-              </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+              <div className="bg-black/40 backdrop-blur-sm border border-gray-700 rounded p-3 flex items-center">
+                <Clock className="h-5 w-5 text-blue-400 mr-2" />
+                <p className="text-sm text-gray-300">
+                  Os logs são automaticamente excluídos após <span className="font-semibold text-white">14 dias</span>.
+                  {oldLogsRemoved > 0 && 
+                    <span className="ml-2 italic">
+                      {oldLogsRemoved} logs antigos foram excluídos na última limpeza.
+                    </span>
+                  }
+                </p>
+              </div>
+              
+              <div className="bg-black/40 backdrop-blur-sm border border-gray-700 rounded p-3">
+                <h3 className="text-sm font-medium text-white mb-2">Ferramentas de Teste</h3>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" onClick={createTestErrorLog}>
+                    Testar Error CreateEventModal
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
 

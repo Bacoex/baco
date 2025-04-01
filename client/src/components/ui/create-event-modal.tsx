@@ -12,6 +12,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, MapPin, X, Info, Ticket, Users } from "lucide-react";
+import { logCreateEventError, analyzeSelectNullError, ErrorComponent } from "@/lib/errorLogger";
 import {
   Form,
   FormControl,
@@ -160,20 +161,27 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
   // Mutação para criar um novo evento
   const createEventMutation = useMutation({
     mutationFn: async (data: EventFormValues) => {
-      // Preparar os dados adicionais conforme o tipo de evento
-      let eventData = { ...data };
+      try {
+        // Preparar os dados adicionais conforme o tipo de evento
+        let eventData = { ...data };
 
-      // Se for evento com ingressos, processa os ingressos adicionais
-      if (data.eventType === 'private_ticket' && additionalTickets.length > 0) {
-        eventData.additionalTickets = JSON.stringify(additionalTickets);
-      }
+        // Se for evento com ingressos, processa os ingressos adicionais
+        if (data.eventType === 'private_ticket' && additionalTickets.length > 0) {
+          eventData.additionalTickets = JSON.stringify(additionalTickets);
+        }
 
-      const res = await apiRequest("POST", "/api/events", eventData);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Erro ao criar evento');
+        const res = await apiRequest("POST", "/api/events", eventData);
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || 'Erro ao criar evento');
+        }
+        return res.json();
+      } catch (error) {
+        // Capturar e registrar o erro antes de relançá-lo
+        const err = error as Error;
+        analyzeApiCallError('/api/events', 'POST', err, data);
+        throw err;
       }
-      return res.json();
     },
     onSuccess: () => {
       toast({
@@ -186,6 +194,9 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
       form.reset();
     },
     onError: (error: Error) => {
+      // Registrar erro para análise avançada
+      logCreateEventError(`Falha ao criar evento: ${error.message}`, error, form.getValues());
+      
       toast({
         title: "Erro",
         description: error.message,
@@ -196,16 +207,32 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
 
   // Função para lidar com o envio do formulário
   function onSubmit(data: EventFormValues) {
-    // Converte tipos numéricos
-    const eventData = {
-      ...data,
-      categoryId: Number(data.categoryId),
-      subcategoryId: data.subcategoryId ? Number(data.subcategoryId) : null,
-      ticketPrice: data.eventType === 'private_ticket' ? Number(data.ticketPrice) : 0,
-      capacity: data.capacity ? Number(data.capacity) : null,
-    };
-
-    createEventMutation.mutate(eventData);
+    try {
+      // Registrar dados para análise
+      analyzeSelectNullError('subcategoryId', data.subcategoryId);
+      
+      // Converte tipos numéricos
+      const eventData = {
+        ...data,
+        categoryId: Number(data.categoryId),
+        subcategoryId: data.subcategoryId ? Number(data.subcategoryId) : null,
+        ticketPrice: data.eventType === 'private_ticket' ? Number(data.ticketPrice) : 0,
+        capacity: data.capacity ? Number(data.capacity) : null,
+      };
+      
+      // Log para debugging antes da mutação
+      console.log("Dados do formulário processados:", eventData);
+      
+      createEventMutation.mutate(eventData);
+    } catch (error) {
+      const err = error as Error;
+      logCreateEventError("Erro ao processar formulário de evento", err, data);
+      toast({
+        title: "Erro interno",
+        description: "Ocorreu um erro ao processar o formulário. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   }
 
   // Função para simular o upload de imagem (sem backend real neste momento)

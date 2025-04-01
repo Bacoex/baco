@@ -10,6 +10,16 @@ export enum ErrorSeverity {
   CRITICAL = 'critical'
 }
 
+// Definição dos tipos de erros por componente
+export enum ErrorComponent {
+  CREATE_EVENT = 'CreateEventModal',
+  EVENT_PARTICIPATION = 'EventParticipation',
+  AUTHENTICATION = 'Authentication',
+  NOTIFICATION = 'Notification',
+  API_REQUEST = 'ApiRequest',
+  GENERAL = 'General'
+}
+
 export interface ErrorLogEntry {
   timestamp: string;
   message: string;  // Sempre será string depois do processamento em logError
@@ -359,6 +369,96 @@ export function monitorObject<T extends Record<string, any>>(
   return monitoredObject;
 }
 
+/**
+ * Funções específicas para monitorar erros do modal de criação de eventos
+ */
+
+// Função para registrar erros específicos do modal de criação de eventos
+export function logCreateEventError(message: string, error?: Error, formData?: any): void {
+  logError(message, ErrorSeverity.ERROR, {
+    component: ErrorComponent.CREATE_EVENT,
+    context: 'Criação de evento',
+    error,
+    additionalData: {
+      formData: formData ? { ...formData } : undefined,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent
+    }
+  });
+}
+
+// Função para analisar erros de NullValue em componentes Select
+export function analyzeSelectNullError(fieldName: string, fieldValue: any): void {
+  logError(`Valor nulo ou indefinido detectado em campo Select: ${fieldName}`, ErrorSeverity.WARNING, {
+    component: ErrorComponent.CREATE_EVENT,
+    context: 'Validação de campo',
+    additionalData: {
+      fieldName,
+      fieldValue,
+      fieldType: typeof fieldValue,
+      isNull: fieldValue === null,
+      isUndefined: fieldValue === undefined,
+      stack: new Error().stack
+    }
+  });
+}
+
+// Função para analisar erros de chamadas de API
+export function analyzeApiCallError(endpoint: string, method: string, error: Error, requestData?: any): void {
+  logError(`Erro na chamada de API: ${method} ${endpoint}`, ErrorSeverity.ERROR, {
+    component: ErrorComponent.API_REQUEST,
+    context: `Requisição ${method}`,
+    error,
+    additionalData: {
+      endpoint,
+      method,
+      requestData,
+      timestamp: new Date().toISOString()
+    }
+  });
+}
+
+// Função para recuperar estatísticas de erros
+export function getErrorStatistics(): { 
+  totalErrors: number,
+  byComponent: Record<string, number>,
+  bySeverity: Record<string, number>,
+  recentErrors: number, // últimas 24h
+} {
+  const logs = getLogs();
+  const now = new Date();
+  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  
+  // Contadores
+  const byComponent: Record<string, number> = {};
+  const bySeverity: Record<string, number> = {};
+  let recentErrors = 0;
+  
+  // Percorrer logs para estatísticas
+  logs.forEach(log => {
+    // Contar por componente
+    if (log.component) {
+      byComponent[log.component] = (byComponent[log.component] || 0) + 1;
+    }
+    
+    // Contar por severidade
+    bySeverity[log.severity] = (bySeverity[log.severity] || 0) + 1;
+    
+    // Contar erros recentes (últimas 24 horas)
+    const logDate = new Date(log.timestamp);
+    if (logDate >= oneDayAgo) {
+      recentErrors++;
+    }
+  });
+  
+  return {
+    totalErrors: logs.length,
+    byComponent,
+    bySeverity,
+    recentErrors
+  };
+}
+
 export default {
   logError,
   getLogs,
@@ -368,5 +468,10 @@ export default {
   getLogsByComponent,
   monitorFunction,
   monitorObject,
-  ErrorSeverity
+  ErrorSeverity,
+  ErrorComponent,
+  logCreateEventError,
+  analyzeSelectNullError,
+  analyzeApiCallError,
+  getErrorStatistics
 };
