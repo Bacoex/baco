@@ -238,7 +238,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && setIsOpen(false)}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="absolute right-4 top-4 z-10">
           <Button 
