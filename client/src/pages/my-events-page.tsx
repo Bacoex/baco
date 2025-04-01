@@ -966,35 +966,27 @@ export default function MyEventsPage() {
         <div className="flex flex-col lg:flex-row gap-6 mt-4">
           {/* Botões de ação */}
           <div className="w-full lg:w-1/4 flex flex-col gap-4">
-            <Card className="border-none shadow-md bg-white dark:bg-gray-950">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xl">Meus Eventos</CardTitle>
-                <CardDescription>
-                  Gerencie seus eventos e participações
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-2">
-                <Button 
-                  onClick={() => setIsCreateModalOpen(true)} 
-                  variant="default" 
-                  className="justify-start font-medium" 
-                  size="sm"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Criar Novo Evento
-                </Button>
-                
-                <Button 
-                  onClick={() => navigate('/events')} 
-                  variant="outline" 
-                  className="justify-start" 
-                  size="sm"
-                >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Explorar Eventos
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col gap-2">
+              <Button 
+                onClick={() => setIsCreateModalOpen(true)} 
+                variant="default" 
+                className="justify-start font-medium" 
+                size="default"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Novo Evento
+              </Button>
+              
+              <Button 
+                onClick={() => navigate('/events')} 
+                variant="outline" 
+                className="justify-start" 
+                size="default"
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                Explorar Eventos
+              </Button>
+            </div>
 
             {/* Categorias (em telas maiores) */}
             <Card className="hidden lg:block border-none shadow-md bg-white dark:bg-gray-950">
