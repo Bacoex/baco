@@ -371,7 +371,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                     </FormDescription>
                     <Select 
                       onValueChange={(value) => field.onChange(parseInt(value))}
-                      value={field.value !== undefined ? field.value.toString() : "0"}
+                      value={field.value !== null && field.value !== undefined ? field.value.toString() : "0"}
                       disabled={isLoadingSubcategories || subcategories.length === 0}
                     >
                       <FormControl>
