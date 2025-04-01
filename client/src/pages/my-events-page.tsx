@@ -1089,17 +1089,28 @@ export default function MyEventsPage() {
                   </Card>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                    {participatingEventsQuery.data?.map((participation: any) => (
-                      <EventCard 
-                        key={participation.eventId} 
-                        event={participation.event}
-                        participation={{ 
-                          id: participation.id, 
-                          status: participation.status 
-                        }}
-                        highlightedEventId={highlightedEventId}
-                      />
-                    ))}
+                    {participatingEventsQuery.data?.map((event: any) => {
+                      // Verificar se temos dados válidos para renderizar o card
+                      if (!event || !event.id) {
+                        console.error("Dados de evento inválidos:", event);
+                        return null;
+                      }
+                      
+                      // Extrair informações de participação se disponíveis
+                      const participationData = event.participation ? {
+                        id: event.participation.id,
+                        status: event.participation.status
+                      } : null;
+                      
+                      return (
+                        <EventCard 
+                          key={event.id} 
+                          event={event}
+                          participation={participationData}
+                          highlightedEventId={highlightedEventId}
+                        />
+                      );
+                    })}
                   </div>
                 )}
               </TabsContent>
