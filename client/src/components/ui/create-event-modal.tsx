@@ -12,7 +12,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, MapPin, X, Info, Ticket, Users } from "lucide-react";
-import { logCreateEventError, analyzeSelectNullError, ErrorComponent } from "@/lib/errorLogger";
+import { logCreateEventError, analyzeSelectNullError, analyzeApiCallError, ErrorComponent } from "@/lib/errorLogger";
 import {
   Form,
   FormControl,

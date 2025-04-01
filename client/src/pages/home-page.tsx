@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Header } from "@/components/ui/header";
 import EventCard from "@/components/ui/event-card";
@@ -11,7 +11,7 @@ import { SearchBar } from "@/components/ui/search-bar";
 import { Button } from "@/components/ui/button";
 import { PlusIcon, Loader2 } from "lucide-react";
 import { EventCategory, Event } from "@shared/schema";
-import { getQueryFn } from "@/lib/queryClient";
+import { getQueryFn, queryClient } from "@/lib/queryClient";
 
 /**
  * Componente da página inicial
@@ -163,8 +163,11 @@ export default function HomePage() {
       {/* Modais */}
       <CreateEventModal 
         isOpen={isCreateModalOpen} 
-        onClose={closeCreateModal}
+        setIsOpen={setIsCreateModalOpen}
         categories={categories as EventCategory[]}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+        }}
       />
       
       {sharedEvent && (

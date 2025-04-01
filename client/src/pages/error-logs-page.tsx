@@ -178,18 +178,43 @@ export default function ErrorLogsPage() {
     }
   };
 
-  // Função para testar o CreateEventModal
+  // Função para testar o registro de erros do CreateEventModal
+  // Observe que isso apenas cria registros de log simulados e não tenta abrir o modal real
   const createTestErrorLog = () => {
-    logCreateEventError("Teste de erro no modal de criação de eventos", 
-      new Error("Erro simulado para teste"), 
-      { subcategoryId: null, categoryId: 1, name: "Teste de evento" }
+    // Registrar erro simulado para o modal de criação 
+    logCreateEventError(
+      "Teste de erro no modal de criação de eventos", 
+      new Error("Erro simulado para teste"),
+      { 
+        subcategoryId: null, 
+        categoryId: 1, 
+        name: "Teste de evento", 
+        eventType: "public",
+        date: "2025-10-10"
+      }
     );
+    
+    // Registrar erro de campo nulo
     analyzeSelectNullError("subcategoryId", null);
+    
+    // Registrar erro simulado de API
+    analyzeApiCallError(
+      "/api/events", 
+      "POST", 
+      new Error("Erro de API simulado para teste"),
+      { name: "Teste de evento" }
+    );
+    
     toast({
-      title: "Log de teste criado",
-      description: "Um log de teste para o modal de criação de eventos foi gerado."
+      title: "Logs de teste criados",
+      description: "Foram gerados logs de teste para o sistema de monitoramento do modal de criação de eventos."
     });
+    
+    // Recarregar logs para exibir os novos
     loadLogs();
+    
+    // Atualizar estatísticas
+    updateErrorStats();
   };
   
   return (
