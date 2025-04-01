@@ -17,6 +17,7 @@ export enum ErrorComponent {
   AUTHENTICATION = 'Authentication',
   NOTIFICATION = 'Notification',
   API_REQUEST = 'ApiRequest',
+  NOTIFICATION_DUPLICATE = 'NotificacaoDuplicada',
   GENERAL = 'General'
 }
 
@@ -418,6 +419,26 @@ export function analyzeApiCallError(endpoint: string, method: string, error: Err
   });
 }
 
+// Função para registrar erros de notificações duplicadas
+export function logNotificationDuplicateError(
+  notificationType: string, 
+  userId: number, 
+  eventId: number, 
+  details?: any
+): void {
+  logError(`Notificação duplicada detectada: ${notificationType}`, ErrorSeverity.WARNING, {
+    component: ErrorComponent.NOTIFICATION_DUPLICATE,
+    context: 'Verificação de duplicidade',
+    additionalData: {
+      notificationType,
+      userId,
+      eventId,
+      details,
+      timestamp: new Date().toISOString()
+    }
+  });
+}
+
 // Função para recuperar estatísticas de erros
 export function getErrorStatistics(): { 
   totalErrors: number,
@@ -459,19 +480,6 @@ export function getErrorStatistics(): {
   };
 }
 
-export default {
-  logError,
-  getLogs,
-  clearLogs,
-  removeOldLogs,
-  getLogsBySeverity,
-  getLogsByComponent,
-  monitorFunction,
-  monitorObject,
-  ErrorSeverity,
-  ErrorComponent,
-  logCreateEventError,
-  analyzeSelectNullError,
-  analyzeApiCallError,
-  getErrorStatistics
-};
+// Exportamos as funções diretamente em cada definição
+// Como ErrorSeverity, ErrorComponent e outras funções já
+// estão exportadas diretamente onde são definidas

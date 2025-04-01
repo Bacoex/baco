@@ -31,7 +31,8 @@ import {
   getErrorStatistics,
   logCreateEventError,
   analyzeSelectNullError,
-  analyzeApiCallError
+  analyzeApiCallError,
+  logNotificationDuplicateError
 } from '@/lib/errorLogger';
 import { 
   Loader2, 
@@ -48,6 +49,8 @@ export default function ErrorLogsPage() {
   const { user } = useAuth();
   const [logs, setLogs] = useState<ErrorLogEntry[]>([]);
   const [filter, setFilter] = useState<ErrorSeverity | 'all'>('all');
+  const [componentFilter, setComponentFilter] = useState<string | 'all'>('all');
+  const [showDuplicatesOnly, setShowDuplicatesOnly] = useState<boolean>(false);
   const [oldLogsRemoved, setOldLogsRemoved] = useState<number>(0);
 
   // Carregar logs ao iniciar a página
@@ -55,19 +58,33 @@ export default function ErrorLogsPage() {
     loadLogs();
   }, []);
 
-  // Recarregar logs quando o filtro mudar
+  // Recarregar logs quando os filtros mudarem
   useEffect(() => {
     loadLogs();
-  }, [filter]);
+  }, [filter, componentFilter, showDuplicatesOnly]);
 
-  // Função para carregar logs com filtro
+  // Função para carregar logs com todos os filtros aplicados
   const loadLogs = () => {
-    const allLogs = getLogs();
-    if (filter === 'all') {
-      setLogs(allLogs);
-    } else {
-      setLogs(allLogs.filter(log => log.severity === filter));
+    let filteredLogs = getLogs();
+    
+    // Aplicar filtro de severidade
+    if (filter !== 'all') {
+      filteredLogs = filteredLogs.filter(log => log.severity === filter);
     }
+    
+    // Aplicar filtro de componente
+    if (componentFilter !== 'all') {
+      filteredLogs = filteredLogs.filter(log => log.component === componentFilter);
+    }
+    
+    // Aplicar filtro de duplicações de notificações
+    if (showDuplicatesOnly) {
+      filteredLogs = filteredLogs.filter(log => 
+        log.component === ErrorComponent.NOTIFICATION_DUPLICATE
+      );
+    }
+    
+    setLogs(filteredLogs);
   };
 
   // Função para remover logs antigos
@@ -288,21 +305,50 @@ export default function ErrorLogsPage() {
             <div className="flex justify-between items-center">
               <h1 className="text-xl font-semibold text-white">Log de Erros</h1>
               <div className="flex space-x-2">
-                <Select
-                  value={filter}
-                  onValueChange={(value) => setFilter(value as ErrorSeverity | 'all')}
+                <div className="flex space-x-2">
+                  <Select
+                    value={filter}
+                    onValueChange={(value) => setFilter(value as ErrorSeverity | 'all')}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Filtrar por severidade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value={ErrorSeverity.INFO}>Informação</SelectItem>
+                      <SelectItem value={ErrorSeverity.WARNING}>Aviso</SelectItem>
+                      <SelectItem value={ErrorSeverity.ERROR}>Erro</SelectItem>
+                      <SelectItem value={ErrorSeverity.CRITICAL}>Crítico</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select
+                    value={componentFilter}
+                    onValueChange={(value) => setComponentFilter(value)}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Filtrar por componente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value={ErrorComponent.CREATE_EVENT}>Criação de Evento</SelectItem>
+                      <SelectItem value={ErrorComponent.EVENT_PARTICIPATION}>Participação</SelectItem>
+                      <SelectItem value={ErrorComponent.NOTIFICATION}>Notificação</SelectItem>
+                      <SelectItem value={ErrorComponent.NOTIFICATION_DUPLICATE}>Duplicação de Notificação</SelectItem>
+                      <SelectItem value={ErrorComponent.API_REQUEST}>API Request</SelectItem>
+                      <SelectItem value={ErrorComponent.GENERAL}>Geral</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <Button 
+                  variant={showDuplicatesOnly ? "secondary" : "outline"} 
+                  onClick={() => setShowDuplicatesOnly(!showDuplicatesOnly)}
+                  className="flex items-center"
                 >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filtrar por severidade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value={ErrorSeverity.INFO}>Informação</SelectItem>
-                    <SelectItem value={ErrorSeverity.WARNING}>Aviso</SelectItem>
-                    <SelectItem value={ErrorSeverity.ERROR}>Erro</SelectItem>
-                    <SelectItem value={ErrorSeverity.CRITICAL}>Crítico</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <AlertTriangle className="h-4 w-4 mr-1" />
+                  {showDuplicatesOnly ? "Mostrar Todos" : "Apenas Notificações Duplicadas"}
+                </Button>
                 
                 <Button variant="ghost" onClick={loadLogs}>
                   <RotateCcw className="h-4 w-4 mr-1" />
@@ -340,6 +386,42 @@ export default function ErrorLogsPage() {
                   <Button size="sm" variant="outline" onClick={createTestErrorLog}>
                     Testar Error CreateEventModal
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => {
+                    // Criar log de notificação duplicada para teste
+                    // Usando logError diretamente para não depender da função específica
+                    logError(
+                      `Notificação duplicada detectada: participation_approved`,
+                      ErrorSeverity.WARNING,
+                      {
+                        component: ErrorComponent.NOTIFICATION_DUPLICATE,
+                        context: "Teste de duplicação",
+                        additionalData: {
+                          notificationType: "participation_approved",
+                          userId: 1,
+                          eventId: 1,
+                          details: {
+                            notificationId: 123,
+                            existingNotification: {
+                              id: 123,
+                              timestamp: new Date().toISOString(),
+                              read: false
+                            }
+                          },
+                          timestamp: new Date().toISOString()
+                        }
+                      }
+                    );
+                    
+                    toast({
+                      title: "Log de notificação duplicada",
+                      description: "Foi criado um registro de log para teste de notificação duplicada."
+                    });
+                    
+                    loadLogs();
+                    updateErrorStats();
+                  }}>
+                    Testar Notificação Duplicada
+                  </Button>
                 </div>
               </div>
             </div>
@@ -350,9 +432,11 @@ export default function ErrorLogsPage() {
               <CardHeader>
                 <CardTitle className="text-center text-white">Nenhum log encontrado</CardTitle>
                 <CardDescription className="text-center text-gray-400">
-                  {filter === 'all' 
-                    ? 'Não há registros de erros no sistema.' 
-                    : `Não há registros de severidade "${filter}" no sistema.`}
+                  {showDuplicatesOnly
+                    ? 'Não há registros de duplicação de notificações no sistema.'
+                    : filter === 'all' 
+                      ? 'Não há registros de erros no sistema.' 
+                      : `Não há registros de severidade "${filter}" no sistema.`}
                 </CardDescription>
               </CardHeader>
               <CardFooter className="flex justify-center">

@@ -370,9 +370,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
       
-      // Adicionar informações de notificação à resposta
+      // Adicionar informações de notificação como uma propriedade extra
       if (notificationInfo) {
-        responseData.notification = {
+        (responseData as any).notification = {
           forParticipant: notificationInfo
         };
       }
@@ -430,8 +430,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Criada notificação ${notification.id} para o solicitante ${participant.userId} (rejeição)`);
       
-      // Adicionar informações de notificação à resposta
-      responseData.notification = {
+      // Adicionar informações de notificação como uma propriedade extra
+      (responseData as any).notification = {
         forParticipant: {
           title: notification.title,
           message: notification.message,
@@ -745,6 +745,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error("Erro ao buscar notificações:", err);
       res.status(500).json({ message: "Erro ao buscar notificações" });
+    }
+  });
+  
+  // Rota para acessar logs de erro do sistema
+  app.get("/api/system/error-logs", ensureAuthenticated, async (req, res) => {
+    try {
+      // Apenas o usuário admin pode acessar os logs completos
+      if (req.user!.username === "00000000000") {
+        const { getErrorLogs } = require('./errorMonitoring');
+        return res.json(getErrorLogs());
+      }
+      
+      // Outros usuários veem apenas uma mensagem genérica
+      res.status(403).json({ 
+        message: "Acesso permitido apenas para administradores do sistema" 
+      });
+    } catch (err) {
+      console.error("Erro ao buscar logs de erro:", err);
+      res.status(500).json({ message: "Erro ao buscar logs de erro" });
     }
   });
 
