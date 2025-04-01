@@ -2,6 +2,17 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+// Definição de tipos locais para notificações temporárias
+interface TempNotification {
+  id: string;
+  title: string;
+  message: string;
+  type?: string;
+  date: Date;
+  read: boolean;
+  [key: string]: any;
+}
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -633,28 +644,37 @@ export default function MyEventsPage() {
           }
         }
 
-        // Notificação para o participante
+        // Não fazemos nada com a notificação para o participante
+        // porque a API já criou essa notificação no backend e será 
+        // recuperada automaticamente pelo hook useQuery no useNotifications
         if (data.notification.forParticipant) {
-          // Se o usuário atual é o destinatário da notificação
-          if (data.notification.forParticipant.userId === user?.id) {
-            console.log("Adicionando notificação para o participante (aprovar):", data.notification.forParticipant);
-            addNotification(data.notification.forParticipant);
-          } else {
-            // Esta notificação é para outro usuário (o participante)
+          console.log("Notificação para participante já será obtida via API, ignorando duplicação");
+          // Se não for o usuário atual, podemos salvar no localStorage (isso não causa duplicação)
+          if (data.notification.forParticipant.userId !== user?.id) {
             console.log("Salvando notificação para o participante no localStorage:", data.notification.forParticipant);
             const userStorageKey = `baco-notifications-${data.notification.forParticipant.userId}`;
             try {
               // Recupera notificações existentes ou cria um array vazio
               const existingNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
-              // Adiciona a nova notificação
-              existingNotifications.unshift({
-                ...data.notification.forParticipant,
-                id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-                date: new Date(),
-                read: false
-              });
-              // Salva de volta no localStorage
-              localStorage.setItem(userStorageKey, JSON.stringify(existingNotifications));
+              // Verificar se não existe notificação com a mesma mensagem
+              const notificationExists = existingNotifications.some(n => 
+                n.title === data.notification.forParticipant.title && 
+                n.message === data.notification.forParticipant.message
+              );
+              
+              // Só adiciona se não existir
+              if (!notificationExists) {
+                existingNotifications.unshift({
+                  ...data.notification.forParticipant,
+                  id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                  date: new Date(),
+                  read: false
+                });
+                // Salva de volta no localStorage
+                localStorage.setItem(userStorageKey, JSON.stringify(existingNotifications));
+              } else {
+                console.log("Notificação já existe no localStorage, ignorando duplicação");
+              }
             } catch (error) {
               console.error("Erro ao salvar notificação para participante:", error);
             }
@@ -725,28 +745,37 @@ export default function MyEventsPage() {
           }
         }
 
-        // Notificação para o participante
+        // Não fazemos nada com a notificação para o participante
+        // porque a API já criou essa notificação no backend e será 
+        // recuperada automaticamente pelo hook useQuery no useNotifications
         if (data.notification.forParticipant) {
-          // Se o usuário atual é o destinatário da notificação
-          if (data.notification.forParticipant.userId === user?.id) {
-            console.log("Adicionando notificação para o participante (rejeitar):", data.notification.forParticipant);
-            addNotification(data.notification.forParticipant);
-          } else {
-            // Esta notificação é para outro usuário (o participante)
+          console.log("Notificação para participante já será obtida via API, ignorando duplicação");
+          // Se não for o usuário atual, podemos salvar no localStorage (isso não causa duplicação)
+          if (data.notification.forParticipant.userId !== user?.id) {
             console.log("Salvando notificação para o participante no localStorage:", data.notification.forParticipant);
             const userStorageKey = `baco-notifications-${data.notification.forParticipant.userId}`;
             try {
               // Recupera notificações existentes ou cria um array vazio
               const existingNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
-              // Adiciona a nova notificação
-              existingNotifications.unshift({
-                ...data.notification.forParticipant,
-                id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-                date: new Date(),
-                read: false
-              });
-              // Salva de volta no localStorage
-              localStorage.setItem(userStorageKey, JSON.stringify(existingNotifications));
+              // Verificar se não existe notificação com a mesma mensagem
+              const notificationExists = existingNotifications.some(n => 
+                n.title === data.notification.forParticipant.title && 
+                n.message === data.notification.forParticipant.message
+              );
+              
+              // Só adiciona se não existir
+              if (!notificationExists) {
+                existingNotifications.unshift({
+                  ...data.notification.forParticipant,
+                  id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                  date: new Date(),
+                  read: false
+                });
+                // Salva de volta no localStorage
+                localStorage.setItem(userStorageKey, JSON.stringify(existingNotifications));
+              } else {
+                console.log("Notificação já existe no localStorage, ignorando duplicação");
+              }
             } catch (error) {
               console.error("Erro ao salvar notificação para participante:", error);
             }
@@ -813,28 +842,37 @@ export default function MyEventsPage() {
           }
         }
 
-        // Notificação para o participante
+        // Não fazemos nada com a notificação para o participante
+        // porque a API já criou essa notificação no backend e será 
+        // recuperada automaticamente pelo hook useQuery no useNotifications
         if (data.notification.forParticipant) {
-          // Se o usuário atual é o destinatário da notificação
-          if (data.notification.forParticipant.userId === user?.id) {
-            console.log("Adicionando notificação para o participante (remover):", data.notification.forParticipant);
-            addNotification(data.notification.forParticipant);
-          } else {
-            // Esta notificação é para outro usuário (o participante)
+          console.log("Notificação para participante já será obtida via API, ignorando duplicação");
+          // Se não for o usuário atual, podemos salvar no localStorage (isso não causa duplicação)
+          if (data.notification.forParticipant.userId !== user?.id) {
             console.log("Salvando notificação para o participante no localStorage:", data.notification.forParticipant);
             const userStorageKey = `baco-notifications-${data.notification.forParticipant.userId}`;
             try {
               // Recupera notificações existentes ou cria um array vazio
               const existingNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
-              // Adiciona a nova notificação
-              existingNotifications.unshift({
-                ...data.notification.forParticipant,
-                id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-                date: new Date(),
-                read: false
-              });
-              // Salva de volta no localStorage
-              localStorage.setItem(userStorageKey, JSON.stringify(existingNotifications));
+              // Verificar se não existe notificação com a mesma mensagem
+              const notificationExists = existingNotifications.some((n: any) => 
+                n.title === data.notification.forParticipant.title && 
+                n.message === data.notification.forParticipant.message
+              );
+              
+              // Só adiciona se não existir
+              if (!notificationExists) {
+                existingNotifications.unshift({
+                  ...data.notification.forParticipant,
+                  id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                  date: new Date(),
+                  read: false
+                });
+                // Salva de volta no localStorage
+                localStorage.setItem(userStorageKey, JSON.stringify(existingNotifications));
+              } else {
+                console.log("Notificação já existe no localStorage, ignorando duplicação");
+              }
             } catch (error) {
               console.error("Erro ao salvar notificação para participante:", error);
             }
