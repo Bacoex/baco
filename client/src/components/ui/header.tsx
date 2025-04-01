@@ -14,7 +14,7 @@ export function Header() {
   };
 
   return (
-    <div className="fixed w-full z-50 flex justify-between items-center px-4 py-2">
+    <div className="fixed w-full top-0 left-0 z-50 flex justify-between items-center px-4 py-2 bg-gradient-to-b from-black/70 to-transparent">
       {/* Espaço à esquerda para manter o balanceamento */}
       <div className="w-[100px]"></div>
       

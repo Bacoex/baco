@@ -962,8 +962,8 @@ export default function MyEventsPage() {
       <Header />
 
       {/* Conteúdo principal */}
-      <div className="container mx-auto px-4 py-6 mt-16">
-        <div className="flex flex-col lg:flex-row gap-6 mt-4">
+      <div className="container mx-auto px-4 py-6 mt-20">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Botões de ação */}
           <div className="w-full lg:w-1/4 flex flex-col gap-4">
             <div className="flex flex-col gap-2">
