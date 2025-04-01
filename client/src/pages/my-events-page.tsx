@@ -243,14 +243,18 @@ function EventCard({
               <Avatar>
                 <AvatarImage src={event.creator?.profileImage || undefined} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                  {event.creator?.firstName?.charAt(0) || ""}{event.creator?.lastName?.charAt(0) || ""}
+                  {event.creator && event.creator.firstName ? event.creator.firstName.charAt(0) : ""}
+                  {event.creator && event.creator.lastName ? event.creator.lastName.charAt(0) : ""}
                 </AvatarFallback>
               </Avatar>
             </Eneagon>
           </div>
           <div className="ml-3">
             <p className="text-sm font-medium">
-              {getUserDisplayName({ firstName: event.creator?.firstName || "", lastName: event.creator?.lastName || "" })}
+              {event.creator ? getUserDisplayName({ 
+                firstName: event.creator.firstName || "", 
+                lastName: event.creator.lastName || "" 
+              }) : "Usuário"}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {event.eventType === 'public' ? 'Evento público' : 
