@@ -361,13 +361,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       } else {
         console.log(`Notificação de aprovação já existe para participante ${participant.id} no evento ${event.id}`);
-        
-        // Usar as informações da notificação existente, se necessário
-        notificationInfo = {
-          title: "Solicitação aprovada",
-          message: `Sua solicitação para experienciar o evento "${event.name}" foi aprovada!`,
-          userId: participant.userId
-        };
+        // Não retornamos notificação quando já existe uma para este evento
+        notificationInfo = null;
       }
       
       // Adicionar informações de notificação como uma propriedade extra

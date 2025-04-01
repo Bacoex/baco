@@ -422,17 +422,35 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       read: false
     };
 
-    setNotifications(prev => [newNotification, ...prev]);
-    
-    // Exibir um toast para a nova notificação apenas quando for criada manualmente
-    // Para notificações do sistema, usamos o toast controlado acima
-    // para evitar duplicidade de mensagens
-    if (notificationData.type !== 'event_approval' && notificationData.type !== 'participant_request') {
-      toast({
-        title: newNotification.title,
-        description: newNotification.message,
-      });
-    }
+    // Verificar se já existe uma notificação similar
+    setNotifications(prev => {
+      // Criar uma assinatura única para a nova notificação
+      const newSignature = `${newNotification.title}|${newNotification.message}|${newNotification.type || 'unknown'}`;
+      
+      // Verificar se já existe essa assinatura nas notificações atuais
+      const existingSignatures = new Set(
+        prev.map(n => `${n.title}|${n.message}|${n.type || 'unknown'}`)
+      );
+      
+      // Se já existe uma notificação com a mesma assinatura, não adiciona
+      if (existingSignatures.has(newSignature)) {
+        console.log('Ignorando notificação duplicada:', newSignature);
+        return prev;
+      }
+      
+      // Caso contrário, adiciona a nova notificação
+      console.log('Adicionando nova notificação:', newSignature);
+      
+      // Exibir um toast para a nova notificação
+      if (notificationData.type !== 'event_approval' && notificationData.type !== 'participant_request') {
+        toast({
+          title: newNotification.title,
+          description: newNotification.message,
+        });
+      }
+      
+      return [newNotification, ...prev];
+    });
   };
 
   // Valor do contexto
