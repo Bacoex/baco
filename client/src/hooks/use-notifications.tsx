@@ -415,42 +415,69 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   // Adicionar nova notificação
   const addNotification = (notificationData: Omit<Notification, 'id' | 'date' | 'read'>) => {
-    const newNotification: Notification = {
-      ...notificationData,
-      id: `local-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      date: new Date(),
-      read: false
-    };
+    try {
+      // Validação dos campos necessários
+      if (!notificationData.title || !notificationData.message) {
+        console.error("Tentativa de adicionar notificação sem título ou mensagem:", notificationData);
+        return;
+      }
+      
+      const newNotification: Notification = {
+        ...notificationData,
+        id: `local-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        date: new Date(),
+        read: false
+      };
 
-    // Verificar se já existe uma notificação similar
-    setNotifications(prev => {
-      // Criar uma assinatura única para a nova notificação
-      const newSignature = `${newNotification.title}|${newNotification.message}|${newNotification.type || 'unknown'}`;
-      
-      // Verificar se já existe essa assinatura nas notificações atuais
-      const existingSignatures = new Set(
-        prev.map(n => `${n.title}|${n.message}|${n.type || 'unknown'}`)
-      );
-      
-      // Se já existe uma notificação com a mesma assinatura, não adiciona
-      if (existingSignatures.has(newSignature)) {
-        console.log('Ignorando notificação duplicada:', newSignature);
-        return prev;
-      }
-      
-      // Caso contrário, adiciona a nova notificação
-      console.log('Adicionando nova notificação:', newSignature);
-      
-      // Exibir um toast para a nova notificação
-      if (notificationData.type !== 'event_approval' && notificationData.type !== 'participant_request') {
-        toast({
-          title: newNotification.title,
-          description: newNotification.message,
-        });
-      }
-      
-      return [newNotification, ...prev];
-    });
+      // Verificar se já existe uma notificação similar
+      setNotifications(prev => {
+        try {
+          // Criar uma assinatura única para a nova notificação que inclui eventId para maior precisão
+          const newSignature = `${newNotification.title}|${newNotification.message}|${newNotification.type || 'unknown'}|${newNotification.eventId || 'none'}`;
+          
+          // Verificar se já existe essa assinatura nas notificações atuais
+          const existingSignatures = new Set(
+            prev.map(n => `${n.title}|${n.message}|${n.type || 'unknown'}|${n.eventId || 'none'}`)
+          );
+          
+          // Também verificar duplicação baseada apenas em título e mensagem (caso o tipo ou eventId mudem)
+          const simpleDuplication = prev.some(n => 
+            n.title === newNotification.title && 
+            n.message === newNotification.message &&
+            n.eventId === newNotification.eventId
+          );
+          
+          // Se já existe uma notificação com a mesma assinatura, não adiciona
+          if (existingSignatures.has(newSignature) || simpleDuplication) {
+            console.log('Ignorando notificação duplicada:', newSignature);
+            return prev;
+          }
+          
+          // Caso contrário, adiciona a nova notificação
+          console.log('Adicionando nova notificação:', {
+            título: newNotification.title,
+            mensagem: newNotification.message,
+            tipo: newNotification.type,
+            eventId: newNotification.eventId
+          });
+          
+          // Exibir um toast para a nova notificação
+          if (notificationData.type !== 'event_approval' && notificationData.type !== 'participant_request') {
+            toast({
+              title: newNotification.title,
+              description: newNotification.message,
+            });
+          }
+          
+          return [newNotification, ...prev];
+        } catch (error) {
+          console.error("Erro ao processar notificação:", error);
+          return prev;
+        }
+      });
+    } catch (error) {
+      console.error("Erro fatal ao adicionar notificação:", error);
+    }
   };
 
   // Valor do contexto

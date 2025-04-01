@@ -25,7 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/use-notifications";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getUserDisplayName } from "@/lib/utils";
-import { logError, ErrorSeverity } from "@/lib/errorLogger";
+import { logError, ErrorSeverity, logNotificationProcessingError } from "@/lib/errorLogger";
 import { useLocation } from "wouter";
 import { Loader2, Calendar, MapPin, Clock, Users, Edit, Trash2, CheckCircle, XCircle, MessageSquare, Plus, Heart, HeartOff } from "lucide-react";
 import {
@@ -72,6 +72,16 @@ interface EventParticipant {
     lastName: string;
     profileImage: string | null;
   };
+}
+
+// Tipo para notificações
+interface NotificationType {
+  title: string;
+  message: string;
+  id?: string | number;
+  date?: Date | string;
+  read?: boolean;
+  [key: string]: any;
 }
 
 interface Event {
@@ -637,10 +647,23 @@ export default function MyEventsPage() {
 
         // Notificação para o criador do evento
         if (data.notification.forCreator) {
-          // Se o usuário atual é o destinatário da notificação
-          if (data.notification.forCreator.userId === user?.id) {
-            console.log("Adicionando notificação para o criador (aprovar):", data.notification.forCreator);
-            addNotification(data.notification.forCreator);
+          try {
+            console.log("Processando notificação para o criador (aprovar):", data.notification.forCreator);
+            
+            // Se o usuário atual é o destinatário da notificação, adicionamos direto na interface
+            if (data.notification.forCreator.userId === user?.id) {
+              console.log("Adicionando notificação para o criador atual:", data.notification.forCreator);
+              addNotification(data.notification.forCreator);
+            }
+          } catch (error) {
+            console.error("Erro ao processar notificação para criador:", error);
+            logNotificationProcessingError(
+              "approveParticipant", 
+              data.notification.forCreator?.title || "Notificação para criador",
+              data.notification.forCreator?.message || "Sem mensagem",
+              error instanceof Error ? error : new Error(String(error)),
+              { notificationData: data.notification.forCreator }
+            );
           }
         }
 
@@ -657,7 +680,7 @@ export default function MyEventsPage() {
               // Recupera notificações existentes ou cria um array vazio
               const existingNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
               // Verificar se não existe notificação com a mesma mensagem
-              const notificationExists = existingNotifications.some(n => 
+              const notificationExists = existingNotifications.some((n: NotificationType) => 
                 n.title === data.notification.forParticipant.title && 
                 n.message === data.notification.forParticipant.message
               );
@@ -738,10 +761,23 @@ export default function MyEventsPage() {
 
         // Notificação para o criador do evento
         if (data.notification.forCreator) {
-          // Se o usuário atual é o destinatário da notificação
-          if (data.notification.forCreator.userId === user?.id) {
-            console.log("Adicionando notificação para o criador (rejeitar):", data.notification.forCreator);
-            addNotification(data.notification.forCreator);
+          try {
+            console.log("Processando notificação para o criador (rejeitar):", data.notification.forCreator);
+            
+            // Se o usuário atual é o destinatário da notificação, adicionamos direto na interface
+            if (data.notification.forCreator.userId === user?.id) {
+              console.log("Adicionando notificação para o criador atual:", data.notification.forCreator);
+              addNotification(data.notification.forCreator);
+            }
+          } catch (error) {
+            console.error("Erro ao processar notificação para criador:", error);
+            logNotificationProcessingError(
+              "rejectParticipant", 
+              data.notification.forCreator?.title || "Notificação para criador",
+              data.notification.forCreator?.message || "Sem mensagem",
+              error instanceof Error ? error : new Error(String(error)),
+              { notificationData: data.notification.forCreator }
+            );
           }
         }
 
@@ -758,7 +794,7 @@ export default function MyEventsPage() {
               // Recupera notificações existentes ou cria um array vazio
               const existingNotifications = JSON.parse(localStorage.getItem(userStorageKey) || '[]');
               // Verificar se não existe notificação com a mesma mensagem
-              const notificationExists = existingNotifications.some(n => 
+              const notificationExists = existingNotifications.some((n: NotificationType) => 
                 n.title === data.notification.forParticipant.title && 
                 n.message === data.notification.forParticipant.message
               );
@@ -835,10 +871,23 @@ export default function MyEventsPage() {
 
         // Notificação para o criador do evento
         if (data.notification.forCreator) {
-          // Se o usuário atual é o destinatário da notificação
-          if (data.notification.forCreator.userId === user?.id) {
-            console.log("Adicionando notificação para o criador (remover):", data.notification.forCreator);
-            addNotification(data.notification.forCreator);
+          try {
+            console.log("Processando notificação para o criador (remover):", data.notification.forCreator);
+            
+            // Se o usuário atual é o destinatário da notificação, adicionamos direto na interface
+            if (data.notification.forCreator.userId === user?.id) {
+              console.log("Adicionando notificação para o criador atual:", data.notification.forCreator);
+              addNotification(data.notification.forCreator);
+            }
+          } catch (error) {
+            console.error("Erro ao processar notificação para criador:", error);
+            logNotificationProcessingError(
+              "removeParticipant", 
+              data.notification.forCreator?.title || "Notificação para criador",
+              data.notification.forCreator?.message || "Sem mensagem",
+              error instanceof Error ? error : new Error(String(error)),
+              { notificationData: data.notification.forCreator }
+            );
           }
         }
 

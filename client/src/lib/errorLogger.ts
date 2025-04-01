@@ -18,6 +18,7 @@ export enum ErrorComponent {
   NOTIFICATION = 'Notification',
   API_REQUEST = 'ApiRequest',
   NOTIFICATION_DUPLICATE = 'NotificacaoDuplicada',
+  NOTIFICATION_PROCESSING = 'NotificationProcessing',
   GENERAL = 'General'
 }
 
@@ -433,6 +434,28 @@ export function logNotificationDuplicateError(
       notificationType,
       userId,
       eventId,
+      details,
+      timestamp: new Date().toISOString()
+    }
+  });
+}
+
+// Função para registrar erros de processamento de notificações
+export function logNotificationProcessingError(
+  operation: string, 
+  title: string,
+  message: string,
+  error?: Error,
+  details?: any
+): void {
+  logError(`Erro no processamento de notificação - ${operation}: ${title}`, ErrorSeverity.ERROR, {
+    component: ErrorComponent.NOTIFICATION_PROCESSING,
+    context: 'Processamento de notificação',
+    error,
+    additionalData: {
+      operation,
+      title,
+      message,
       details,
       timestamp: new Date().toISOString()
     }
