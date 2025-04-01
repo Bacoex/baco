@@ -964,29 +964,8 @@ export default function MyEventsPage() {
       {/* Conteúdo principal */}
       <div className="container mx-auto px-4 py-6 mt-20">
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Botões de ação */}
+          {/* Painel lateral */}
           <div className="w-full lg:w-1/4 flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <Button 
-                onClick={() => setIsCreateModalOpen(true)} 
-                variant="default" 
-                className="justify-start font-medium" 
-                size="default"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Criar Novo Evento
-              </Button>
-              
-              <Button 
-                onClick={() => navigate('/events')} 
-                variant="outline" 
-                className="justify-start" 
-                size="default"
-              >
-                <Calendar className="h-4 w-4 mr-2" />
-                Explorar Eventos
-              </Button>
-            </div>
 
             {/* Categorias (em telas maiores) */}
             <Card className="hidden lg:block border-none shadow-md bg-white dark:bg-gray-950">
