@@ -480,6 +480,5 @@ export function getErrorStatistics(): {
   };
 }
 
-// Exportamos as funções diretamente em cada definição
-// Como ErrorSeverity, ErrorComponent e outras funções já
-// estão exportadas diretamente onde são definidas
+// Exportação padrão removida, usamos apenas exportações nomeadas
+// Todas as funções relevantes já estão sendo exportadas individualmente

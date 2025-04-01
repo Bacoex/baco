@@ -31,8 +31,7 @@ import {
   getErrorStatistics,
   logCreateEventError,
   analyzeSelectNullError,
-  analyzeApiCallError,
-  logNotificationDuplicateError
+  analyzeApiCallError
 } from '@/lib/errorLogger';
 import { 
   Loader2, 
@@ -387,38 +386,31 @@ export default function ErrorLogsPage() {
                     Testar Error CreateEventModal
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => {
-                    // Criar log de notificação duplicada para teste
-                    // Usando logError diretamente para não depender da função específica
-                    logError(
-                      `Notificação duplicada detectada: participation_approved`,
-                      ErrorSeverity.WARNING,
-                      {
-                        component: ErrorComponent.NOTIFICATION_DUPLICATE,
-                        context: "Teste de duplicação",
-                        additionalData: {
-                          notificationType: "participation_approved",
-                          userId: 1,
-                          eventId: 1,
-                          details: {
-                            notificationId: 123,
-                            existingNotification: {
-                              id: 123,
-                              timestamp: new Date().toISOString(),
-                              read: false
-                            }
-                          },
-                          timestamp: new Date().toISOString()
+                    // Criar log direto usando a função principal para teste
+                    import('@/lib/errorLogger').then(module => {
+                      module.logError(
+                        "Notificação duplicada detectada: participation_approved",
+                        ErrorSeverity.WARNING,
+                        {
+                          component: ErrorComponent.NOTIFICATION_DUPLICATE,
+                          context: "Teste manual de duplicação",
+                          additionalData: {
+                            notificationType: "participation_approved",
+                            userId: 1,
+                            eventId: 1,
+                            notificationId: 999
+                          }
                         }
-                      }
-                    );
-                    
-                    toast({
-                      title: "Log de notificação duplicada",
-                      description: "Foi criado um registro de log para teste de notificação duplicada."
+                      );
+                      
+                      toast({
+                        title: "Log de notificação duplicada",
+                        description: "Foi criado um registro de log para teste de notificação duplicada."
+                      });
+                      
+                      loadLogs();
+                      updateErrorStats();
                     });
-                    
-                    loadLogs();
-                    updateErrorStats();
                   }}>
                     Testar Notificação Duplicada
                   </Button>
