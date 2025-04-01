@@ -320,20 +320,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "approved"
       );
       
-      // Criar notificação para o usuário solicitante
-      const notification = await storage.createNotification({
-        title: "Solicitação aprovada",
-        message: `Sua solicitação para experienciar o evento "${event.name}" foi aprovada!`,
-        type: "participation_approved",
-        eventId: event.id,
-        sourceId: participant.id,
-        sourceType: "participation"
-      });
+      // Verificar se já existe uma notificação para esta aprovação
+      // Isso evita múltiplas notificações para a mesma aprovação
+      const userNotifications = await storage.getNotificationsByUser(participant.userId);
+      const existingApprovalNotification = userNotifications.find(n => 
+        n.notification.type === "participation_approved" && 
+        n.notification.eventId === event.id && 
+        n.notification.sourceId === participant.id
+      );
       
-      // Adicionar o usuário solicitante como destinatário
-      await storage.addNotificationRecipients(notification.id, [participant.userId]);
-      
-      console.log(`Criada notificação ${notification.id} para o solicitante ${participant.userId}`);
+      if (!existingApprovalNotification) {
+        // Criar notificação para o usuário solicitante
+        const notification = await storage.createNotification({
+          title: "Solicitação aprovada",
+          message: `Sua solicitação para experienciar o evento "${event.name}" foi aprovada!`,
+          type: "participation_approved",
+          eventId: event.id,
+          sourceId: participant.id,
+          sourceType: "participation"
+        });
+        
+        // Adicionar o usuário solicitante como destinatário
+        await storage.addNotificationRecipients(notification.id, [participant.userId]);
+        
+        console.log(`Criada notificação ${notification.id} para o solicitante ${participant.userId}`);
+      } else {
+        console.log(`Notificação de aprovação já existe para participante ${participant.id} no evento ${event.id}`);
+      }
       
       res.json({ 
         ...updatedParticipant,

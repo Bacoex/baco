@@ -74,8 +74,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
           });
           
           // Eliminar qualquer duplicação baseada em título e mensagem de notificação
-          const deduplicatedApiNotifications = [];
-          const notificationSignatures = new Set();
+          const deduplicatedApiNotifications: Notification[] = [];
+          const notificationSignatures = new Set<string>();
           
           for (const notification of apiNotifications) {
             // Cria uma assinatura única baseada no título, mensagem e tipo
@@ -110,13 +110,18 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
             
             if (uniqueNewNotifications.length > 0) {
               console.log(`Adicionando ${uniqueNewNotifications.length} novas notificações da API`);
-              // Mostrar toasts para novas notificações não lidas
-              uniqueNewNotifications.filter(n => !n.read).forEach(n => {
+              // Mostrar toast apenas para a primeira notificação não lida
+              // Evitando múltiplos toasts que podem confundir o usuário
+              const unreadNotifications = uniqueNewNotifications.filter(n => !n.read);
+              if (unreadNotifications.length > 0) {
+                const firstNotification = unreadNotifications[0];
                 toast({
-                  title: n.title,
-                  description: n.message,
+                  title: unreadNotifications.length > 1 
+                    ? `${firstNotification.title} (+${unreadNotifications.length - 1} mais)` 
+                    : firstNotification.title,
+                  description: firstNotification.message,
                 });
-              });
+              }
               
               return [...uniqueNewNotifications, ...prev];
             }
@@ -419,11 +424,15 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
     setNotifications(prev => [newNotification, ...prev]);
     
-    // Exibir um toast para a nova notificação
-    toast({
-      title: newNotification.title,
-      description: newNotification.message,
-    });
+    // Exibir um toast para a nova notificação apenas quando for criada manualmente
+    // Para notificações do sistema, usamos o toast controlado acima
+    // para evitar duplicidade de mensagens
+    if (notificationData.type !== 'event_approval' && notificationData.type !== 'participant_request') {
+      toast({
+        title: newNotification.title,
+        description: newNotification.message,
+      });
+    }
   };
 
   // Valor do contexto
