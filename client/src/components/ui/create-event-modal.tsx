@@ -127,7 +127,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
       coordinates: "",
       coverImage: "",
       categoryId: 0,
-      subcategoryId: 0,
+      subcategoryId: null,
       eventType: "public",
       importantInfo: "",
       ticketPrice: 0,
@@ -397,7 +397,11 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                       Opcional - Selecione uma subcategoria para classificar seu evento
                     </FormDescription>
                     <Select 
-                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      onValueChange={(value) => {
+                        // Convertemos para número ou null se for 0
+                        const numValue = parseInt(value);
+                        field.onChange(numValue === 0 ? null : numValue);
+                      }}
                       value={field.value !== null && field.value !== undefined ? field.value.toString() : "0"}
                       disabled={isLoadingSubcategories || subcategories.length === 0}
                     >
