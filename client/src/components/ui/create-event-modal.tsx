@@ -30,12 +30,14 @@ import { Separator } from "@/components/ui/separator";
  */
 interface CreateEventModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  setIsOpen: (isOpen: boolean) => void;
   categories: Array<{
     id: number;
     name: string;
     slug: string;
+    color?: string;
   }>;
+  onSuccess?: () => void;
 }
 
 /**
@@ -66,7 +68,7 @@ interface AdditionalTicket {
 /**
  * Componente de modal para criação de eventos
  */
-export default function CreateEventModal({ isOpen, onClose, categories }: CreateEventModalProps) {
+export default function CreateEventModal({ isOpen, setIsOpen, categories, onSuccess }: CreateEventModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -178,8 +180,9 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
         title: "Sucesso!",
         description: "Evento criado com sucesso",
       });
-      queryClient.invalidateQueries(["/api/events"]);
-      onClose();
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      setIsOpen(false);
+      if (onSuccess) onSuccess();
       form.reset();
     },
     onError: (error: Error) => {
@@ -235,13 +238,13 @@ export default function CreateEventModal({ isOpen, onClose, categories }: Create
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && setIsOpen(false)}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="absolute right-4 top-4 z-10">
           <Button 
             variant="ghost" 
             size="icon" 
-            onClick={onClose} 
+            onClick={() => setIsOpen(false)} 
             className="rounded-full h-8 w-8 text-gray-500 hover:text-gray-900 bg-white hover:bg-gray-100"
           >
             <X className="h-4 w-4" />

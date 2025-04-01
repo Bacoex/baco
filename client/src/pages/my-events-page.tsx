@@ -151,27 +151,25 @@ function EventCard({
     "rejected": "Recusado"
   };
   
-  // Verificar se o evento tem imagem de capa
-  const eventImage = event.coverImage ? (
-    <div className="h-48 overflow-hidden">
-      <img
-        src={event.coverImage}
-        alt={event.name}
-        className="w-full h-full object-cover transform transition-transform hover:scale-105 duration-500"
-      />
-    </div>
-  ) : (
-    <div className="h-48 bg-gradient-to-r from-primary/20 to-primary/40 flex items-center justify-center">
-      <Calendar className="h-16 w-16 text-primary/50" />
-    </div>
-  );
-
   return (
     <Card 
       id={`event-${event.id}`}
       className={`relative overflow-hidden border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 ${highlightedEventId === event.id ? 'highlighted-event' : ''}`}
     >
-      {eventImage}
+      {/* Imagem de capa do evento */}
+      {event.coverImage ? (
+        <div className="h-48 overflow-hidden">
+          <img
+            src={event.coverImage}
+            alt={event.name}
+            className="w-full h-full object-cover transform transition-transform hover:scale-105 duration-500"
+          />
+        </div>
+      ) : (
+        <div className="h-48 bg-gradient-to-r from-primary/20 to-primary/40 flex items-center justify-center">
+          <Calendar className="h-16 w-16 text-primary/50" />
+        </div>
+      )}
 
       {/* Badge de categoria */}
       <div className="absolute top-4 left-4">
@@ -962,14 +960,14 @@ export default function MyEventsPage() {
       
       {/* Cabeçalho e conteúdo principal */}
       <div className="container mx-auto px-4 py-6">
-        <Header title="Meus Eventos" />
+        <Header />
         
-        <div className="flex flex-col lg:flex-row gap-6 mt-4">
+        <div className="flex flex-col lg:flex-row gap-6 mt-24">
           {/* Botões de ação */}
           <div className="w-full lg:w-1/4 flex flex-col gap-4">
             <Card className="border-none shadow-md bg-white dark:bg-gray-950">
               <CardHeader className="pb-2">
-                <CardTitle className="text-xl">Acesse suas experiências</CardTitle>
+                <CardTitle className="text-xl">Meus Eventos</CardTitle>
                 <CardDescription>
                   Gerencie seus eventos e participações
                 </CardDescription>
@@ -993,30 +991,6 @@ export default function MyEventsPage() {
                 >
                   <Calendar className="h-4 w-4 mr-2" />
                   Explorar Eventos
-                </Button>
-                
-                <Button 
-                  asChild
-                  variant="outline" 
-                  className="justify-start" 
-                  size="sm"
-                >
-                  <Link to="/profile">
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      className="h-4 w-4 mr-2"
-                    >
-                      <circle cx="12" cy="8" r="5" />
-                      <path d="M20 21a8 8 0 1 0-16 0" />
-                    </svg>
-                    Perfil
-                  </Link>
                 </Button>
               </CardContent>
             </Card>
