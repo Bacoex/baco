@@ -958,11 +958,12 @@ export default function MyEventsPage() {
         <NetworkBackground />
       </div>
       
-      {/* Cabeçalho e conteúdo principal */}
-      <div className="container mx-auto px-4 py-6">
-        <Header />
-        
-        <div className="flex flex-col lg:flex-row gap-6 mt-24">
+      {/* Cabeçalho */}
+      <Header />
+
+      {/* Conteúdo principal */}
+      <div className="container mx-auto px-4 py-6 mt-16">
+        <div className="flex flex-col lg:flex-row gap-6 mt-4">
           {/* Botões de ação */}
           <div className="w-full lg:w-1/4 flex flex-col gap-4">
             <Card className="border-none shadow-md bg-white dark:bg-gray-950">
