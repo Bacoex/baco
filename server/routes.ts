@@ -329,6 +329,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         n.notification.sourceId === participant.id
       );
       
+      // Preparar a resposta base
+      const responseData = {
+        ...updatedParticipant
+      };
+      
+      // Variável para armazenar informações de notificação
+      let notificationInfo = null;
+      
       if (!existingApprovalNotification) {
         // Criar notificação para o usuário solicitante
         const notification = await storage.createNotification({
@@ -344,20 +352,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.addNotificationRecipients(notification.id, [participant.userId]);
         
         console.log(`Criada notificação ${notification.id} para o solicitante ${participant.userId}`);
+        
+        // Armazenar informações da notificação para a resposta
+        notificationInfo = {
+          title: notification.title,
+          message: notification.message,
+          userId: participant.userId
+        };
       } else {
         console.log(`Notificação de aprovação já existe para participante ${participant.id} no evento ${event.id}`);
+        
+        // Usar as informações da notificação existente, se necessário
+        notificationInfo = {
+          title: "Solicitação aprovada",
+          message: `Sua solicitação para experienciar o evento "${event.name}" foi aprovada!`,
+          userId: participant.userId
+        };
       }
       
-      res.json({ 
-        ...updatedParticipant,
-        notification: {
-          forParticipant: {
-            title: notification.title,
-            message: notification.message,
-            userId: participant.userId
-          }
-        } 
-      });
+      // Adicionar informações de notificação à resposta
+      if (notificationInfo) {
+        responseData.notification = {
+          forParticipant: notificationInfo
+        };
+      }
+      
+      res.json(responseData);
     } catch (err) {
       console.error("Erro ao aprovar participante:", err);
       res.status(500).json({ message: "Erro ao aprovar participante" });
@@ -390,6 +410,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "rejected"
       );
       
+      // Preparar a resposta base
+      const responseData = {
+        ...updatedParticipant
+      };
+      
       // Criar notificação para o usuário solicitante
       const notification = await storage.createNotification({
         title: "Solicitação não aprovada",
@@ -405,16 +430,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Criada notificação ${notification.id} para o solicitante ${participant.userId} (rejeição)`);
       
-      res.json({ 
-        ...updatedParticipant,
-        notification: {
-          forParticipant: {
-            title: notification.title,
-            message: notification.message,
-            userId: participant.userId
-          }
-        } 
-      });
+      // Adicionar informações de notificação à resposta
+      responseData.notification = {
+        forParticipant: {
+          title: notification.title,
+          message: notification.message,
+          userId: participant.userId
+        }
+      };
+      
+      res.json(responseData);
     } catch (err) {
       console.error("Erro ao rejeitar participante:", err);
       res.status(500).json({ message: "Erro ao rejeitar participante" });
