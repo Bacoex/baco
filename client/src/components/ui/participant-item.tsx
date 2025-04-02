@@ -60,6 +60,10 @@ export function ParticipantItem({
           </Avatar>
           
           <div>
+            <div className="font-bold text-sm mb-1">
+              {participant.user ? `${participant.user.lastName}` : ""}
+            </div>
+            
             <div className="text-sm">
               <Badge 
                 variant="outline" 
