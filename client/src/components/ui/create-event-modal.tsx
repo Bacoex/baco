@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, X, Info, Ticket, Users } from "lucide-react";
+import { Loader2, MapPin, X, Info, Ticket, Users, CalendarIcon, Clock } from "lucide-react";
 import { logCreateEventError, analyzeSelectNullError, analyzeApiCallError, ErrorComponent } from "@/lib/errorLogger";
 import {
   Form,
@@ -434,7 +434,10 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                   <FormItem>
                     <FormLabel>Data</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <div className="relative">
+                        <CalendarIcon className="absolute left-2 top-2.5 h-4 w-4 text-primary" />
+                        <Input type="date" className="pl-8" {...field} />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -448,7 +451,18 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                   <FormItem>
                     <FormLabel>Horário de Início</FormLabel>
                     <FormControl>
-                      <Input type="time" value={field.value || ""} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} />
+                      <div className="relative">
+                        <Clock className="absolute left-2 top-2.5 h-4 w-4 text-primary" />
+                        <Input
+                          type="time"
+                          className="pl-8"
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                          name={field.name}
+                          ref={field.ref}
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -463,7 +477,18 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                     <FormLabel>Horário de Término</FormLabel>
                     <FormDescription className="text-xs">Opcional</FormDescription>
                     <FormControl>
-                      <Input type="time" value={field.value || ""} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} />
+                      <div className="relative">
+                        <Clock className="absolute left-2 top-2.5 h-4 w-4 text-primary" />
+                        <Input
+                          type="time"
+                          className="pl-8"
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                          name={field.name}
+                          ref={field.ref}
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
