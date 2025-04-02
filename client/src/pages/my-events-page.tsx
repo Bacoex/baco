@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UserProfileDialog } from "@/components/ui/user-profile-dialog";
 
 // Definição de tipos locais para notificações temporárias
 interface TempNotification {
@@ -121,7 +122,8 @@ function EventCard({
   onReject,
   onRemoveParticipant,
   onRevertParticipant,
-  highlightedEventId
+  highlightedEventId,
+  onViewProfile
 }: { 
   event: Event, 
   isCreator?: boolean,
@@ -131,7 +133,8 @@ function EventCard({
   onReject?: (participantId: number) => void,
   onRemoveParticipant?: (participantId: number) => void,
   onRevertParticipant?: (participantId: number) => void,
-  highlightedEventId?: number | null
+  highlightedEventId?: number | null,
+  onViewProfile?: (userId: number) => void
 }) {
   const { toast } = useToast();
   const [showParticipants, setShowParticipants] = useState(false);
@@ -364,22 +367,35 @@ function EventCard({
                     </Avatar>
                     <div>
                       <p className="font-medium">{participant.user.firstName} {participant.user.lastName}</p>
-                      <Badge 
-                        variant="outline" 
-                        className={
-                          participant.status === 'pending' 
-                            ? 'bg-yellow-100 text-yellow-800 border-yellow-300' 
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            participant.status === 'pending' 
+                              ? 'bg-yellow-100 text-yellow-800 border-yellow-300' 
+                              : participant.status === 'approved' || participant.status === 'confirmed'
+                                ? 'bg-green-100 text-green-800 border-green-300' 
+                                : 'bg-red-100 text-red-800 border-red-300'
+                          }
+                        >
+                          {participant.status === 'pending' 
+                            ? 'Pendente' 
                             : participant.status === 'approved' || participant.status === 'confirmed'
-                              ? 'bg-green-100 text-green-800 border-green-300' 
-                              : 'bg-red-100 text-red-800 border-red-300'
-                        }
-                      >
-                        {participant.status === 'pending' 
-                          ? 'Pendente' 
-                          : participant.status === 'approved' || participant.status === 'confirmed'
-                            ? 'Aprovado' 
-                            : 'Rejeitado'}
-                      </Badge>
+                              ? 'Aprovado' 
+                              : 'Rejeitado'}
+                        </Badge>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="text-xs text-orange-600 hover:text-orange-800 p-0 h-auto"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onViewProfile && onViewProfile(participant.user.id);
+                          }}
+                        >
+                          Ver perfil
+                        </Button>
+                      </div>
                     </div>
                   </div>
                   
@@ -485,6 +501,8 @@ export default function MyEventsPage() {
   const [activeTab, setActiveTab] = useState("created");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [highlightedEventId, setHighlightedEventId] = useState<number | null>(null);
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const [selectedUserForProfile, setSelectedUserForProfile] = useState<number | null>(null);
   
   // Efeito para processar parâmetros da URL
   useEffect(() => {
@@ -1081,6 +1099,12 @@ export default function MyEventsPage() {
       removeEventMutation.mutate(eventId);
     }
   };
+  
+  // Função para visualizar perfil de usuário
+  const handleViewUserProfile = (userId: number) => {
+    setSelectedUserForProfile(userId);
+    setIsProfileDialogOpen(true);
+  };
 
   const handleApproveParticipant = (participantId: number) => {
     approveParticipantMutation.mutate(participantId);
@@ -1129,6 +1153,15 @@ export default function MyEventsPage() {
       
       {/* Cabeçalho */}
       <Header />
+      
+      {/* Diálogo de perfil do usuário */}
+      {selectedUserForProfile && (
+        <UserProfileDialog 
+          userId={selectedUserForProfile}
+          isOpen={isProfileDialogOpen}
+          onClose={() => setIsProfileDialogOpen(false)}
+        />
+      )}
 
       {/* Conteúdo principal */}
       <div className="container mx-auto px-4 py-6 mt-20">
@@ -1214,6 +1247,7 @@ export default function MyEventsPage() {
                         onRemoveParticipant={handleRemoveParticipant}
                         onRevertParticipant={handleRevertParticipant}
                         highlightedEventId={highlightedEventId}
+                        onViewProfile={handleViewUserProfile}
                       />
                     ))}
                   </div>
@@ -1273,6 +1307,7 @@ export default function MyEventsPage() {
                           event={event}
                           participation={participationData}
                           highlightedEventId={highlightedEventId}
+                          onViewProfile={handleViewUserProfile}
                         />
                       );
                     })}
