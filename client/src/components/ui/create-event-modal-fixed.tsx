@@ -1,30 +1,57 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertEventSchema } from "@shared/schema";
 import { z } from "zod";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { insertEventSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, X, Info, Ticket, Users, CalendarIcon, Clock } from "lucide-react";
-import { logCreateEventError, analyzeSelectNullError, analyzeApiCallError, ErrorComponent } from "@/lib/errorLogger";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
+
+import {
+  CalendarIcon,
+  Clock,
+  Loader2,
+  MapPin,
+  Users,
+  X,
+} from "lucide-react";
+
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 /**
  * Props para o componente de modal de criação de evento
@@ -56,10 +83,8 @@ interface Subcategory {
  */
 type EventFormValues = z.infer<typeof insertEventSchema>;
 
-// Tipos de eventos disponíveis
 type EventType = 'public' | 'private_ticket' | 'private_application';
 
-// Interface para ticket adicional
 interface AdditionalTicket {
   name: string;
   price: number;
@@ -70,350 +95,260 @@ interface AdditionalTicket {
  * Componente de modal para criação de eventos
  */
 export default function CreateEventModal({ isOpen, setIsOpen, categories, onSuccess }: CreateEventModalProps) {
+  const [eventType, setEventType] = useState<EventType>('public');
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [showMapSelector, setShowMapSelector] = useState(false);
+  const [additionalTickets, setAdditionalTickets] = useState<AdditionalTicket[]>([]);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [eventType, setEventType] = useState<EventType>('public');
-  const [additionalTickets, setAdditionalTickets] = useState<AdditionalTicket[]>([]);
-  const [showMapSelector, setShowMapSelector] = useState(false);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number>(0);
-  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
-  const [isLoadingSubcategories, setIsLoadingSubcategories] = useState(false);
-  
-  // Debug log para verificar se as categorias estão sendo passadas corretamente
+
+  // Para debugging
   console.log("Categorias disponíveis no CreateEventModal:", categories);
   console.log("Tipo de categories:", typeof categories);
   console.log("É array?", Array.isArray(categories));
-  console.log("Comprimento:", categories.length);
-  
-  // Função para carregar subcategorias quando uma categoria é selecionada
-  const loadSubcategories = async (categoryId: number) => {
-    if (categoryId <= 0) {
-      setSubcategories([]);
-      return;
-    }
-    
-    setIsLoadingSubcategories(true);
-    try {
-      const response = await fetch(`/api/categories/${categoryId}/subcategories`);
-      if (!response.ok) {
-        throw new Error('Erro ao carregar subcategorias');
-      }
-      const data = await response.json();
-      setSubcategories(data);
-    } catch (error) {
-      console.error('Erro ao carregar subcategorias:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as subcategorias",
-        variant: "destructive",
-      });
-      setSubcategories([]);
-    } finally {
-      setIsLoadingSubcategories(false);
-    }
-  };
+  console.log("Comprimento:", categories?.length);
 
-  // Inicializa o formulário com o esquema de validação
+  // Inicializa o formulário
   const form = useForm<EventFormValues>({
     resolver: zodResolver(insertEventSchema),
     defaultValues: {
       name: "",
       description: "",
-      date: "",
+      date: format(new Date(), "yyyy-MM-dd"),
       timeStart: "",
-      timeEnd: "",
       location: "",
-      coordinates: "",
-      coverImage: "",
-      categoryId: 0,
-      subcategoryId: null,
       eventType: "public",
+      coverImage: "",
+      capacity: undefined,
       importantInfo: "",
       ticketPrice: 0,
-      capacity: 0,
-    },
-  });
-  
-  // Observa quando a categoria muda para buscar subcategorias
-  const watchCategoryId = form.watch("categoryId");
-  
-  // Efeito para buscar subcategorias quando a categoria é alterada
-  useEffect(() => {
-    if (watchCategoryId) {
-      setSelectedCategoryId(Number(watchCategoryId));
-      loadSubcategories(Number(watchCategoryId));
-    } else {
-      setSubcategories([]);
-    }
-  }, [watchCategoryId]);
-
-  // Observa mudanças no tipo de evento
-  const watchEventType = form.watch("eventType");
-
-  // Efeito para atualizar o tipo de evento interno quando o formulário muda
-  useEffect(() => {
-    if (watchEventType) {
-      setEventType(watchEventType as EventType);
-    }
-  }, [watchEventType]);
-
-  // Mutação para criar um novo evento
-  const createEventMutation = useMutation({
-    mutationFn: async (data: EventFormValues) => {
-      try {
-        // Preparar os dados adicionais conforme o tipo de evento
-        let eventData = { ...data };
-
-        // Se for evento com ingressos, processa os ingressos adicionais
-        if (data.eventType === 'private_ticket' && additionalTickets.length > 0) {
-          eventData.additionalTickets = JSON.stringify(additionalTickets);
-        }
-
-        const res = await apiRequest("POST", "/api/events", eventData);
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.message || 'Erro ao criar evento');
-        }
-        return res.json();
-      } catch (error) {
-        // Capturar e registrar o erro antes de relançá-lo
-        const err = error as Error;
-        analyzeApiCallError('/api/events', 'POST', err, data);
-        throw err;
-      }
-    },
-    onSuccess: () => {
-      toast({
-        title: "Sucesso!",
-        description: "Evento criado com sucesso",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
-      setIsOpen(false);
-      if (onSuccess) onSuccess();
-      form.reset();
-    },
-    onError: (error: Error) => {
-      // Registrar erro para análise avançada
-      logCreateEventError(`Falha ao criar evento: ${error.message}`, error, form.getValues());
-      
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
     },
   });
 
-  // Função para lidar com o envio do formulário
-  function onSubmit(data: EventFormValues) {
+  // Handlers de eventos
+  const handleCategoryChange = async (categoryId: string) => {
+    const id = parseInt(categoryId);
+    setSelectedCategory(id);
+    
     try {
-      // Registrar dados para análise
-      analyzeSelectNullError('subcategoryId', data.subcategoryId);
-      
-      // Converte tipos numéricos
-      const eventData = {
-        ...data,
-        categoryId: Number(data.categoryId),
-        subcategoryId: data.subcategoryId ? Number(data.subcategoryId) : null,
-        ticketPrice: data.eventType === 'private_ticket' ? Number(data.ticketPrice) : 0,
-        capacity: data.capacity ? Number(data.capacity) : null,
-      };
-      
-      // Log para debugging antes da mutação
-      console.log("Dados do formulário processados:", eventData);
-      
-      createEventMutation.mutate(eventData);
+      const response = await fetch(`/api/categories/${id}/subcategories`);
+      if (response.ok) {
+        const data = await response.json();
+        setSubcategories(data);
+      }
     } catch (error) {
-      const err = error as Error;
-      logCreateEventError("Erro ao processar formulário de evento", err, data);
-      toast({
-        title: "Erro interno",
-        description: "Ocorreu um erro ao processar o formulário. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  }
-
-  // Função para simular o upload de imagem (sem backend real neste momento)
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Em um app real, aqui enviaria a imagem para o servidor
-      // e obteria a URL, mas para fins de demonstração, usamos URL.createObjectURL
-      const previewUrl = URL.createObjectURL(file);
-      setImagePreview(previewUrl);
-      form.setValue("coverImage", previewUrl);
+      console.error("Erro ao carregar subcategorias:", error);
     }
   };
 
-  // Função para adicionar um novo tipo de ingresso
+  const handleEventTypeChange = (value: string) => {
+    setEventType(value as EventType);
+    form.setValue("eventType", value);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "O tamanho máximo permitido é 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setImagePreview(event.target.result as string);
+        form.setValue("coverImage", event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const addAdditionalTicket = () => {
     setAdditionalTickets([...additionalTickets, { name: "", price: 0 }]);
   };
 
-  // Função para atualizar um ingresso adicional
   const updateAdditionalTicket = (index: number, field: keyof AdditionalTicket, value: string | number) => {
     const updatedTickets = [...additionalTickets];
-    updatedTickets[index] = { ...updatedTickets[index], [field]: value };
+    updatedTickets[index][field] = value;
     setAdditionalTickets(updatedTickets);
   };
 
-  // Função para remover um ingresso adicional
   const removeAdditionalTicket = (index: number) => {
-    setAdditionalTickets(additionalTickets.filter((_, i) => i !== index));
+    const updatedTickets = [...additionalTickets];
+    updatedTickets.splice(index, 1);
+    setAdditionalTickets(updatedTickets);
   };
+
+  // Mutação para criar evento
+  const createEventMutation = useMutation({
+    mutationFn: async (data: EventFormValues) => {
+      // Adiciona os ingressos adicionais ao payload se existirem
+      const payload = {
+        ...data,
+        additionalTickets: eventType === 'private_ticket' ? additionalTickets : undefined,
+      };
+      
+      const response = await apiRequest("POST", "/api/events", payload);
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Evento criado!",
+        description: "Seu evento foi criado com sucesso.",
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/events/creator'] });
+      
+      setIsOpen(false);
+      if (onSuccess) onSuccess();
+      
+      // Reset do formulário
+      form.reset();
+      setSelectedCategory(null);
+      setSubcategories([]);
+      setAdditionalTickets([]);
+      setImagePreview(null);
+      setEventType('public');
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao criar evento",
+        description: error.message || "Ocorreu um erro ao criar o evento. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Submit do formulário
+  function onSubmit(data: EventFormValues) {
+    createEventMutation.mutate(data);
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="absolute right-4 top-4 z-10">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setIsOpen(false)} 
-            className="rounded-full h-8 w-8 text-gray-500 hover:text-gray-900 bg-white hover:bg-gray-100"
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Fechar</span>
-          </Button>
-        </div>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-primary">Criar Evento</DialogTitle>
-          <DialogDescription>
-            Preencha os detalhes do seu evento para publicá-lo na plataforma.
-          </DialogDescription>
+          <DialogTitle className="text-2xl font-bold">Criar Evento</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Tipo de evento */}
-            <FormField
-              control={form.control}
-              name="eventType"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>Tipo de Evento</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <div className="flex items-center space-x-2 px-4 py-2 border rounded-md hover:bg-gray-50 cursor-pointer">
-                        <RadioGroupItem value="public" id="event-public" />
-                        <label htmlFor="event-public" className="cursor-pointer flex items-center">
-                          <Info className="h-4 w-4 mr-2 text-blue-500" />
-                          <div>
-                            <div className="font-medium">Evento Público</div>
-                            <div className="text-sm text-gray-500">Aberto para todos, sem restrições.</div>
-                          </div>
-                        </label>
-                      </div>
+            <div className="space-y-2">
+              <FormLabel>Tipo de Evento</FormLabel>
+              <Tabs defaultValue="public" onValueChange={handleEventTypeChange} className="w-full">
+                <TabsList className="grid grid-cols-3 w-full">
+                  <TabsTrigger value="public">Público</TabsTrigger>
+                  <TabsTrigger value="private_ticket">Ingresso</TabsTrigger>
+                  <TabsTrigger value="private_application">Experienciar</TabsTrigger>
+                </TabsList>
+                <TabsContent value="public" className="py-2">
+                  <p className="text-sm text-gray-500">
+                    Evento público, aberto a qualquer pessoa interessada.
+                  </p>
+                </TabsContent>
+                <TabsContent value="private_ticket" className="py-2">
+                  <p className="text-sm text-gray-500">
+                    Evento com venda de ingressos. Defina preços e tipos de ingressos.
+                  </p>
+                </TabsContent>
+                <TabsContent value="private_application" className="py-2">
+                  <p className="text-sm text-gray-500">
+                    Os participantes precisam se candidatar e você poderá aprovar ou rejeitar cada solicitação.
+                  </p>
+                </TabsContent>
+              </Tabs>
+            </div>
 
-                      <div className="flex items-center space-x-2 px-4 py-2 border rounded-md hover:bg-gray-50 cursor-pointer">
-                        <RadioGroupItem value="private_ticket" id="event-ticket" />
-                        <label htmlFor="event-ticket" className="cursor-pointer flex items-center">
-                          <Ticket className="h-4 w-4 mr-2 text-green-500" />
-                          <div>
-                            <div className="font-medium">Evento com Ingressos</div>
-                            <div className="text-sm text-gray-500">Acesso mediante compra de ingresso.</div>
-                          </div>
-                        </label>
-                      </div>
-
-                      <div className="flex items-center space-x-2 px-4 py-2 border rounded-md hover:bg-gray-50 cursor-pointer">
-                        <RadioGroupItem value="private_application" id="event-application" />
-                        <label htmlFor="event-application" className="cursor-pointer flex items-center">
-                          <Users className="h-4 w-4 mr-2 text-orange-500" />
-                          <div>
-                            <div className="font-medium">Experienciar</div>
-                            <div className="text-sm text-gray-500">Participantes precisam se candidatar e ser aprovados.</div>
-                          </div>
-                        </label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Separator className="my-4" />
-
-            {/* Nome do evento */}
+            {/* Título */}
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nome do Evento</FormLabel>
+                  <FormLabel>Título</FormLabel>
                   <FormControl>
-                    <Input placeholder="Digite o nome do evento" {...field} />
+                    <Input placeholder="Digite o nome do evento" autoFocus {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Categoria */}
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Categoria</FormLabel>
-                  <Select 
-                    onValueChange={(value) => field.onChange(parseInt(value))}
-                    value={field.value !== undefined ? field.value.toString() : "0"}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id.toString()}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Categoria e Subcategoria */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="categoryId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Categoria</FormLabel>
+                    <Select 
+                      onValueChange={(value) => {
+                        field.onChange(parseInt(value));
+                        handleCategoryChange(value);
+                      }} 
+                      defaultValue={field.value?.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma categoria" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categories && categories.map((category) => (
+                          <SelectItem 
+                            key={category.id} 
+                            value={category.id.toString()}
+                          >
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {/* Subcategoria (aparece só quando uma categoria é selecionada) */}
-            {selectedCategoryId > 0 && (
               <FormField
                 control={form.control}
                 name="subcategoryId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Subcategoria</FormLabel>
-                    <FormDescription className="text-xs">
-                      Opcional - Selecione uma subcategoria para classificar seu evento
-                    </FormDescription>
                     <Select 
-                      onValueChange={(value) => {
-                        // Convertemos para número ou null se for 0
-                        const numValue = parseInt(value);
-                        field.onChange(numValue === 0 ? null : numValue);
-                      }}
-                      value={field.value !== null && field.value !== undefined ? field.value.toString() : "0"}
-                      disabled={isLoadingSubcategories || subcategories.length === 0}
+                      onValueChange={(value) => field.onChange(parseInt(value))} 
+                      defaultValue={field.value?.toString()}
+                      disabled={!selectedCategory || subcategories.length === 0}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={isLoadingSubcategories ? "Carregando..." : subcategories.length === 0 ? "Sem subcategorias disponíveis" : "Selecione uma subcategoria"} />
+                          <SelectValue placeholder={
+                            !selectedCategory 
+                              ? "Selecione uma categoria primeiro" 
+                              : subcategories.length === 0 
+                                ? "Carregando subcategorias..." 
+                                : "Selecione uma subcategoria"
+                          } />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="0">Nenhuma subcategoria</SelectItem>
                         {subcategories.map((subcategory) => (
-                          <SelectItem key={subcategory.id} value={subcategory.id.toString()}>
+                          <SelectItem 
+                            key={subcategory.id} 
+                            value={subcategory.id.toString()}
+                          >
                             {subcategory.name}
                           </SelectItem>
                         ))}
@@ -423,10 +358,10 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                   </FormItem>
                 )}
               />
-            )}
+            </div>
 
-            {/* Data e hora */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Data e Hora */}
+            <div className="grid gap-4 sm:grid-cols-3">
               <FormField
                 control={form.control}
                 name="date"
@@ -459,14 +394,9 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                     <FormLabel>Horário de Início</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Clock 
-                          className="absolute left-2 top-2.5 h-4 w-4 text-primary cursor-pointer" 
-                          onClick={() => {
-                            // Simula um clique no input de hora
-                            const timeInput = document.querySelector(`input[name="${field.name}"]`) as HTMLInputElement;
-                            if (timeInput) timeInput.showPicker();
-                          }}
-                        />
+                        <label htmlFor={`time-input-${field.name}`} className="w-full h-full absolute top-0 left-0 z-10 cursor-pointer">
+                          <Clock className="absolute left-2 top-2.5 h-4 w-4 text-primary pointer-events-none" />
+                        </label>
                         <Input
                           type="time"
                           className="pl-8"
@@ -493,14 +423,9 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                     <FormDescription className="text-xs">Opcional</FormDescription>
                     <FormControl>
                       <div className="relative">
-                        <Clock 
-                          className="absolute left-2 top-2.5 h-4 w-4 text-primary cursor-pointer" 
-                          onClick={() => {
-                            // Simula um clique no input de hora
-                            const timeInput = document.querySelector(`input[name="${field.name}"]`) as HTMLInputElement;
-                            if (timeInput) timeInput.showPicker();
-                          }}
-                        />
+                        <label htmlFor={`time-input-${field.name}`} className="w-full h-full absolute top-0 left-0 z-10 cursor-pointer">
+                          <Clock className="absolute left-2 top-2.5 h-4 w-4 text-primary pointer-events-none" />
+                        </label>
                         <Input
                           type="time"
                           className="pl-8"
