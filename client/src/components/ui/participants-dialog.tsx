@@ -8,9 +8,21 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ParticipantItem, ParticipantWithUser } from "./participant-item";
+import { ParticipantItem } from "./participant-item";
 import { useQuery } from "@tanstack/react-query";
 import { logError, ErrorSeverity } from "@/lib/errorLogger";
+
+// Define interface to match ParticipantItem props
+interface ParticipantWithUser {
+  id: number;
+  userId: number;
+  status: string;
+  user?: {
+    firstName: string;
+    lastName: string;
+    profileImage: string | null;
+  };
+}
 
 interface ParticipantsDialogProps {
   eventId: number;
@@ -49,7 +61,7 @@ export function ParticipantsDialog({
 
   // Extrair os dados necessários
   const event = eventQuery.data || {};
-  const participants = (participantsQuery.data as ParticipantWithUser[] || []);
+  const participants = (participantsQuery.data || []) as ParticipantWithUser[];
   const eventName = (event as any)?.name || `Evento #${eventId}`;
   // Garante que o eventType é um dos valores aceitáveis para a prop do ParticipantItem
   const rawEventType = (event as any)?.eventType;
@@ -104,6 +116,7 @@ export function ParticipantsDialog({
                 eventType={eventType}
                 statusColors={statusColors}
                 statusText={statusText}
+                isCreator={true}
                 onApprove={onApprove}
                 onReject={onReject}
                 onRemove={onRemove}

@@ -17,7 +17,17 @@ import { useToast } from '@/hooks/use-toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { ParticipantsDialog } from './participants-dialog';
-import type { ParticipantWithUser } from './participant-item';
+// Define a interface para participantes que será usada neste componente
+interface ParticipantWithUser {
+  id: number;
+  userId: number;
+  status: string;
+  user?: {
+    firstName: string;
+    lastName: string;
+    profileImage: string | null;
+  };
+}
 import { logError, ErrorSeverity } from "@/lib/errorLogger";
 import { Badge } from "@/components/ui/badge";
 import { getUserDisplayName } from "@/lib/utils";

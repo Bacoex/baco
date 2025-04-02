@@ -107,6 +107,14 @@ export default function ViewEventModal({
   const [_location, navigate] = useLocation(); 
   const [activeTab, setActiveTab] = useState("details");
   
+  // Buscar detalhes do evento (incluindo lista atualizada de participantes)
+  const eventQuery = useQuery<any>({
+    queryKey: [`/api/events/${event?.id}`],
+    enabled: isOpen && !!event?.id,
+    staleTime: 5000, // Reduzido para atualizar mais rápido
+    refetchInterval: 10000
+  });
+  
   // Buscar participantes do evento
   const participantsQuery = useQuery<any[]>({
     queryKey: [`/api/events/${event?.id}/participants`],
@@ -117,6 +125,8 @@ export default function ViewEventModal({
   
   // Funções internas para manipular participantes
   const handleApproveParticipant = async (participantId: number) => {
+    if (!event) return;
+    
     try {
       const response = await fetch(`/api/participants/${participantId}/approve`, {
         method: 'PATCH',
@@ -129,13 +139,13 @@ export default function ViewEventModal({
         throw new Error(errorData.message || 'Erro ao aprovar participante');
       }
       
-      // Forçar atualização da lista de participantes
+      // Forçar atualização dos dados do evento e participantes
+      eventQuery.refetch();
       participantsQuery.refetch();
       
-      // Atualizar o objeto event com o novo status
-      const updatedParticipants = event.participants?.map(p => 
-        p.id === participantId ? { ...p, status: 'approved' } : p
-      );
+      // Invalida todas as queries relevantes
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participants`] });
       
       // Chamar o callback externo se existir
       if (onApprove) {
@@ -157,6 +167,8 @@ export default function ViewEventModal({
   };
   
   const handleRejectParticipant = async (participantId: number) => {
+    if (!event) return;
+    
     try {
       const response = await fetch(`/api/participants/${participantId}/reject`, {
         method: 'PATCH',
@@ -169,8 +181,13 @@ export default function ViewEventModal({
         throw new Error(errorData.message || 'Erro ao rejeitar participante');
       }
       
-      // Forçar atualização da lista de participantes
+      // Forçar atualização dos dados do evento e participantes
+      eventQuery.refetch();
       participantsQuery.refetch();
+      
+      // Invalida todas as queries relevantes
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participants`] });
       
       // Chamar o callback externo se existir
       if (onReject) {
@@ -192,6 +209,8 @@ export default function ViewEventModal({
   };
   
   const handleRemoveParticipant = async (participantId: number) => {
+    if (!event) return;
+    
     try {
       const response = await fetch(`/api/participants/${participantId}`, {
         method: 'DELETE',
@@ -203,8 +222,13 @@ export default function ViewEventModal({
         throw new Error(errorData.message || 'Erro ao remover participante');
       }
       
-      // Forçar atualização da lista de participantes
+      // Forçar atualização dos dados do evento e participantes
+      eventQuery.refetch();
       participantsQuery.refetch();
+      
+      // Invalida todas as queries relevantes
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participants`] });
       
       // Chamar o callback externo se existir
       if (onRemoveParticipant) {
@@ -226,6 +250,8 @@ export default function ViewEventModal({
   };
   
   const handleRevertParticipant = async (participantId: number) => {
+    if (!event) return;
+    
     try {
       const response = await fetch(`/api/participants/${participantId}/revert`, {
         method: 'PATCH',
@@ -238,8 +264,13 @@ export default function ViewEventModal({
         throw new Error(errorData.message || 'Erro ao reverter status do participante');
       }
       
-      // Forçar atualização da lista de participantes
+      // Forçar atualização dos dados do evento e participantes
+      eventQuery.refetch();
       participantsQuery.refetch();
+      
+      // Invalida todas as queries relevantes
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/events/${event.id}/participants`] });
       
       // Chamar o callback externo se existir
       if (onRevertParticipant) {
@@ -682,13 +713,14 @@ export default function ViewEventModal({
                   <div className="flex justify-center items-center py-8">
                     <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
                   </div>
-                ) : (participantsQuery.data && participantsQuery.data.length > 0) || (event.participants && event.participants.length > 0) ? (
+                ) : ((participantsQuery.data && participantsQuery.data.length > 0) || (event.participants && event.participants.length > 0)) ? (
                   <>
                     {/* Usa dados da query ou cai para os dados do evento */}
                     {(() => {
-                      const participants = participantsQuery.data?.length > 0 
+                      // Garantir que sempre temos um array de participantes mesmo se os dados forem undefined
+                      const participants = (participantsQuery.data && participantsQuery.data.length > 0)
                         ? participantsQuery.data 
-                        : event.participants || [];
+                        : (event.participants || []);
                       
                       return (
                         <>
