@@ -429,11 +429,10 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                   <FormItem>
                     <FormLabel>Horário de Início</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Clock className="absolute left-2 top-2.5 h-4 w-4 text-primary pointer-events-none" />
+                      <div className="relative flex items-center">
                         <Input
                           type="time"
-                          className="pl-8"
+                          className="flex-1"
                           id={`time-input-${field.name}`}
                           value={field.value || ""}
                           onChange={field.onChange}
@@ -442,6 +441,18 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                           ref={field.ref}
                           onClick={openDateTimePicker}
                         />
+                        <Button 
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="ml-2 bg-orange-500 text-white hover:bg-orange-600"
+                          onClick={(e) => {
+                            const input = document.getElementById(`time-input-${field.name}`) as HTMLInputElement;
+                            if (input) openDateTimePicker({ target: input } as any);
+                          }}
+                        >
+                          <Clock className="h-4 w-4" />
+                        </Button>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -457,11 +468,10 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                     <FormLabel>Horário de Término</FormLabel>
                     <FormDescription className="text-xs">Opcional</FormDescription>
                     <FormControl>
-                      <div className="relative">
-                        <Clock className="absolute left-2 top-2.5 h-4 w-4 text-primary pointer-events-none" />
+                      <div className="relative flex items-center">
                         <Input
                           type="time"
-                          className="pl-8"
+                          className="flex-1"
                           id={`time-input-${field.name}`}
                           value={field.value || ""}
                           onChange={field.onChange}
@@ -470,6 +480,18 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                           ref={field.ref}
                           onClick={openDateTimePicker}
                         />
+                        <Button 
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="ml-2 bg-orange-500 text-white hover:bg-orange-600"
+                          onClick={(e) => {
+                            const input = document.getElementById(`time-input-${field.name}`) as HTMLInputElement;
+                            if (input) openDateTimePicker({ target: input } as any);
+                          }}
+                        >
+                          <Clock className="h-4 w-4" />
+                        </Button>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -493,6 +515,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                       type="button" 
                       size="icon" 
                       variant="outline"
+                      className="bg-orange-500 text-white hover:bg-orange-600"
                       onClick={() => setShowMapSelector(!showMapSelector)}
                       title="Selecionar no mapa"
                     >
@@ -514,6 +537,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                   type="button" 
                   size="sm" 
                   variant="outline"
+                  className="bg-orange-500 text-white hover:bg-orange-600"
                   onClick={() => setShowMapSelector(false)}
                 >
                   Fechar mapa
@@ -610,6 +634,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                       type="button" 
                       size="sm" 
                       variant="outline" 
+                      className="bg-orange-500 text-white hover:bg-orange-600"
                       onClick={addAdditionalTicket}
                     >
                       Adicionar
@@ -754,7 +779,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
             {/* Botão de criar */}
             <Button 
               type="submit" 
-              className="w-full"
+              className="w-full bg-orange-500 text-white hover:bg-orange-600"
               disabled={createEventMutation.isPending}
             >
               {createEventMutation.isPending ? (
