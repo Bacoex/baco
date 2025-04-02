@@ -1,21 +1,29 @@
-import { useEffect, useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { insertEventSchema } from "@shared/schema";
+
+// Componentes da UI
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button"; 
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+// Ícones
 import { 
-  CalendarIcon, Clock, Users, MapPin, X 
+  CalendarIcon, 
+  Clock, 
+  Loader2, 
+  MapPin, 
+  Users, 
+  X 
 } from "lucide-react";
 
 /**
@@ -48,8 +56,14 @@ interface Subcategory {
  */
 type EventFormValues = z.infer<typeof insertEventSchema>;
 
+/**
+ * Tipo de evento
+ */
 type EventType = 'public' | 'private_ticket' | 'private_application';
 
+/**
+ * Interface para ingresso adicional
+ */
 interface AdditionalTicket {
   name: string;
   price: number;
@@ -415,10 +429,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                           onBlur={field.onBlur}
                           name={field.name}
                           ref={field.ref}
-                          onClick={(e) => {
-                            // Abre o seletor de hora nativo
-                            (e.target as HTMLInputElement).showPicker();
-                          }}
+                          onClick={openDateTimePicker}
                         />
                       </div>
                     </FormControl>
@@ -446,10 +457,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                           onBlur={field.onBlur}
                           name={field.name}
                           ref={field.ref}
-                          onClick={(e) => {
-                            // Abre o seletor de hora nativo
-                            (e.target as HTMLInputElement).showPicker();
-                          }}
+                          onClick={openDateTimePicker}
                         />
                       </div>
                     </FormControl>
