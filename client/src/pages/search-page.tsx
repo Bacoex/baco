@@ -5,6 +5,7 @@ import { Header } from "@/components/ui/header";
 import NetworkBackground from "@/components/ui/network-background";
 import EventCard from "@/components/ui/event-card";
 import { Card } from "@/components/ui/card";
+import { logError, ErrorSeverity } from "@/lib/errorLogger";
 
 /**
  * Componente da página de pesquisa
@@ -46,23 +47,72 @@ export default function SearchPage() {
         
         const response = await fetch(searchUrl);
         
-        if (!response.ok) {
-          throw new Error(`Erro na requisição: ${response.status}`);
+        const responseText = await response.text();
+        console.log("SearchPage: Resposta bruta:", responseText);
+        
+        // Tentar parsear a resposta como JSON
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (parseError) {
+          const errorMsg = `Erro ao parsear resposta JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`;
+          console.error("SearchPage:", errorMsg, "Resposta bruta:", responseText);
+          logError(errorMsg, ErrorSeverity.ERROR, {
+            component: "SearchPage",
+            context: "JSON.parse",
+            error: parseError instanceof Error ? parseError : new Error(String(parseError)),
+            additionalData: { 
+              searchQuery, 
+              responseStatus: response.status,
+              responseText: responseText.substring(0, 500) 
+            }
+          });
+          throw new Error(errorMsg);
         }
         
-        const data = await response.json();
+        if (!response.ok) {
+          const errorMsg = `Erro na requisição: ${response.status}`;
+          logError(errorMsg, ErrorSeverity.ERROR, {
+            component: "SearchPage",
+            context: "API",
+            additionalData: { 
+              searchQuery, 
+              responseStatus: response.status,
+              responseData: data 
+            }
+          });
+          throw new Error(errorMsg);
+        }
+        
         console.log("SearchPage: Resultados recebidos:", data);
         
         // Verificar se resposta é um array válido
         if (Array.isArray(data)) {
           setSearchResults(data);
-          console.log("SearchPage: Resultados válidos recebidos");
+          console.log("SearchPage: Resultados válidos recebidos:", data.length);
         } else {
-          console.warn("SearchPage: Resposta não é um array:", data);
+          const errorMsg = "Resposta da API não é um array";
+          console.warn("SearchPage:", errorMsg, data);
+          logError(errorMsg, ErrorSeverity.WARNING, {
+            component: "SearchPage",
+            context: "Validação",
+            additionalData: { 
+              searchQuery, 
+              responseType: typeof data,
+              responseData: JSON.stringify(data).substring(0, 500)
+            }
+          });
           setSearchResults([]);
         }
       } catch (error) {
-        console.error("SearchPage: Erro na busca:", error);
+        const errorMsg = `Erro na busca: ${error instanceof Error ? error.message : String(error)}`;
+        console.error("SearchPage:", errorMsg);
+        logError(errorMsg, ErrorSeverity.ERROR, {
+          component: "SearchPage",
+          context: "fetchSearchResults",
+          error: error instanceof Error ? error : new Error(String(error)),
+          additionalData: { searchQuery }
+        });
         setIsError(true);
         setSearchResults([]);
       } finally {

@@ -9,7 +9,13 @@ import {
   insertEventParticipantSchema, 
   insertEventSubcategorySchema 
 } from "@shared/schema";
-import { errorMonitoringMiddleware, getMonitoredStorage } from "./errorMonitoring";
+import { 
+  errorMonitoringMiddleware, 
+  getMonitoredStorage,
+  logError,
+  ErrorSeverity,
+  ErrorType
+} from "./errorMonitoring";
 
 /**
  * Registra todas as rotas da API
@@ -88,36 +94,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
       
+      // Logging para debug da pesquisa
+      console.log(`[SEARCH] Pesquisando por termo: "${query}"`);
+      
       // Buscar todos os eventos e filtrar pelo query
       const allEvents = await storage.getEvents();
+      console.log(`[SEARCH] Total de eventos disponíveis para pesquisa: ${allEvents.length}`);
+      
       const filteredEvents = allEvents.filter(event => {
         const searchTerm = query.toLowerCase();
-        return (
-          event.name?.toLowerCase().includes(searchTerm) ||
-          event.description?.toLowerCase().includes(searchTerm) ||
-          event.location?.toLowerCase().includes(searchTerm)
-        );
+        const nameMatch = event.name?.toLowerCase().includes(searchTerm) || false;
+        const descMatch = event.description?.toLowerCase().includes(searchTerm) || false;
+        const locMatch = event.location?.toLowerCase().includes(searchTerm) || false;
+        
+        // Logging detalhado para debug
+        if (nameMatch || descMatch || locMatch) {
+          console.log(`[SEARCH] Match encontrado no evento ID=${event.id}, Nome="${event.name}" - Match em: ${nameMatch ? 'nome' : ''}${descMatch ? ' descrição' : ''}${locMatch ? ' localização' : ''}`);
+        }
+        
+        return nameMatch || descMatch || locMatch;
       });
+      
+      console.log(`[SEARCH] Eventos encontrados após filtro: ${filteredEvents.length}`);
       
       const eventsWithDetails = await Promise.all(
         filteredEvents.map(async (event) => {
-          const categories = await storage.getCategories();
-          const category = categories.find(cat => cat.id === event.categoryId);
-          const creator = await storage.getUser(event.creatorId);
-          
-          return {
-            ...event,
-            categoryName: category?.name || "Sem categoria",
-            categoryColor: category?.color || "#cccccc",
-            creatorName: creator ? `${creator.firstName} ${creator.lastName}` : "Usuário desconhecido"
-          };
+          try {
+            const categories = await storage.getCategories();
+            const category = categories.find(cat => cat.id === event.categoryId);
+            const creator = await storage.getUser(event.creatorId);
+            
+            return {
+              ...event,
+              categoryName: category?.name || "Sem categoria",
+              categoryColor: category?.color || "#cccccc",
+              creatorName: creator ? `${creator.firstName} ${creator.lastName}` : "Usuário desconhecido"
+            };
+          } catch (error) {
+            console.error(`[SEARCH] Erro ao processar evento ${event.id}:`, error);
+            // Retorna um objeto mínimo para não quebrar o resultado
+            return {
+              ...event,
+              categoryName: "Erro ao carregar categoria",
+              categoryColor: "#cccccc",
+              creatorName: "Erro ao carregar criador"
+            };
+          }
         })
       );
       
-      res.json(eventsWithDetails);
+      console.log(`[SEARCH] Resposta final da pesquisa para "${query}": ${eventsWithDetails.length} resultados`);
+      
+      // Verifica se os resultados são um array válido
+      if (!Array.isArray(eventsWithDetails)) {
+        console.error("[SEARCH] Erro: eventsWithDetails não é um array");
+        return res.json([]);
+      }
+      
+      return res.json(eventsWithDetails);
     } catch (err) {
-      console.error("Erro ao realizar pesquisa:", err);
-      res.status(500).json({ message: "Erro ao realizar pesquisa" });
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error("[SEARCH] Erro ao realizar pesquisa:", errorMessage);
+      
+      // Registrar o erro no sistema de logs
+      try {
+        logError(`Erro na API de pesquisa: ${errorMessage}`, ErrorSeverity.ERROR, {
+          component: "SearchAPI", 
+          context: "Pesquisa",
+          additionalData: { query: req.query.q }
+        });
+      } catch (logError) {
+        console.error("[SEARCH] Falha ao registrar erro:", logError);
+      }
+      
+      return res.status(500).json({ message: "Erro ao realizar pesquisa", error: errorMessage });
     }
   });
 
