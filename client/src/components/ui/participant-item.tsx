@@ -60,13 +60,6 @@ export function ParticipantItem({
           </Avatar>
           
           <div>
-            <div 
-              className="font-bold text-gray-900 dark:text-white hover:underline cursor-pointer"
-              onClick={() => window.location.href = `/profile/${participant.userId}`}
-            >
-              {participant.user ? getUserDisplayName(participant.user) : `Usuário #${participant.userId}`}
-            </div>
-            
             <div className="text-sm">
               <Badge 
                 variant="outline" 

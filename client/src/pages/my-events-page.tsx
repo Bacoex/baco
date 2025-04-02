@@ -1008,20 +1008,49 @@ export default function MyEventsPage() {
   };
 
   // Função para visualizar o evento em um modal
-  const handleViewEvent = (eventId: number) => {
-    // Primeiro encontra o evento pelo ID
-    const eventToView = [...(createdEventsQuery.data || []), ...(participatingEventsQuery.data || [])]
-      .find(event => event.id === eventId);
-    
-    if (eventToView) {
-      setSelectedEvent(eventToView);
-      setIsViewEventModalOpen(true);
-    } else {
-      toast({
-        title: "Erro",
-        description: "Evento não encontrado",
-        variant: "destructive"
-      });
+  const handleViewEvent = async (eventId: number) => {
+    try {
+      // Primeiro tenta buscar o evento completo pela API para ter dados mais completos
+      const response = await fetch(`/api/events/${eventId}`);
+      
+      if (response.ok) {
+        const completeEvent = await response.json();
+        setSelectedEvent(completeEvent);
+        setIsViewEventModalOpen(true);
+        return;
+      }
+      
+      // Se não conseguir buscar o evento completo, cai para o comportamento antigo
+      const eventToView = [...(createdEventsQuery.data || []), ...(participatingEventsQuery.data || [])]
+        .find(event => event.id === eventId);
+      
+      if (eventToView) {
+        setSelectedEvent(eventToView);
+        setIsViewEventModalOpen(true);
+      } else {
+        toast({
+          title: "Erro",
+          description: "Evento não encontrado",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao buscar detalhes do evento:", error);
+      
+      // Utiliza o evento da lista como fallback
+      const eventToView = [...(createdEventsQuery.data || []), ...(participatingEventsQuery.data || [])]
+        .find(event => event.id === eventId);
+      
+      if (eventToView) {
+        setSelectedEvent(eventToView);
+        setIsViewEventModalOpen(true);
+      } else {
+        toast({
+          title: "Erro",
+          description: "Evento não encontrado",
+          variant: "destructive"
+        });
+      }
     }
   };
 
