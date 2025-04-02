@@ -78,6 +78,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   /**
+   * Rota de Pesquisa
+   */
+  app.get("/api/search", async (req, res) => {
+    try {
+      const query = req.query.q as string || "";
+      
+      if (!query || query.trim() === "") {
+        return res.json([]);
+      }
+      
+      // Buscar todos os eventos e filtrar pelo query
+      const allEvents = await storage.getEvents();
+      const filteredEvents = allEvents.filter(event => {
+        const searchTerm = query.toLowerCase();
+        return (
+          event.name?.toLowerCase().includes(searchTerm) ||
+          event.description?.toLowerCase().includes(searchTerm) ||
+          event.location?.toLowerCase().includes(searchTerm)
+        );
+      });
+      
+      const eventsWithDetails = await Promise.all(
+        filteredEvents.map(async (event) => {
+          const categories = await storage.getCategories();
+          const category = categories.find(cat => cat.id === event.categoryId);
+          const creator = await storage.getUser(event.creatorId);
+          
+          return {
+            ...event,
+            categoryName: category?.name || "Sem categoria",
+            categoryColor: category?.color || "#cccccc",
+            creatorName: creator ? `${creator.firstName} ${creator.lastName}` : "Usuário desconhecido"
+          };
+        })
+      );
+      
+      res.json(eventsWithDetails);
+    } catch (err) {
+      console.error("Erro ao realizar pesquisa:", err);
+      res.status(500).json({ message: "Erro ao realizar pesquisa" });
+    }
+  });
+
+  /**
    * Rotas de Eventos
    */
   app.get("/api/events", async (req, res) => {

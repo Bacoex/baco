@@ -52,7 +52,15 @@ export default function SearchPage() {
         
         const data = await response.json();
         console.log("SearchPage: Resultados recebidos:", data);
-        setSearchResults(data);
+        
+        // Verificar se resposta é um array válido
+        if (Array.isArray(data)) {
+          setSearchResults(data);
+          console.log("SearchPage: Resultados válidos recebidos");
+        } else {
+          console.warn("SearchPage: Resposta não é um array:", data);
+          setSearchResults([]);
+        }
       } catch (error) {
         console.error("SearchPage: Erro na busca:", error);
         setIsError(true);
