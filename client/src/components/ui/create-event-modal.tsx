@@ -435,8 +435,20 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                     <FormLabel>Data</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <CalendarIcon className="absolute left-2 top-2.5 h-4 w-4 text-primary" />
-                        <Input type="date" className="pl-8" {...field} />
+                        <CalendarIcon 
+                          className="absolute left-2 top-2.5 h-4 w-4 text-primary cursor-pointer" 
+                          onClick={() => {
+                            // Simula um clique no input de data
+                            const dateInput = document.querySelector(`input[name="${field.name}"]`) as HTMLInputElement;
+                            if (dateInput) dateInput.showPicker();
+                          }}
+                        />
+                        <Input 
+                          type="date" 
+                          className="pl-8" 
+                          id={`date-input-${field.name}`}
+                          {...field} 
+                        />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -452,10 +464,18 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                     <FormLabel>Horário de Início</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Clock className="absolute left-2 top-2.5 h-4 w-4 text-primary" />
+                        <Clock 
+                          className="absolute left-2 top-2.5 h-4 w-4 text-primary cursor-pointer" 
+                          onClick={() => {
+                            // Simula um clique no input de hora
+                            const timeInput = document.querySelector(`input[name="${field.name}"]`) as HTMLInputElement;
+                            if (timeInput) timeInput.showPicker();
+                          }}
+                        />
                         <Input
                           type="time"
                           className="pl-8"
+                          id={`time-input-${field.name}`}
                           value={field.value || ""}
                           onChange={field.onChange}
                           onBlur={field.onBlur}
@@ -478,10 +498,18 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                     <FormDescription className="text-xs">Opcional</FormDescription>
                     <FormControl>
                       <div className="relative">
-                        <Clock className="absolute left-2 top-2.5 h-4 w-4 text-primary" />
+                        <Clock 
+                          className="absolute left-2 top-2.5 h-4 w-4 text-primary cursor-pointer" 
+                          onClick={() => {
+                            // Simula um clique no input de hora
+                            const timeInput = document.querySelector(`input[name="${field.name}"]`) as HTMLInputElement;
+                            if (timeInput) timeInput.showPicker();
+                          }}
+                        />
                         <Input
                           type="time"
                           className="pl-8"
+                          id={`time-input-${field.name}`}
                           value={field.value || ""}
                           onChange={field.onChange}
                           onBlur={field.onBlur}
