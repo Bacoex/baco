@@ -99,8 +99,22 @@ export default function SearchPage() {
         
         // Verificar se resposta é um array válido
         if (Array.isArray(data)) {
-          setSearchResults(data);
-          console.log("SearchPage: Resultados válidos recebidos:", data.length);
+          // Certifica-se de que cada resultado tenha as propriedades necessárias
+          const processedResults = data.map(item => {
+            // Formata dados do resultado de pesquisa para compatibilidade com EventCard
+            return {
+              ...item, 
+              // Garante que a categoria seja acessível - para resultados que vêm em formato plano
+              categoryName: item.categoryName || (item.category?.name),
+              categoryColor: item.categoryColor || (item.category?.color),
+              // Garante que o criador seja acessível
+              creatorName: item.creatorName || 
+                (item.creator ? `${item.creator.firstName} ${item.creator.lastName}` : null)
+            };
+          });
+          
+          setSearchResults(processedResults);
+          console.log("SearchPage: Resultados processados:", processedResults.length);
         } else {
           const errorMsg = "Resposta da API não é um array";
           console.warn("SearchPage:", errorMsg, data);

@@ -39,17 +39,22 @@ interface EventProps {
     creatorId: number;
     capacity: number | null;
     ticketPrice: number | null;
-    category: {
+    // Propriedades normais
+    category?: {
       name: string;
       color: string;
       slug: string;
     };
-    creator: {
+    creator?: {
       id: number;
       firstName: string;
       lastName: string;
       profileImage: string | null;
     };
+    // Propriedades alternativas que podem vir da API de pesquisa
+    categoryName?: string;
+    categoryColor?: string;
+    creatorName?: string;
   };
   isCreator?: boolean;
   participation?: { id: number; status: string } | null;
@@ -550,7 +555,7 @@ export default function EventCard({
       <Card 
         className={cn(
           "overflow-hidden hover:shadow-xl transition-all duration-300 group transform hover:scale-[1.02] cursor-pointer",
-          event.category.slug === "lgbt" && "border-0 pride-border"
+          (event.category?.slug === "lgbt" || event.categoryName === "LGBT+") && "border-0 pride-border"
         )}
         onClick={() => setIsViewModalOpen(true)} // Adiciona onClick para abrir o modal ao clicar no card
       >
@@ -658,9 +663,20 @@ export default function EventCard({
             coordinates: '',
             isActive: true,
             createdAt: new Date(),
-            category: {
+            category: event.category ? {
               ...event.category,
               id: typeof event.categoryId === 'number' ? event.categoryId : 1,
+            } : {
+              name: event.categoryName || "Sem categoria",
+              color: event.categoryColor || "#cccccc",
+              slug: "unknown",
+              id: typeof event.categoryId === 'number' ? event.categoryId : 1
+            },
+            creator: event.creator || {
+              id: event.creatorId,
+              firstName: event.creatorName?.split(' ')[0] || "Usuário",
+              lastName: event.creatorName?.split(' ').slice(1).join(' ') || "Desconhecido",
+              profileImage: null
             }
           }}
           isOpen={isViewModalOpen}
