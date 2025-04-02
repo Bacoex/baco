@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import { Header } from "@/components/ui/header";
 import EventCard from "@/components/ui/event-card";
 import CategoryFilter from "@/components/ui/category-filter";
-import CreateEventModal from "@/components/ui/create-event-modal-fixed-4";
+import CreateEventModal from "@/components/ui/create-event-modal-fixed-5";
 import ViewEventModal from "@/components/ui/view-event-modal";
 import NetworkBackground from "@/components/ui/network-background";
 import { SearchBar } from "@/components/ui/search-bar";

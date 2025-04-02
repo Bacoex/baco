@@ -444,17 +444,13 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                           onBlur={field.onBlur}
                           name={field.name}
                           ref={field.ref}
-                          onClick={openDateTimePicker}
                         />
                         <Button 
                           type="button"
                           size="sm"
                           variant="outline"
                           className="ml-2 bg-orange-500 text-white hover:bg-orange-600"
-                          onClick={(e) => {
-                            const input = document.getElementById(`time-input-${field.name}`) as HTMLInputElement;
-                            if (input) openDateTimePicker({ target: input } as any);
-                          }}
+                          onClick={() => openDateTimePicker(`time-input-${field.name}`)}
                         >
                           <Clock className="h-4 w-4" />
                         </Button>
@@ -483,17 +479,13 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                           onBlur={field.onBlur}
                           name={field.name}
                           ref={field.ref}
-                          onClick={openDateTimePicker}
                         />
                         <Button 
                           type="button"
                           size="sm"
                           variant="outline"
                           className="ml-2 bg-orange-500 text-white hover:bg-orange-600"
-                          onClick={(e) => {
-                            const input = document.getElementById(`time-input-${field.name}`) as HTMLInputElement;
-                            if (input) openDateTimePicker({ target: input } as any);
-                          }}
+                          onClick={() => openDateTimePicker(`time-input-${field.name}`)}
                         >
                           <Clock className="h-4 w-4" />
                         </Button>
