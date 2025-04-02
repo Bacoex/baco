@@ -111,9 +111,154 @@ export default function ViewEventModal({
   const participantsQuery = useQuery<any[]>({
     queryKey: [`/api/events/${event?.id}/participants`],
     enabled: isOpen && activeTab === "participants" && !!event,
-    staleTime: 10000,
-    refetchInterval: 15000
+    staleTime: 5000, // Reduzido para atualizar mais rápido
+    refetchInterval: 10000
   });
+  
+  // Funções internas para manipular participantes
+  const handleApproveParticipant = async (participantId: number) => {
+    try {
+      const response = await fetch(`/api/participants/${participantId}/approve`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao aprovar participante');
+      }
+      
+      // Forçar atualização da lista de participantes
+      participantsQuery.refetch();
+      
+      // Atualizar o objeto event com o novo status
+      const updatedParticipants = event.participants?.map(p => 
+        p.id === participantId ? { ...p, status: 'approved' } : p
+      );
+      
+      // Chamar o callback externo se existir
+      if (onApprove) {
+        onApprove(participantId);
+      }
+      
+      toast({
+        title: "Participante aprovado",
+        description: "O participante foi aprovado com sucesso.",
+        variant: "default"
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao aprovar participante",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao aprovar o participante.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleRejectParticipant = async (participantId: number) => {
+    try {
+      const response = await fetch(`/api/participants/${participantId}/reject`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao rejeitar participante');
+      }
+      
+      // Forçar atualização da lista de participantes
+      participantsQuery.refetch();
+      
+      // Chamar o callback externo se existir
+      if (onReject) {
+        onReject(participantId);
+      }
+      
+      toast({
+        title: "Participante rejeitado",
+        description: "O participante foi rejeitado com sucesso.",
+        variant: "default"
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao rejeitar participante",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao rejeitar o participante.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleRemoveParticipant = async (participantId: number) => {
+    try {
+      const response = await fetch(`/api/participants/${participantId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao remover participante');
+      }
+      
+      // Forçar atualização da lista de participantes
+      participantsQuery.refetch();
+      
+      // Chamar o callback externo se existir
+      if (onRemoveParticipant) {
+        onRemoveParticipant(participantId);
+      }
+      
+      toast({
+        title: "Participante removido",
+        description: "O participante foi removido com sucesso.",
+        variant: "default"
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao remover participante",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao remover o participante.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleRevertParticipant = async (participantId: number) => {
+    try {
+      const response = await fetch(`/api/participants/${participantId}/revert`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao reverter status do participante');
+      }
+      
+      // Forçar atualização da lista de participantes
+      participantsQuery.refetch();
+      
+      // Chamar o callback externo se existir
+      if (onRevertParticipant) {
+        onRevertParticipant(participantId);
+      }
+      
+      toast({
+        title: "Status revertido",
+        description: "O status do participante foi revertido para pendente.",
+        variant: "default"
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao reverter status",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao reverter o status do participante.",
+        variant: "destructive"
+      });
+    }
+  };
   
   // Se não houver evento, não renderiza o modal
   if (!event) return null;
@@ -574,10 +719,11 @@ export default function ViewEventModal({
                                   "pending": "Pendente",
                                   "rejected": "Rejeitado"
                                 }}
-                                onApprove={onApprove}
-                                onReject={onReject}
-                                onRemove={onRemoveParticipant}
-                                onRevert={onRevertParticipant}
+                                isCreator={isCreator}
+                                onApprove={handleApproveParticipant}
+                                onReject={handleRejectParticipant}
+                                onRemove={handleRemoveParticipant}
+                                onRevert={handleRevertParticipant}
                               />
                             ))}
                           </div>
