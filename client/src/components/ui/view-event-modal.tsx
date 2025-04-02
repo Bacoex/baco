@@ -4,6 +4,7 @@ import { Calendar, MapPin, Clock, Users, Tag, User, Share2, Heart,
          CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { ParticipantItem } from "./participant-item";
+import { EventChat } from "./event-chat";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -787,29 +788,8 @@ export default function ViewEventModal({
                 <>
                   {/* Verificar se o usuário é participante aprovado ou confirmado */}
                   {isCreator || (event.participants && event.participants.some(p => p.userId === user?.id && (p.status === 'approved' || p.status === 'confirmed'))) ? (
-                    <div className="space-y-4">
-                      <div className="h-64 overflow-y-auto border rounded-md p-3 mb-4 bg-gray-50 dark:bg-gray-900">
-                        <div className="text-center text-gray-500 italic py-10">
-                          <MessageSquare className="h-12 w-12 mx-auto text-gray-400 mb-2" />
-                          <p>Você só verá mensagens enviadas após sua entrada no evento.</p>
-                          <p className="mt-2 text-sm">O histórico de mensagens anteriores não está disponível.</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex space-x-2">
-                        <Textarea 
-                          placeholder="Digite sua mensagem..."
-                          className="flex-1"
-                        />
-                        <Button onClick={() => {
-                          toast({
-                            title: "Mensagem enviada",
-                            description: "Sua mensagem foi enviada para todos os participantes."
-                          });
-                        }}>
-                          Enviar
-                        </Button>
-                      </div>
+                    <div className="h-[400px]">
+                      <EventChat eventId={event.id} />
                     </div>
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">

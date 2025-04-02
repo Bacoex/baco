@@ -6,7 +6,8 @@ import {
   eventSubcategories, type EventSubcategory, type InsertEventSubcategory,
   eventCoOrganizerInvites, type EventCoOrganizerInvite, type InsertEventCoOrganizerInvite,
   notifications, type Notification, type InsertNotification,
-  notificationRecipients, type NotificationRecipient, type InsertNotificationRecipient
+  notificationRecipients, type NotificationRecipient, type InsertNotificationRecipient,
+  chatMessages, type ChatMessage, type InsertChatMessage
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -79,6 +80,10 @@ export interface IStorage {
   markNotificationAsRead(recipientId: number): Promise<void>;
   deleteNotificationForUser(recipientId: number): Promise<void>;
   getEventParticipantsAndCreator(eventId: number): Promise<number[]>; // Retorna IDs de todos os usuários envolvidos em um evento
+  
+  // Chat
+  createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  getChatMessagesByEvent(eventId: number): Promise<ChatMessage[]>;
 }
 
 /**
@@ -1044,6 +1049,44 @@ export class MemStorage implements IStorage {
     
     // Unir os IDs sem duplicação
     return [...new Set([...userIds, ...participants])];
+  }
+  
+  // Implementação do sistema de chat
+  private chatMessages: ChatMessage[] = [];
+  private chatMessageIdCounter: number = 1;
+  
+  /**
+   * Cria uma nova mensagem de chat para um evento
+   * @param message Dados da mensagem
+   * @returns A mensagem criada com ID gerado
+   */
+  async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
+    const newMessage: ChatMessage = {
+      ...message,
+      id: this.chatMessageIdCounter++,
+      sentAt: new Date(),
+      readBy: null
+    };
+    
+    this.chatMessages.push(newMessage);
+    console.log(`Nova mensagem de chat criada: ID=${newMessage.id}, EventID=${newMessage.eventId}, SenderID=${newMessage.senderId}`);
+    
+    return newMessage;
+  }
+  
+  /**
+   * Busca todas as mensagens de chat de um evento
+   * @param eventId ID do evento
+   * @returns Lista de mensagens ordenadas por data de envio (mais antigas primeiro)
+   */
+  async getChatMessagesByEvent(eventId: number): Promise<ChatMessage[]> {
+    return this.chatMessages
+      .filter(message => message.eventId === eventId)
+      .sort((a, b) => {
+        const timeA = a.sentAt?.getTime() || 0;
+        const timeB = b.sentAt?.getTime() || 0;
+        return timeA - timeB;
+      });
   }
 }
 

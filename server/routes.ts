@@ -7,7 +7,8 @@ import { fromZodError } from "zod-validation-error";
 import { 
   insertEventSchema, 
   insertEventParticipantSchema, 
-  insertEventSubcategorySchema 
+  insertEventSubcategorySchema,
+  insertChatMessageSchema
 } from "@shared/schema";
 import { 
   errorMonitoringMiddleware, 
@@ -941,6 +942,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error("Erro ao remover notificação:", err);
       res.status(500).json({ message: "Erro ao remover notificação" });
+    }
+  });
+  
+  /**
+   * Rotas de Chat para Eventos
+   */
+  // Rota para obter mensagens de chat de um evento
+  app.get("/api/events/:id/chat", ensureAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      
+      // Verificar se o evento existe
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      // Verificar se o usuário é participante ou criador do evento
+      const isCreator = event.creatorId === userId;
+      const isParticipant = isCreator || await storage.getParticipation(eventId, userId);
+      
+      if (!isParticipant) {
+        return res.status(403).json({ 
+          message: "Apenas participantes ou o criador podem acessar o chat do evento" 
+        });
+      }
+      
+      // Obter mensagens
+      const messages = await storage.getChatMessagesByEvent(eventId);
+      
+      // Carregar informações dos usuários para cada mensagem
+      const messagesWithUserInfo = await Promise.all(
+        messages.map(async (message) => {
+          const user = await storage.getUser(message.senderId);
+          return {
+            ...message,
+            user: user ? {
+              id: user.id,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              profileImage: user.profileImage
+            } : null
+          };
+        })
+      );
+      
+      res.json(messagesWithUserInfo);
+    } catch (error) {
+      console.error("Erro ao buscar mensagens de chat:", error);
+      res.status(500).json({ message: "Erro ao buscar mensagens de chat" });
+    }
+  });
+  
+  // Rota para enviar nova mensagem de chat
+  app.post("/api/events/:id/chat", ensureAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      
+      // Verificar se o evento existe
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      // Verificar se o usuário é participante ou criador do evento
+      const isCreator = event.creatorId === userId;
+      const isParticipant = isCreator || await storage.getParticipation(eventId, userId);
+      
+      if (!isParticipant) {
+        return res.status(403).json({ 
+          message: "Apenas participantes ou o criador podem enviar mensagens no chat" 
+        });
+      }
+      
+      // Validar a mensagem
+      const messageData = insertChatMessageSchema.parse({
+        ...req.body,
+        eventId,
+        senderId: userId
+      });
+      
+      // Criar a mensagem
+      const message = await storage.createChatMessage(messageData);
+      
+      // Buscar informações do usuário para incluir na resposta
+      const user = await storage.getUser(userId);
+      
+      res.status(201).json({
+        ...message,
+        user: user ? {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          profileImage: user.profileImage
+        } : null
+      });
+    } catch (error) {
+      console.error("Erro ao enviar mensagem de chat:", error);
+      
+      if (error instanceof ZodError) {
+        return res.status(400).json({ 
+          message: "Dados da mensagem inválidos", 
+          errors: fromZodError(error).message
+        });
+      }
+      
+      res.status(500).json({ message: "Erro ao enviar mensagem de chat" });
     }
   });
 
