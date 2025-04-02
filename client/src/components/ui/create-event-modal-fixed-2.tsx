@@ -1,57 +1,22 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { insertEventSchema } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { useToast } from "@/hooks/use-toast";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-
-import {
-  CalendarIcon,
-  Clock,
-  Loader2,
-  MapPin,
-  Users,
-  X,
-} from "lucide-react";
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"; 
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
+import { 
+  CalendarIcon, Clock, Users, MapPin, X 
+} from "lucide-react";
 
 /**
  * Props para o componente de modal de criação de evento
@@ -89,89 +54,107 @@ interface AdditionalTicket {
   name: string;
   price: number;
   description?: string;
+  [key: string]: string | number | undefined;
 }
 
 /**
  * Componente de modal para criação de eventos
  */
 export default function CreateEventModal({ isOpen, setIsOpen, categories, onSuccess }: CreateEventModalProps) {
-  const [eventType, setEventType] = useState<EventType>('public');
+  const { toast } = useToast();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [eventType, setEventType] = useState<EventType>('public');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showMapSelector, setShowMapSelector] = useState(false);
   const [additionalTickets, setAdditionalTickets] = useState<AdditionalTicket[]>([]);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  // Para debugging
+  // Log das categorias disponíveis
   console.log("Categorias disponíveis no CreateEventModal:", categories);
   console.log("Tipo de categories:", typeof categories);
   console.log("É array?", Array.isArray(categories));
   console.log("Comprimento:", categories?.length);
 
-  // Inicializa o formulário
+  // Configuração do formulário com validação zod
   const form = useForm<EventFormValues>({
-    resolver: zodResolver(insertEventSchema),
+    resolver: zodResolver(
+      insertEventSchema.extend({
+        categoryId: z.number().min(1, "Selecione uma categoria"),
+        subcategoryId: z.number().min(1, "Selecione uma subcategoria"),
+        date: z.string().min(1, "A data é obrigatória"),
+        timeStart: z.string().min(1, "O horário de início é obrigatório"),
+      })
+    ),
     defaultValues: {
       name: "",
       description: "",
-      date: format(new Date(), "yyyy-MM-dd"),
+      date: "",
       timeStart: "",
+      timeEnd: "",
       location: "",
-      eventType: "public",
-      coverImage: "",
       capacity: undefined,
-      importantInfo: "",
+      categoryId: undefined,
+      subcategoryId: undefined,
+      coverImage: "",
+      eventType: "public",
       ticketPrice: 0,
+      importantInfo: "",
     },
   });
 
-  // Handlers de eventos
-  const handleCategoryChange = async (categoryId: string) => {
-    const id = parseInt(categoryId);
-    setSelectedCategory(id);
+  // Limpa o formulário quando o modal é fechado
+  useEffect(() => {
+    if (!isOpen) {
+      form.reset();
+      setSelectedCategory(null);
+      setSubcategories([]);
+      setImagePreview(null);
+      setAdditionalTickets([]);
+      setEventType('public');
+    }
+  }, [isOpen, form]);
+
+  // Função para carregar subcategorias quando uma categoria é selecionada
+  function handleCategoryChange(categoryId: string) {
+    setSelectedCategory(categoryId);
     
-    try {
-      const response = await fetch(`/api/categories/${id}/subcategories`);
-      if (response.ok) {
-        const data = await response.json();
+    // Consulta de subcategorias
+    fetch(`/api/categories/${categoryId}/subcategories`)
+      .then(response => response.json())
+      .then(data => {
         setSubcategories(data);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar subcategorias:", error);
-    }
-  };
-
-  const handleEventTypeChange = (value: string) => {
-    setEventType(value as EventType);
-    form.setValue("eventType", value);
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: "Arquivo muito grande",
-        description: "O tamanho máximo permitido é 10MB",
-        variant: "destructive",
+      })
+      .catch(error => {
+        console.error("Erro ao carregar subcategorias:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar as subcategorias.",
+          variant: "destructive",
+        });
       });
-      return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setImagePreview(event.target.result as string);
-        form.setValue("coverImage", event.target.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
+  }
 
+  // Altera o tipo de evento e atualiza o campo no formulário
+  function handleEventTypeChange(value: string) {
+    setEventType(value as EventType);
+    form.setValue("eventType", value as EventType);
+  }
+
+  // Preview da imagem de capa
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setImagePreview(base64String);
+        form.setValue("coverImage", base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // Funções para gerenciar os ingressos adicionais
   const addAdditionalTicket = () => {
     setAdditionalTickets([...additionalTickets, { name: "", price: 0 }]);
   };
@@ -396,9 +379,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                     <FormLabel>Horário de Início</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <label htmlFor={`time-input-${field.name}`} className="w-full h-full absolute top-0 left-0 z-10 cursor-pointer">
-                          <Clock className="absolute left-2 top-2.5 h-4 w-4 text-primary pointer-events-none" />
-                        </label>
+                        <Clock className="absolute left-2 top-2.5 h-4 w-4 text-primary pointer-events-none" />
                         <Input
                           type="time"
                           className="pl-8"
@@ -408,6 +389,10 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                           onBlur={field.onBlur}
                           name={field.name}
                           ref={field.ref}
+                          onClick={(e) => {
+                            // Abre o seletor de hora nativo
+                            (e.target as HTMLInputElement).showPicker();
+                          }}
                         />
                       </div>
                     </FormControl>
@@ -425,9 +410,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                     <FormDescription className="text-xs">Opcional</FormDescription>
                     <FormControl>
                       <div className="relative">
-                        <label htmlFor={`time-input-${field.name}`} className="w-full h-full absolute top-0 left-0 z-10 cursor-pointer">
-                          <Clock className="absolute left-2 top-2.5 h-4 w-4 text-primary pointer-events-none" />
-                        </label>
+                        <Clock className="absolute left-2 top-2.5 h-4 w-4 text-primary pointer-events-none" />
                         <Input
                           type="time"
                           className="pl-8"
@@ -437,6 +420,10 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                           onBlur={field.onBlur}
                           name={field.name}
                           ref={field.ref}
+                          onClick={(e) => {
+                            // Abre o seletor de hora nativo
+                            (e.target as HTMLInputElement).showPicker();
+                          }}
                         />
                       </div>
                     </FormControl>
