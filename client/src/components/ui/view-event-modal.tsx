@@ -296,47 +296,65 @@ export default function ViewEventModal({
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">{event.name}</DialogTitle>
-            <DialogDescription>
-              <div className="flex items-center space-x-2 mt-2">
-                <Badge variant="outline" className="bg-primary/10 text-primary border-none">
-                  {eventTypeDisplay}
-                </Badge>
-                <Badge 
-                  variant="outline" 
-                  className={cn("border-none", event.category?.slug === "lgbt" ? "pride-badge" : "")}
-                  style={
-                    event.category?.slug === "lgbt" && event.category?.color === "pride"
-                    ? { 
-                        background: "linear-gradient(90deg, rgba(255,0,0,0.7) 0%, rgba(255,154,0,0.7) 17%, rgba(208,222,33,0.7) 33%, rgba(79,220,74,0.7) 50%, rgba(63,218,216,0.7) 66%, rgba(47,201,226,0.7) 83%, rgba(28,127,238,0.7) 100%)",
-                        color: "#fff",
-                        textShadow: "0px 0px 2px rgba(0,0,0,0.6)"
-                      }
-                    : { backgroundColor: `${event.category?.color}20`, color: event.category?.color }
-                  }
+          {/* Header do modal com design semelhante ao card da página inicial */}
+          <div className="relative overflow-hidden rounded-t-lg mb-6">
+            {/* Imagem de capa ou fundo estilizado */}
+            <div className="relative w-full h-52 rounded-md overflow-hidden">
+              {event.coverImage ? (
+                <img 
+                  src={event.coverImage} 
+                  alt={event.name} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div 
+                  className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500/50 to-purple-600/50"
+                  style={{
+                    background: event.category?.slug === "lgbt" && event.category?.color === "pride"
+                      ? "linear-gradient(135deg, rgba(255,0,0,0.6) 0%, rgba(255,154,0,0.6) 17%, rgba(208,222,33,0.6) 33%, rgba(79,220,74,0.6) 50%, rgba(63,218,216,0.6) 66%, rgba(47,201,226,0.6) 83%, rgba(28,127,238,0.6) 100%)"
+                      : `linear-gradient(135deg, ${event.category?.color}40, ${event.category?.color}90)`
+                  }}
                 >
-                  {event.category?.name}
-                </Badge>
-                {event.category?.ageRestriction && (
-                  <Badge variant="outline" className="bg-red-600 text-white border-none">
-                    {event.category.ageRestriction}+
+                  <div className="text-5xl opacity-30 text-white">
+                    {event.category?.name?.charAt(0) || "E"}
+                  </div>
+                </div>
+              )}
+              
+              {/* Overlay escuro para melhor legibilidade do texto */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+              
+              {/* Informações do evento sobrepostas na imagem */}
+              <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                <h2 className="text-3xl font-bold text-white mb-2 drop-shadow-md">{event.name}</h2>
+                <div className="flex items-center space-x-2 flex-wrap gap-2">
+                  <Badge variant="outline" className="bg-primary/30 text-white border-white/20 shadow-sm">
+                    {eventTypeDisplay}
                   </Badge>
-                )}
+                  <Badge 
+                    variant="outline" 
+                    className={cn("border-white/20 shadow-sm", event.category?.slug === "lgbt" ? "pride-badge" : "")}
+                    style={
+                      event.category?.slug === "lgbt" && event.category?.color === "pride"
+                      ? { 
+                          background: "linear-gradient(90deg, rgba(255,0,0,0.7) 0%, rgba(255,154,0,0.7) 17%, rgba(208,222,33,0.7) 33%, rgba(79,220,74,0.7) 50%, rgba(63,218,216,0.7) 66%, rgba(47,201,226,0.7) 83%, rgba(28,127,238,0.7) 100%)",
+                          color: "#fff",
+                          textShadow: "0px 0px 2px rgba(0,0,0,0.6)"
+                        }
+                      : { backgroundColor: `${event.category?.color}60`, color: "#fff" }
+                    }
+                  >
+                    {event.category?.name}
+                  </Badge>
+                  {event.category?.ageRestriction && (
+                    <Badge variant="outline" className="bg-red-600/80 text-white border-white/20 shadow-sm">
+                      {event.category.ageRestriction}+
+                    </Badge>
+                  )}
+                </div>
               </div>
-            </DialogDescription>
-          </DialogHeader>
-          
-          {/* Imagem de capa do evento */}
-          {event.coverImage && (
-            <div className="relative w-full h-48 rounded-md overflow-hidden mb-4">
-              <img 
-                src={event.coverImage} 
-                alt={event.name} 
-                className="w-full h-full object-cover" 
-              />
             </div>
-          )}
+          </div>
           
           <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid grid-cols-3 mb-4">
