@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { getUserDisplayName } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Eneagon from "@/components/ui/eneagon";
+import { getQueryFn } from "@/lib/queryClient";
 
 interface EventProps {
   event: {
@@ -85,6 +86,23 @@ export default function EventCard({
   const [participationStatus, setParticipationStatus] = useState<string | null>(participation?.status || null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isParticipantsDialogOpen, setIsParticipantsDialogOpen] = useState(false);
+  
+  // Carrega os detalhes completos do evento (incluindo participantes) quando o modal é aberto
+  const { data: eventDetails } = useQuery({
+    queryKey: [`/api/events/${event.id}`],
+    queryFn: getQueryFn(),
+    enabled: isViewModalOpen, // Só carrega quando o modal está aberto
+    staleTime: 10000, // 10 segundos
+    refetchOnWindowFocus: true,
+  });
+  
+  // Debug para verificar se os participantes estão sendo carregados
+  useEffect(() => {
+    if (isViewModalOpen && eventDetails) {
+      console.debug('EventDetails carregado:', eventDetails);
+      console.debug('Participantes:', eventDetails.participants || 'Nenhum participante');
+    }
+  }, [isViewModalOpen, eventDetails]);
   
   // Query para buscar os participantes do evento (somente se o usuário for o criador)
   const participantsQuery = useQuery({
@@ -679,10 +697,16 @@ export default function EventCard({
               firstName: event.creatorName?.split(' ')[0] || "Usuário",
               lastName: event.creatorName?.split(' ').slice(1).join(' ') || "Desconhecido",
               profileImage: null
-            }
+            },
+            // Usar os participantes do eventDetails se disponível, ou um array vazio
+            participants: eventDetails?.participants || []
           }}
           isOpen={isViewModalOpen}
           onClose={() => setIsViewModalOpen(false)}
+          onApprove={handleApproveParticipant}
+          onReject={handleRejectParticipant}
+          onRemoveParticipant={handleRemoveParticipant}
+          onRevertParticipant={handleRevertParticipant}
         />
       )}
       
