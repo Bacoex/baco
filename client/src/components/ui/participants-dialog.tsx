@@ -20,6 +20,7 @@ interface ParticipantsDialogProps {
   onReject?: (participantId: number) => void;
   onRemove?: (participantId: number) => void;
   onRevert?: (participantId: number) => void;
+  onViewProfile?: (userId: number) => void;
 }
 
 export function ParticipantsDialog({
@@ -29,7 +30,8 @@ export function ParticipantsDialog({
   onApprove,
   onReject,
   onRemove,
-  onRevert
+  onRevert,
+  onViewProfile
 }: ParticipantsDialogProps) {
   // Buscar informações do evento
   const eventQuery = useQuery({
@@ -106,6 +108,7 @@ export function ParticipantsDialog({
                 onReject={onReject}
                 onRemove={onRemove}
                 onRevert={onRevert}
+                onViewProfile={(userId) => onViewProfile && onViewProfile(userId)}
               />
             ))}
           </div>

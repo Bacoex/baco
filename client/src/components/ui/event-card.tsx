@@ -63,6 +63,7 @@ interface EventProps {
   onReject?: (participantId: number) => void;
   onRemoveParticipant?: (participantId: number) => void;
   onRevertParticipant?: (participantId: number) => void;
+  onViewProfile?: (userId: number) => void;
 }
 
 export default function EventCard({ 
@@ -73,7 +74,8 @@ export default function EventCard({
   onApprove,
   onReject,
   onRemoveParticipant,
-  onRevertParticipant
+  onRevertParticipant,
+  onViewProfile
 }: EventProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -693,6 +695,7 @@ export default function EventCard({
           onReject={handleRejectParticipant}
           onRemove={handleRemoveParticipant}
           onRevert={handleRevertParticipant}
+          onViewProfile={onViewProfile}
         />
       )}
     </>

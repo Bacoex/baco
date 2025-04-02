@@ -36,6 +36,7 @@ interface ParticipantItemProps {
   onReject?: (participantId: number) => void;
   onRemove?: (participantId: number) => void;
   onRevert?: (participantId: number) => void;
+  onViewProfile?: (userId: number) => void;
 }
 
 export function ParticipantItem({
@@ -46,7 +47,8 @@ export function ParticipantItem({
   onApprove,
   onReject,
   onRemove,
-  onRevert
+  onRevert,
+  onViewProfile
 }: ParticipantItemProps) {
   // Estado para controlar a visibilidade do diálogo de perfil
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
@@ -59,7 +61,13 @@ export function ParticipantItem({
       <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 rounded-lg group">
         <div 
           className="flex items-center flex-1 p-2 rounded-md transition-colors cursor-pointer"
-          onClick={() => setIsProfileDialogOpen(true)}
+          onClick={() => {
+            if (onViewProfile) {
+              onViewProfile(participant.userId);
+            } else {
+              setIsProfileDialogOpen(true);
+            }
+          }}
         >
           <Eneagon className="w-10 h-10">
             <Avatar>
@@ -86,7 +94,11 @@ export function ParticipantItem({
                 className="text-xs text-orange-600 hover:text-orange-800 p-0 h-auto"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsProfileDialogOpen(true);
+                  if (onViewProfile) {
+                    onViewProfile(participant.userId);
+                  } else {
+                    setIsProfileDialogOpen(true);
+                  }
                 }}
               >
                 Ver perfil
@@ -103,7 +115,13 @@ export function ParticipantItem({
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-orange-600 hover:text-orange-800 hover:bg-orange-100"
-              onClick={() => setIsProfileDialogOpen(true)}
+              onClick={() => {
+                if (onViewProfile) {
+                  onViewProfile(participant.userId);
+                } else {
+                  setIsProfileDialogOpen(true);
+                }
+              }}
               title="Ver perfil"
             >
               <User className="h-5 w-5" />
@@ -250,11 +268,20 @@ export function ParticipantItem({
       </div>
       
       {/* Diálogo de perfil do usuário */}
-      <UserProfileDialog 
-        userId={participant.userId}
-        isOpen={isProfileDialogOpen}
-        onClose={() => setIsProfileDialogOpen(false)}
-      />
+      {onViewProfile ? (
+        // Usar a função passada via props para ter integração com o componente pai
+        <div onClick={() => {
+          onViewProfile(participant.userId);
+          setIsProfileDialogOpen(false);
+        }} className="hidden" />
+      ) : (
+        // Mostrar o diálogo interno se não tiver função externa de visualização
+        <UserProfileDialog 
+          userId={participant.userId}
+          isOpen={isProfileDialogOpen}
+          onClose={() => setIsProfileDialogOpen(false)}
+        />
+      )}
     </>
   );
 }
