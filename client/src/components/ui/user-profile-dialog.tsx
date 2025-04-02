@@ -55,20 +55,22 @@ export function UserProfileDialog({ userId, isOpen, onClose }: UserProfileDialog
     enabled: isOpen
   });
 
-  // Para simular dados quando o backend não tem as informações completas
-  const [randomSign, setRandomSign] = useState<string>("");
-  const [randomAge, setRandomAge] = useState<number>(0);
+  // Para backup de informações caso o backend não retorne dados completos
+  const [fallbackSign, setFallbackSign] = useState<string>("");
+  const [fallbackAge, setFallbackAge] = useState<number | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      // Gerar um signo aleatório para visualização (caso o backend não tenha estes dados)
-      const randomSignIndex = Math.floor(Math.random() * zodiacSigns.length);
-      setRandomSign(zodiacSigns[randomSignIndex]);
+      // Definir valores de fallback apenas se não estiverem definidos
+      if (!fallbackSign) {
+        // Signo padrão se não for retornado pelo backend
+        setFallbackSign("Não informado");
+      }
       
-      // Gerar uma idade aleatória entre 18 e 65 (caso o backend não tenha esta informação)
-      setRandomAge(Math.floor(Math.random() * (65 - 18 + 1)) + 18);
+      // Não usamos mais idade aleatória, agora calculamos com base na data de nascimento
+      setFallbackAge(null);
     }
-  }, [isOpen]);
+  }, [isOpen, fallbackSign]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -114,7 +116,7 @@ export function UserProfileDialog({ userId, isOpen, onClose }: UserProfileDialog
               <div className="flex items-center gap-2">
                 <User className="h-5 w-5 text-gray-500" />
                 <span className="text-sm text-gray-700">
-                  {user.age || randomAge} anos
+                  {user.age !== null && user.age !== undefined ? `${user.age} anos` : (fallbackAge ? `${fallbackAge} anos` : 'Idade não informada')}
                 </span>
               </div>
 
@@ -122,7 +124,7 @@ export function UserProfileDialog({ userId, isOpen, onClose }: UserProfileDialog
               <div className="flex items-center gap-2">
                 <Star className="h-5 w-5 text-gray-500" />
                 <span className="text-sm text-gray-700">
-                  {user.zodiacSign || randomSign}
+                  {user.zodiacSign || fallbackSign}
                 </span>
               </div>
 

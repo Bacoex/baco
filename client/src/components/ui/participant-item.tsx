@@ -58,7 +58,8 @@ export function ParticipantItem({
     <>
       <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 rounded-lg group">
         <div 
-          className="flex items-center flex-1 p-2 rounded-md transition-colors" 
+          className="flex items-center flex-1 p-2 rounded-md transition-colors cursor-pointer"
+          onClick={() => setIsProfileDialogOpen(true)}
         >
           <Eneagon className="w-10 h-10">
             <Avatar>
@@ -75,10 +76,21 @@ export function ParticipantItem({
                 lastName: participant.user?.lastName || "" 
               })}
             </div>
-            <div className="mt-1">
+            <div className="flex items-center gap-2 mt-1">
               <Badge className={cn(`${statusColors[status]} text-xs`)}>
                 {statusText[status]}
               </Badge>
+              <Button
+                variant="link"
+                size="sm"
+                className="text-xs text-orange-600 hover:text-orange-800 p-0 h-auto"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsProfileDialogOpen(true);
+                }}
+              >
+                Ver perfil
+              </Button>
             </div>
           </div>
         </div>
