@@ -15,14 +15,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-
 // Ícones
 import { 
   Loader2, 
-  MapPin, 
+  MapPin,
   Users, 
-  X 
+  X,
+  CalendarIcon,
+  MapIcon,
+  Clock3,
+  CalendarDays
 } from "lucide-react";
+import { LocationMapSelector } from "./location-map-selector";
 
 /**
  * Props para o componente de modal de criação de evento
@@ -104,6 +108,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
       timeStart: "",
       timeEnd: "",
       location: "",
+      coordinates: "",
       capacity: undefined,
       categoryId: undefined,
       subcategoryId: undefined,
@@ -450,22 +455,36 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                 </FormItem>
               )}
             />
+            
+            {/* Campo oculto para coordenadas */}
+            <FormField
+              control={form.control}
+              name="coordinates"
+              render={({ field }) => (
+                <input type="hidden" {...field} />
+              )}
+            />
 
             {showMapSelector && (
               <div className="border rounded-md p-4 bg-gray-50">
-                <p className="text-sm text-gray-500 mb-4">
-                  Aqui seria integrada a API do Google Maps para seleção de localização.
-                  No momento, insira o endereço manualmente.
-                </p>
-                <Button 
-                  type="button" 
-                  size="sm" 
-                  variant="outline"
-                  className="bg-orange-500 text-white hover:bg-orange-600"
-                  onClick={() => setShowMapSelector(false)}
-                >
-                  Fechar mapa
-                </Button>
+                <LocationMapSelector 
+                  initialLocation={form.getValues("location")}
+                  onLocationSelect={(address, coordinates) => {
+                    form.setValue("location", address);
+                    form.setValue("coordinates", coordinates);
+                    setShowMapSelector(false);
+                  }}
+                />
+                <div className="mt-2 flex justify-end">
+                  <Button 
+                    type="button" 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setShowMapSelector(false)}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
               </div>
             )}
 
