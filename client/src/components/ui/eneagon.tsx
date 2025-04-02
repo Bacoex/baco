@@ -34,3 +34,6 @@ export function Eneagon({ children, className }: EneagonProps) {
 Eneagon.styles = {
   clipPath: 'polygon(50% 0%, 83% 12%, 100% 43%, 94% 78%, 68% 100%, 32% 100%, 6% 78%, 0% 43%, 17% 12%)',
 };
+
+// Exportando como default também para compatibilidade
+export default Eneagon;

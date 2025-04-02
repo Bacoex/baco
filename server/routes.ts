@@ -17,6 +17,20 @@ import {
   ErrorType
 } from "./errorMonitoring";
 
+// Função de utilidade para calcular idade
+function calculateAge(birthDateString: string): number {
+  const birthDate = new Date(birthDateString);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const month = today.getMonth() - birthDate.getMonth();
+  
+  if (month < 0 || (month === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  
+  return age;
+}
+
 /**
  * Registra todas as rotas da API
  */
@@ -26,6 +40,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Configura autenticação
   setupAuth(app);
+  
+  // Rota para obter informações de um usuário específico
+  app.get('/api/users/:id', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "ID de usuário inválido" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      
+      // Retornar apenas as informações públicas do usuário
+      const publicUserInfo = {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImage: user.profileImage,
+        zodiacSign: user.zodiacSign,
+        role: "Usuário", // Campo default para exibição
+        bio: "", // Campo default para bio
+        city: user.city,
+        state: user.state,
+        birthDate: user.birthDate,
+        age: user.birthDate ? calculateAge(user.birthDate) : null,
+        createdAt: user.createdAt
+      };
+      
+      res.json(publicUserInfo);
+    } catch (error) {
+      console.error('Erro ao buscar informações do usuário:', error);
+      res.status(500).json({ message: "Erro ao buscar informações do usuário" });
+    }
+  });
 
   // Middleware para verificar autenticação
   const ensureAuthenticated = (req: any, res: any, next: any) => {

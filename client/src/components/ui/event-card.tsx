@@ -22,7 +22,7 @@ import { logError, ErrorSeverity } from "@/lib/errorLogger";
 import { Badge } from "@/components/ui/badge";
 import { getUserDisplayName } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Eneagon } from "./eneagon";
+import Eneagon from "@/components/ui/eneagon";
 
 interface EventProps {
   event: {

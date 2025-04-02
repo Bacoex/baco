@@ -1,10 +1,12 @@
-import { CheckCircle, XCircle, RotateCcw } from "lucide-react";
+import { CheckCircle, XCircle, RotateCcw, User } from "lucide-react";
 import { getUserDisplayName } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eneagon } from "./eneagon";
+import Eneagon from "@/components/ui/eneagon";
 import { logError, ErrorSeverity } from "@/lib/errorLogger";
+import { useState } from "react";
+import { UserProfileDialog } from "./user-profile-dialog";
 
 import { cn } from "@/lib/utils";
 
@@ -46,58 +48,138 @@ export function ParticipantItem({
   onRemove,
   onRevert
 }: ParticipantItemProps) {
+  // Estado para controlar a visibilidade do diálogo de perfil
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  
   // Status colors para os badges
   const status = participant.status;
 
   return (
-    <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 rounded-lg group">
-      <div 
-        className="flex items-center flex-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-md transition-colors" 
-        onClick={() => window.location.href = `/profile/${participant.userId}`}
-      >
-        <Eneagon className="w-10 h-10">
-          <Avatar>
-            <AvatarImage src={participant.user?.profileImage || undefined} />
-            <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-              {participant.user?.firstName?.charAt(0) || ""}{participant.user?.lastName?.charAt(0) || ""}
-            </AvatarFallback>
-          </Avatar>
-        </Eneagon>
-        <div className="ml-3">
-          <div className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-primary">
-            {getUserDisplayName({ 
-              firstName: participant.user?.firstName || "", 
-              lastName: participant.user?.lastName || "" 
-            })}
-          </div>
-          <div className="mt-1">
-            <Badge className={cn(`${statusColors[status]} text-xs`)}>
-              {statusText[status]}
-            </Badge>
+    <>
+      <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 rounded-lg group">
+        <div 
+          className="flex items-center flex-1 p-2 rounded-md transition-colors" 
+        >
+          <Eneagon className="w-10 h-10">
+            <Avatar>
+              <AvatarImage src={participant.user?.profileImage || undefined} />
+              <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                {participant.user?.firstName?.charAt(0) || ""}{participant.user?.lastName?.charAt(0) || ""}
+              </AvatarFallback>
+            </Avatar>
+          </Eneagon>
+          <div className="ml-3">
+            <div className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-primary">
+              {getUserDisplayName({ 
+                firstName: participant.user?.firstName || "", 
+                lastName: participant.user?.lastName || "" 
+              })}
+            </div>
+            <div className="mt-1">
+              <Badge className={cn(`${statusColors[status]} text-xs`)}>
+                {statusText[status]}
+              </Badge>
+            </div>
           </div>
         </div>
-      </div>
-      
-      {/* Exibe os botões de ação apenas para eventos do tipo candidatura */}
-      {eventType === 'private_application' && (
-        <div className="flex space-x-1">
-          {/* Botões para candidaturas pendentes */}
-          {status === 'pending' && onApprove && onReject && (
-            <>
+        
+        {/* Exibe os botões de ação apenas para eventos do tipo candidatura */}
+        {eventType === 'private_application' && (
+          <div className="flex space-x-1">
+            {/* Botão para ver perfil - presente para todos os status */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-orange-600 hover:text-orange-800 hover:bg-orange-100"
+              onClick={() => setIsProfileDialogOpen(true)}
+              title="Ver perfil"
+            >
+              <User className="h-5 w-5" />
+            </Button>
+            {/* Botões para candidaturas pendentes */}
+            {status === 'pending' && onApprove && onReject && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-green-600 hover:text-green-800 hover:bg-green-100"
+                  onClick={() => {
+                    try {
+                      onApprove(participant.id);
+                    } catch (error) {
+                      // Registra o erro no sistema de log
+                      logError(
+                        `Erro ao aprovar participante ${participant.id}`, 
+                        ErrorSeverity.ERROR, 
+                        {
+                          context: 'ApproveParticipant',
+                          component: 'ParticipantItem',
+                          error: error instanceof Error ? error : new Error(String(error)),
+                          additionalData: { 
+                            participantId: participant.id,
+                            userId: participant.userId,
+                            eventId: participant.eventId,
+                            previousStatus: participant.status,
+                            timestamp: new Date().toISOString()
+                          }
+                        }
+                      );
+                    }
+                  }}
+                  title="Aprovar"
+                >
+                  <CheckCircle className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-red-600 hover:text-red-800 hover:bg-red-100"
+                  onClick={() => {
+                    try {
+                      onReject(participant.id);
+                    } catch (error) {
+                      // Registra o erro no sistema de log
+                      logError(
+                        `Erro ao rejeitar participante ${participant.id}`, 
+                        ErrorSeverity.ERROR, 
+                        {
+                          context: 'RejectParticipant',
+                          component: 'ParticipantItem',
+                          error: error instanceof Error ? error : new Error(String(error)),
+                          additionalData: { 
+                            participantId: participant.id,
+                            userId: participant.userId,
+                            eventId: participant.eventId,
+                            previousStatus: participant.status,
+                            timestamp: new Date().toISOString()
+                          }
+                        }
+                      );
+                    }
+                  }}
+                  title="Rejeitar"
+                >
+                  <XCircle className="h-5 w-5" />
+                </Button>
+              </>
+            )}
+            
+            {/* Botão de reverter para candidaturas já avaliadas (approved/rejected) */}
+            {(status === 'approved' || status === 'rejected') && onRevert && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-green-600 hover:text-green-800 hover:bg-green-100"
+                className="h-8 w-8 text-amber-600 hover:text-amber-800 hover:bg-amber-100"
                 onClick={() => {
                   try {
-                    onApprove(participant.id);
+                    onRevert(participant.id);
                   } catch (error) {
                     // Registra o erro no sistema de log
                     logError(
-                      `Erro ao aprovar participante ${participant.id}`, 
+                      `Erro ao revogar decisão para participante ${participant.id}`, 
                       ErrorSeverity.ERROR, 
                       {
-                        context: 'ApproveParticipant',
+                        context: 'RevertParticipant',
                         component: 'ParticipantItem',
                         error: error instanceof Error ? error : new Error(String(error)),
                         additionalData: { 
@@ -111,24 +193,28 @@ export function ParticipantItem({
                     );
                   }
                 }}
-                title="Aprovar"
+                title="Revogar decisão"
               >
-                <CheckCircle className="h-5 w-5" />
+                <RotateCcw className="h-5 w-5" />
               </Button>
+            )}
+            
+            {/* Botão de remover para todos os status */}
+            {onRemove && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-red-600 hover:text-red-800 hover:bg-red-100"
+                className="h-8 w-8 text-gray-600 hover:text-gray-800 hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity"
                 onClick={() => {
                   try {
-                    onReject(participant.id);
+                    onRemove(participant.id);
                   } catch (error) {
                     // Registra o erro no sistema de log
                     logError(
-                      `Erro ao rejeitar participante ${participant.id}`, 
+                      `Erro ao remover participante ${participant.id}`, 
                       ErrorSeverity.ERROR, 
                       {
-                        context: 'RejectParticipant',
+                        context: 'RemoveParticipant',
                         component: 'ParticipantItem',
                         error: error instanceof Error ? error : new Error(String(error)),
                         additionalData: { 
@@ -142,84 +228,21 @@ export function ParticipantItem({
                     );
                   }
                 }}
-                title="Rejeitar"
+                title="Remover participante"
               >
                 <XCircle className="h-5 w-5" />
               </Button>
-            </>
-          )}
-          
-          {/* Botão de reverter para candidaturas já avaliadas (approved/rejected) */}
-          {(status === 'approved' || status === 'rejected') && onRevert && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-amber-600 hover:text-amber-800 hover:bg-amber-100"
-              onClick={() => {
-                try {
-                  onRevert(participant.id);
-                } catch (error) {
-                  // Registra o erro no sistema de log
-                  logError(
-                    `Erro ao revogar decisão para participante ${participant.id}`, 
-                    ErrorSeverity.ERROR, 
-                    {
-                      context: 'RevertParticipant',
-                      component: 'ParticipantItem',
-                      error: error instanceof Error ? error : new Error(String(error)),
-                      additionalData: { 
-                        participantId: participant.id,
-                        userId: participant.userId,
-                        eventId: participant.eventId,
-                        previousStatus: participant.status,
-                        timestamp: new Date().toISOString()
-                      }
-                    }
-                  );
-                }
-              }}
-              title="Revogar decisão"
-            >
-              <RotateCcw className="h-5 w-5" />
-            </Button>
-          )}
-          
-          {/* Botão de remover para todos os status */}
-          {onRemove && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-gray-600 hover:text-gray-800 hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={() => {
-                try {
-                  onRemove(participant.id);
-                } catch (error) {
-                  // Registra o erro no sistema de log
-                  logError(
-                    `Erro ao remover participante ${participant.id}`, 
-                    ErrorSeverity.ERROR, 
-                    {
-                      context: 'RemoveParticipant',
-                      component: 'ParticipantItem',
-                      error: error instanceof Error ? error : new Error(String(error)),
-                      additionalData: { 
-                        participantId: participant.id,
-                        userId: participant.userId,
-                        eventId: participant.eventId,
-                        previousStatus: participant.status,
-                        timestamp: new Date().toISOString()
-                      }
-                    }
-                  );
-                }
-              }}
-              title="Remover participante"
-            >
-              <XCircle className="h-5 w-5" />
-            </Button>
-          )}
-        </div>
-      )}
-    </div>
+            )}
+          </div>
+        )}
+      </div>
+      
+      {/* Diálogo de perfil do usuário */}
+      <UserProfileDialog 
+        userId={participant.userId}
+        isOpen={isProfileDialogOpen}
+        onClose={() => setIsProfileDialogOpen(false)}
+      />
+    </>
   );
 }
