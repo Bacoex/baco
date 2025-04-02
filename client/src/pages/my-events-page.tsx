@@ -40,6 +40,7 @@ import { Link } from "wouter";
 import CreateEventModal from "@/components/ui/create-event-modal";
 import NetworkBackground from "../components/ui/network-background";
 import { ParticipantsDialog } from "@/components/ui/participants-dialog";
+import ViewEventModal from "@/components/ui/view-event-modal";
 
 // Tipo para categoria de evento
 interface EventCategory {
@@ -102,7 +103,8 @@ function EventCard({
   onRemoveParticipant,
   onRevertParticipant,
   highlightedEventId,
-  onViewProfile
+  onViewProfile,
+  onViewEvent  // Adicionamos este novo prop para visualizar o evento
 }: { 
   event: Event, 
   isCreator?: boolean,
@@ -113,13 +115,21 @@ function EventCard({
   onRemoveParticipant?: (participantId: number) => void,
   onRevertParticipant?: (participantId: number) => void,
   highlightedEventId?: number | null,
-  onViewProfile?: (userId: number) => void
+  onViewProfile?: (userId: number) => void,
+  onViewEvent?: (eventId: number) => void  // Tipagem do novo prop
 }) {
   const { toast } = useToast();
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
   const [chatMessage, setChatMessage] = useState("");
   const { user } = useAuth();
+  
+  // Função para abrir o modal de detalhes do evento
+  const handleViewEvent = (eventId: number) => {
+    if (onViewEvent) {
+      onViewEvent(eventId);
+    }
+  };
 
   // Formatar a data do evento
   const formatDate = (dateString: string) => {
@@ -280,8 +290,12 @@ function EventCard({
         /* Se o usuário já está participando e foi aprovado */
         (participation && participation.status === "approved") ? (
           <div className="flex w-full justify-between">
-            <Button variant="outline" size="sm" asChild>
-              <Link to={`/event/${event.id}`}>Ver detalhes</Link>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => handleViewEvent(event.id)}
+            >
+              Ver detalhes
             </Button>
             <Button variant="outline" size="sm" onClick={() => setShowChatModal(true)}>
               <MessageSquare className="h-4 w-4 mr-1" />
@@ -308,8 +322,12 @@ function EventCard({
         /* Se o usuário não participou ainda */
         (
           <div className="w-full flex justify-center">
-            <Button variant="default" size="sm" asChild>
-              <Link to={`/event/${event.id}`}>Ver detalhes</Link>
+            <Button 
+              variant="default" 
+              size="sm"
+              onClick={() => handleViewEvent(event.id)}
+            >
+              Ver detalhes
             </Button>
           </div>
         )}
@@ -488,6 +506,8 @@ export default function MyEventsPage() {
   const [highlightedEventId, setHighlightedEventId] = useState<number | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isViewEventModalOpen, setIsViewEventModalOpen] = useState(false);
   
   // Efeito para processar parâmetros da URL
   useEffect(() => {
@@ -987,6 +1007,24 @@ export default function MyEventsPage() {
     }
   };
 
+  // Função para visualizar o evento em um modal
+  const handleViewEvent = (eventId: number) => {
+    // Primeiro encontra o evento pelo ID
+    const eventToView = [...(createdEventsQuery.data || []), ...(participatingEventsQuery.data || [])]
+      .find(event => event.id === eventId);
+    
+    if (eventToView) {
+      setSelectedEvent(eventToView);
+      setIsViewEventModalOpen(true);
+    } else {
+      toast({
+        title: "Erro",
+        description: "Evento não encontrado",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Função para aprovar um participante
   const handleApproveParticipant = (participantId: number) => {
     approveParticipantMutation.mutate(participantId);
@@ -1093,6 +1131,7 @@ export default function MyEventsPage() {
                       onRemoveParticipant={handleRemoveParticipant}
                       onRevertParticipant={handleRevertParticipant}
                       onViewProfile={handleViewUserProfile}
+                      onViewEvent={handleViewEvent}
                     />
                   ))}
                 </div>
@@ -1139,6 +1178,7 @@ export default function MyEventsPage() {
                         status: 'pending' 
                       }}
                       onViewProfile={handleViewUserProfile}
+                      onViewEvent={handleViewEvent}
                     />
                   )}
                 </div>
@@ -1163,6 +1203,22 @@ export default function MyEventsPage() {
         onClose={() => setIsUserProfileOpen(false)}
         userId={selectedUserId}
       />
+
+      {/* Modal para visualização detalhada do evento */}
+      {selectedEvent && (
+        <ViewEventModal
+          isOpen={isViewEventModalOpen}
+          onClose={() => setIsViewEventModalOpen(false)}
+          event={selectedEvent}
+          isParticipant={!!participatingEventsQuery.data?.find(e => e.id === selectedEvent.id)}
+          isCreator={user.id === selectedEvent.creatorId}
+          onEventDeleted={() => {
+            queryClient.invalidateQueries({ queryKey: ["/api/user/events/creator"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/user/events/participating"] });
+            setIsViewEventModalOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }
