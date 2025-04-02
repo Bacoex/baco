@@ -537,40 +537,53 @@ export default function ViewEventModal({
                   <div className="flex justify-center items-center py-8">
                     <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
                   </div>
-                ) : participantsQuery.data && participantsQuery.data.length > 0 ? (
+                ) : (participantsQuery.data && participantsQuery.data.length > 0) || (event.participants && event.participants.length > 0) ? (
                   <>
-                    <h3 className="text-lg font-medium">
-                      {isCreator 
-                        ? `Participantes (${participantsQuery.data.length})` 
-                        : `Participantes (${participantsQuery.data.filter(p => p.status === 'approved' || p.status === 'confirmed').length})`
-                      }
-                    </h3>
-                    
-                    <div className="grid grid-cols-1 gap-2">
-                      {participantsQuery.data.map((participant) => (
-                        <ParticipantItem
-                          key={participant.id}
-                          participant={participant}
-                          eventType={event.eventType}
-                          statusColors={{
-                            "confirmed": "bg-blue-100 text-blue-800 border-blue-300",
-                            "approved": "bg-green-100 text-green-800 border-green-300",
-                            "pending": "bg-yellow-100 text-yellow-800 border-yellow-300",
-                            "rejected": "bg-red-100 text-red-800 border-red-300"
-                          }}
-                          statusText={{
-                            "confirmed": "Confirmado",
-                            "approved": "Aprovado",
-                            "pending": "Pendente",
-                            "rejected": "Rejeitado"
-                          }}
-                          onApprove={onApprove}
-                          onReject={onReject}
-                          onRemove={onRemoveParticipant}
-                          onRevert={onRevertParticipant}
-                        />
-                      ))}
-                    </div>
+                    {/* Usa dados da query ou cai para os dados do evento */}
+                    {(() => {
+                      const participants = participantsQuery.data?.length > 0 
+                        ? participantsQuery.data 
+                        : event.participants || [];
+                      
+                      return (
+                        <>
+                          <h3 className="text-lg font-medium">
+                            {isCreator 
+                              ? `Participantes (${participants.length})` 
+                              : `Participantes (${participants.filter(p => 
+                                  p.status === 'approved' || p.status === 'confirmed'
+                                ).length})`
+                            }
+                          </h3>
+                          
+                          <div className="grid grid-cols-1 gap-2">
+                            {participants.map((participant) => (
+                              <ParticipantItem
+                                key={participant.id}
+                                participant={participant}
+                                eventType={event.eventType}
+                                statusColors={{
+                                  "confirmed": "bg-blue-100 text-blue-800 border-blue-300",
+                                  "approved": "bg-green-100 text-green-800 border-green-300",
+                                  "pending": "bg-yellow-100 text-yellow-800 border-yellow-300",
+                                  "rejected": "bg-red-100 text-red-800 border-red-300"
+                                }}
+                                statusText={{
+                                  "confirmed": "Confirmado",
+                                  "approved": "Aprovado",
+                                  "pending": "Pendente",
+                                  "rejected": "Rejeitado"
+                                }}
+                                onApprove={onApprove}
+                                onReject={onReject}
+                                onRemove={onRemoveParticipant}
+                                onRevert={onRevertParticipant}
+                              />
+                            ))}
+                          </div>
+                        </>
+                      );
+                    })()}
                   </>
                 ) : (
                   <>
