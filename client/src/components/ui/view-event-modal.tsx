@@ -108,6 +108,10 @@ export default function ViewEventModal({
   // Se não houver evento, não renderiza o modal
   if (!event) return null;
   
+  // Log para debug de participantes
+  console.log("ViewEventModal - Evento:", event);
+  console.log("ViewEventModal - Participantes:", event.participants || "Nenhum participante");
+  
   // Formata a data do evento
   const eventDate = event.date ? format(new Date(event.date), "PPPP", { locale: ptBR }) : "";
   
@@ -296,6 +300,13 @@ export default function ViewEventModal({
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="sr-only">{event.name}</DialogTitle>
+            <DialogDescription className="sr-only">
+              Detalhes do evento: {event.description}
+            </DialogDescription>
+          </DialogHeader>
+          
           {/* Header do modal com design semelhante ao card da página inicial */}
           <div className="relative overflow-hidden rounded-t-lg mb-6">
             {/* Imagem de capa ou fundo estilizado */}
