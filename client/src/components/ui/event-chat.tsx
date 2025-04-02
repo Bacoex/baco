@@ -24,8 +24,14 @@ export function EventChat({ eventId, className }: EventChatProps) {
     isLoadingMessages,
     messagesError,
     sendMessage,
-    isSending
+    isSending,
+    messagesStatus
   } = useChat(eventId);
+  
+  // Monitorar status do chat para depuração
+  useEffect(() => {
+    console.log(`[EventChat] Status: ${messagesStatus}, Error: ${messagesError ? 'Sim' : 'Não'}`);
+  }, [messagesStatus, messagesError]);
 
   // Rolar para o final do chat quando novas mensagens chegarem
   useEffect(() => {
@@ -96,9 +102,12 @@ export function EventChat({ eventId, className }: EventChatProps) {
           </div>
         ) : messagesError ? (
           // Estado de erro
-          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
+          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground py-10">
             <AlertCircle className="h-8 w-8 mb-2 text-destructive" />
             <p>Não foi possível carregar as mensagens</p>
+            <p className="text-xs mt-1 max-w-xs">
+              {messagesError instanceof Error ? messagesError.message : "Erro de conexão ao chat"}
+            </p>
             <Button 
               variant="outline" 
               size="sm" 
@@ -110,9 +119,15 @@ export function EventChat({ eventId, className }: EventChatProps) {
           </div>
         ) : messages.length === 0 ? (
           // Estado vazio
-          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-            <p>Ainda não há mensagens neste chat</p>
-            <p className="text-sm">Seja o primeiro a enviar uma mensagem!</p>
+          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground py-10">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mb-3 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            <p className="font-medium">Ainda não há mensagens neste chat</p>
+            <p className="text-sm mt-1">Seja o primeiro a enviar uma mensagem!</p>
+            <p className="text-xs mt-4 max-w-xs text-muted-foreground">
+              As mensagens enviadas aqui serão visíveis para todos os participantes do evento
+            </p>
           </div>
         ) : (
           // Exibir mensagens agrupadas por dia

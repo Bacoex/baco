@@ -948,6 +948,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   /**
    * Rotas de Chat para Eventos
    */
+  // Sistema de monitoramento específico para o chat
+  const monitorChatError = (operation: string, error: any, eventId: number, userId: number) => {
+    console.error(`[ERRO-CHAT] ${operation} - Evento: ${eventId}, Usuário: ${userId}`, error);
+    
+    // Se o sistema de monitoramento de erros estiver disponível, registre o erro lá também
+    if (typeof logError === 'function') {
+      try {
+        logError(
+          ErrorType.GENERAL, 
+          ErrorSeverity.ERROR, 
+          'chat_system', 
+          `Erro na operação ${operation} de chat`, 
+          { 
+            eventId, 
+            userId,
+            errorMessage: error.message || String(error),
+            stack: error.stack
+          }
+        );
+      } catch (e) {
+        console.error("Erro ao registrar erro de chat no sistema de monitoramento:", e);
+      }
+    }
+  };
+  
   // Rota para obter mensagens de chat de um evento
   app.get("/api/events/:id/chat", ensureAuthenticated, async (req, res) => {
     try {
@@ -962,13 +987,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verificar se o usuário é participante ou criador do evento
       const isCreator = event.creatorId === userId;
-      const isParticipant = isCreator || await storage.getParticipation(eventId, userId);
       
-      if (!isParticipant) {
-        return res.status(403).json({ 
-          message: "Apenas participantes ou o criador podem acessar o chat do evento" 
-        });
+      // Para facilitar a depuração, vamos tratar esta verificação com mais robustez
+      let participation = null;
+      let isParticipant = isCreator; // O criador sempre é participante
+      
+      try {
+        participation = await storage.getParticipation(eventId, userId);
+        // Adicionar à verificação - participação tem que ser aprovada
+        isParticipant = isParticipant || (participation && participation.status === "approved");
+      } catch (participationErr) {
+        // Log informativo para ajudar na depuração
+        console.log(`[INFO] Usuário ${userId} não tem participação no evento ${eventId}`);
       }
+      
+      // Verificação adicional de segurança
+      if (!isParticipant) {
+        // Mensagem mais informativa
+        const errorMsg = isCreator 
+          ? "Erro inesperado na verificação de permissões" // Nunca deveria acontecer
+          : "Apenas participantes aprovados ou o criador podem acessar o chat do evento";
+        
+        return res.status(403).json({ message: errorMsg });
+      }
+      
+      // Log de acesso ao chat (debug)
+      console.log(`Usuário ${userId} acessando chat do evento ${eventId}`);
       
       // Obter mensagens
       const messages = await storage.getChatMessagesByEvent(eventId);
@@ -991,7 +1035,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(messagesWithUserInfo);
     } catch (error) {
-      console.error("Erro ao buscar mensagens de chat:", error);
+      monitorChatError('get_messages', error, parseInt(req.params.id), req.user!.id);
       res.status(500).json({ message: "Erro ao buscar mensagens de chat" });
     }
   });
@@ -1010,12 +1054,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verificar se o usuário é participante ou criador do evento
       const isCreator = event.creatorId === userId;
-      const isParticipant = isCreator || await storage.getParticipation(eventId, userId);
       
+      // Para facilitar a depuração, vamos tratar esta verificação com mais robustez
+      let participation = null;
+      let isParticipant = isCreator; // O criador sempre é participante
+      
+      try {
+        participation = await storage.getParticipation(eventId, userId);
+        // Adicionar à verificação - participação tem que ser aprovada
+        isParticipant = isParticipant || (participation && participation.status === "approved");
+      } catch (participationErr) {
+        // Log informativo para ajudar na depuração
+        console.log(`[INFO] Usuário ${userId} não tem participação no evento ${eventId} para enviar mensagem`);
+      }
+      
+      // Esta verificação é crítica para envio de mensagens
       if (!isParticipant) {
-        return res.status(403).json({ 
-          message: "Apenas participantes ou o criador podem enviar mensagens no chat" 
-        });
+        // Mensagem mais informativa, útil para depuração
+        const errorMsg = isCreator 
+          ? "Erro inesperado na verificação de permissões para envio de mensagens" // Nunca deveria acontecer
+          : `Apenas participantes aprovados ou o criador podem enviar mensagens no chat. Status atual: ${participation ? participation.status : 'sem participação'}`;
+        
+        return res.status(403).json({ message: errorMsg });
       }
       
       // Validar a mensagem
@@ -1027,6 +1087,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Criar a mensagem
       const message = await storage.createChatMessage(messageData);
+      
+      // Log de mensagem enviada (debug)
+      console.log(`Usuário ${userId} enviou mensagem no chat do evento ${eventId}`);
       
       // Buscar informações do usuário para incluir na resposta
       const user = await storage.getUser(userId);
@@ -1041,7 +1104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } : null
       });
     } catch (error) {
-      console.error("Erro ao enviar mensagem de chat:", error);
+      monitorChatError('send_message', error, parseInt(req.params.id), req.user!.id);
       
       if (error instanceof ZodError) {
         return res.status(400).json({ 
