@@ -333,30 +333,43 @@ function EventCard({
           {(event.participants && event.participants.length > 0) ? (
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {event.participants.map((participant) => (
-                <div key={participant.id} className="flex items-center justify-between p-3 border rounded-lg bg-card">
+                <div key={participant.id} className="flex items-center justify-between p-3 border rounded-lg bg-black/30 backdrop-blur-sm border-gray-700 group hover:bg-black/50">
                   <div className="flex items-center space-x-3 cursor-pointer" onClick={() => onViewProfile && onViewProfile(participant.user.id)}>
                     <Avatar>
                       <AvatarImage src={participant.user.profileImage || undefined} />
-                      <AvatarFallback>{participant.user.firstName.charAt(0)}{participant.user.lastName.charAt(0)}</AvatarFallback>
+                      <AvatarFallback className="bg-primary text-primary-foreground">{participant.user.firstName.charAt(0)}{participant.user.lastName.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{participant.user.firstName} {participant.user.lastName}</p>
-                      <Badge 
-                        variant="outline" 
-                        className={
-                          participant.status === 'pending' 
-                            ? 'bg-yellow-100 text-yellow-800 border-yellow-300' 
+                      <p className="font-medium text-white group-hover:text-primary">{participant.user.firstName} {participant.user.lastName}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            participant.status === 'pending' 
+                              ? 'bg-yellow-100 text-yellow-800 border-yellow-300' 
+                              : participant.status === 'approved' || participant.status === 'confirmed'
+                                ? 'bg-green-100 text-green-800 border-green-300' 
+                                : 'bg-red-100 text-red-800 border-red-300'
+                          }
+                        >
+                          {participant.status === 'pending' 
+                            ? 'Pendente' 
                             : participant.status === 'approved' || participant.status === 'confirmed'
-                              ? 'bg-green-100 text-green-800 border-green-300' 
-                              : 'bg-red-100 text-red-800 border-red-300'
-                        }
-                      >
-                        {participant.status === 'pending' 
-                          ? 'Pendente' 
-                          : participant.status === 'approved' || participant.status === 'confirmed'
-                            ? 'Aprovado' 
-                            : 'Rejeitado'}
-                      </Badge>
+                              ? 'Aprovado' 
+                              : 'Rejeitado'}
+                        </Badge>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="text-xs text-orange-600 hover:text-orange-800 p-0 h-auto"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onViewProfile && onViewProfile(participant.user.id);
+                          }}
+                        >
+                          Ver perfil
+                        </Button>
+                      </div>
                     </div>
                   </div>
                   
