@@ -457,12 +457,10 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
             />
             
             {/* Campo oculto para coordenadas */}
-            <FormField
-              control={form.control}
+            <input 
+              type="hidden" 
               name="coordinates"
-              render={({ field }) => (
-                <input type="hidden" {...field} />
-              )}
+              value={form.getValues("coordinates") || ""}
             />
 
             {showMapSelector && (
