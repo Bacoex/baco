@@ -476,8 +476,47 @@ export default function ViewEventModal({
   const userParticipation = event.participants?.find(p => p.userId === user?.id);
   const participationStatus = userParticipation?.status;
   
-  // Estado para controlar o modal de edição
+  // Estados para controlar os modais
   const [isEditEventModalOpen, setIsEditEventModalOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  
+  // Função para excluir o evento
+  const handleDeleteEvent = async () => {
+    if (!event) return;
+    
+    try {
+      const response = await fetch(`/api/events/${event.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao excluir evento');
+      }
+      
+      // Invalida todas as queries relevantes para atualizar a interface
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/events/creator'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/events/participant'] });
+      
+      toast({
+        title: "Evento excluído",
+        description: "O evento foi excluído com sucesso.",
+        variant: "default"
+      });
+      
+      // Fecha o modal
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Erro ao excluir evento",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao excluir o evento.",
+        variant: "destructive"
+      });
+    }
+  };
   
   return (
     <>
@@ -688,20 +727,13 @@ export default function ViewEventModal({
                       <UserPlus className="h-4 w-4 mr-2" />
                       Co-organizadores
                     </Button>
-                    {onRemove && (
-                      <Button 
-                        variant="destructive" 
-                        onClick={() => {
-                          if (window.confirm('Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita.')) {
-                            onRemove(event.id);
-                            onClose();
-                          }
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Excluir Evento
-                      </Button>
-                    )}
+                    <Button 
+                      variant="destructive" 
+                      onClick={() => setIsDeleteConfirmOpen(true)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Excluir Evento
+                    </Button>
                   </div>
                 )}
               </div>
@@ -841,6 +873,31 @@ export default function ViewEventModal({
           eventId={event.id}
         />
       )}
+
+      {/* Dialog de confirmação para excluir evento */}
+      <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Excluir evento</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita 
+              e todos os participantes serão notificados.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setIsDeleteConfirmOpen(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteEvent}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Excluir Evento
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

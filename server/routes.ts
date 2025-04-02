@@ -321,6 +321,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao criar evento" });
     }
   });
+  
+  /**
+   * Rota para excluir um evento
+   * Apenas o criador do evento pode excluí-lo
+   */
+  app.delete("/api/events/:id", ensureAuthenticated, async (req, res) => {
+    const eventId = parseInt(req.params.id);
+    
+    try {
+      // Verificar se o evento existe
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      // Verificar se o usuário é o criador do evento
+      if (event.creatorId !== req.user!.id) {
+        return res.status(403).json({ message: "Você não tem permissão para excluir este evento" });
+      }
+      
+      // Obter participantes do evento para enviar notificações
+      const participants = await storage.getParticipants(eventId);
+      
+      // Excluir o evento
+      await storage.removeEvent(eventId);
+      
+      // Enviar notificações para os participantes
+      if (participants && participants.length > 0) {
+        try {
+          // Criar notificação
+          const notification = await storage.createNotification({
+            title: "Evento cancelado",
+            message: `O evento "${event.name}" foi cancelado pelo organizador.`,
+            type: "event_canceled",
+            createdAt: new Date(),
+            eventId: eventId
+          });
+          
+          // Obter IDs dos participantes
+          const participantIds = participants.map(p => p.userId);
+          
+          // Adicionar destinatários à notificação
+          if (participantIds.length > 0) {
+            await storage.addNotificationRecipients(notification.id, participantIds);
+          }
+        } catch (notifError) {
+          console.error("Erro ao enviar notificações sobre evento cancelado:", notifError);
+          // Não interrompemos o fluxo principal se as notificações falharem
+        }
+      }
+      
+      // Responder com sucesso
+      res.status(200).json({ message: "Evento excluído com sucesso" });
+    } catch (error) {
+      console.error(`Erro ao excluir evento ${eventId}:`, error);
+      res.status(500).json({ message: "Erro ao excluir evento" });
+    }
+  });
 
   /**
    * Rotas de Participação
