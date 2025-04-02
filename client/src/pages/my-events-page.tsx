@@ -396,6 +396,17 @@ function EventCard({
                         </>
                       )}
                       
+                      {participant.status === 'approved' && (
+                        <Button 
+                          onClick={() => onRevertParticipant && onRevertParticipant(participant.id)} 
+                          size="sm" 
+                          variant="outline"
+                          className="text-amber-600 hover:text-amber-800 border-amber-600 hover:bg-amber-100"
+                        >
+                          Revisar
+                        </Button>
+                      )}
+                      
                       {participant.status === 'rejected' && (
                         <Button 
                           onClick={() => onRevertParticipant && onRevertParticipant(participant.id)} 
