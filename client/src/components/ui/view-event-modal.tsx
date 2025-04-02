@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Calendar, MapPin, Clock, Users, Tag, User, Share2, Heart, 
          MessageSquare, MessageSquareX, LockKeyhole, UserPlus, Pencil, Trash2,
-         CheckCircle, XCircle } from "lucide-react";
+         CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ParticipantItem } from "./participant-item";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -105,12 +107,16 @@ export default function ViewEventModal({
   const [_location, navigate] = useLocation(); 
   const [activeTab, setActiveTab] = useState("details");
   
+  // Buscar participantes do evento
+  const participantsQuery = useQuery<any[]>({
+    queryKey: [`/api/events/${event?.id}/participants`],
+    enabled: isOpen && activeTab === "participants" && !!event,
+    staleTime: 10000,
+    refetchInterval: 15000
+  });
+  
   // Se não houver evento, não renderiza o modal
   if (!event) return null;
-  
-  // Log para debug de participantes
-  console.log("ViewEventModal - Evento:", event);
-  console.log("ViewEventModal - Participantes:", event.participants || "Nenhum participante");
   
   // Formata a data do evento
   const eventDate = event.date ? format(new Date(event.date), "PPPP", { locale: ptBR }) : "";
@@ -527,157 +533,53 @@ export default function ViewEventModal({
             {/* Tab de participantes */}
             <TabsContent value="participants">
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">
-                  {isCreator 
-                    ? `Participantes (${event.participants?.length || 0})` 
-                    : `Participantes (${event.participants?.filter(p => p.status === 'approved' || p.status === 'confirmed').length || 0})`
-                  }
-                </h3>
-                
-                {event.participants && event.participants.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-2">
-                    {/* Exibição diferente para criadores (com opções de aprovação) e participantes (apenas visualização) */}
-                    {isCreator && event.eventType === 'private_application' ? (
-                      /* VERSÃO PARA DONOS DE EVENTOS COM CONTROLE DE APROVAÇÃO */
-                      event.participants.map((participant) => (
-                        <div 
-                          key={participant.id} 
-                          className="flex flex-col p-3 rounded-md border bg-card hover:bg-accent/10 transition-colors"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <Avatar className="h-10 w-10">
-                                <AvatarImage src={participant.user?.profileImage || undefined} />
-                                <AvatarFallback>
-                                  {`${participant.user?.firstName?.charAt(0)}${participant.user?.lastName?.charAt(0)}`}
-                                </AvatarFallback>
-                              </Avatar>
-                              
-                              <div>
-                                <div 
-                                  className="font-bold text-gray-900 dark:text-white hover:underline cursor-pointer"
-                                  onClick={() => window.location.href = `/profile/${participant.userId}`}
-                                >
-                                  {getUserDisplayName(participant.user)}
-                                </div>
-                                
-                                <div className="text-sm">
-                                  {participant.status === 'confirmed' && (
-                                    <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200">
-                                      Confirmado
-                                    </Badge>
-                                  )}
-                                  {participant.status === 'approved' && (
-                                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 hover:bg-green-200">
-                                      Aprovado
-                                    </Badge>
-                                  )}
-                                  {participant.status === 'pending' && (
-                                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200">
-                                      Pendente
-                                    </Badge>
-                                  )}
-                                  {participant.status === 'rejected' && (
-                                    <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300 hover:bg-red-200">
-                                      Rejeitado
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            
-                            {/* Botões de ação para o criador do evento */}
-                            <div className="flex space-x-1">
-                              {participant.status === 'pending' && (
-                                <>
-                                  <Button 
-                                    onClick={() => onApprove && onApprove(participant.id)} 
-                                    size="icon" 
-                                    variant="ghost" 
-                                    className="text-green-600 hover:text-green-800 hover:bg-green-100"
-                                  >
-                                    <CheckCircle className="h-5 w-5" />
-                                  </Button>
-                                  <Button 
-                                    onClick={() => onReject && onReject(participant.id)} 
-                                    size="icon" 
-                                    variant="ghost" 
-                                    className="text-red-600 hover:text-red-800 hover:bg-red-100"
-                                  >
-                                    <XCircle className="h-5 w-5" />
-                                  </Button>
-                                </>
-                              )}
-                              
-                              {participant.status === 'approved' && (
-                                <Button 
-                                  onClick={() => onRevertParticipant && onRevertParticipant(participant.id)} 
-                                  size="sm" 
-                                  variant="outline"
-                                  className="text-amber-600 hover:text-amber-800 border-amber-600 hover:bg-amber-100"
-                                >
-                                  Revisar
-                                </Button>
-                              )}
-                              
-                              {participant.status === 'rejected' && (
-                                <Button 
-                                  onClick={() => onRevertParticipant && onRevertParticipant(participant.id)} 
-                                  size="sm" 
-                                  variant="outline"
-                                >
-                                  Revisar
-                                </Button>
-                              )}
-                              
-                              <Button 
-                                onClick={() => onRemoveParticipant && onRemoveParticipant(participant.id)} 
-                                size="icon" 
-                                variant="ghost" 
-                                className="text-gray-600 hover:text-gray-800 hover:bg-gray-100"
-                              >
-                                <Trash2 className="h-5 w-5" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      /* VERSÃO SIMPLIFICADA PARA PARTICIPANTES (APENAS VISUALIZAÇÃO) */
-                      event.participants
-                        .filter(participant => 
-                          // Se for o criador, mostra todos; se não, mostra apenas aprovados e confirmados
-                          isCreator || participant.status === 'approved' || participant.status === 'confirmed'
-                        )
-                        .map((participant) => (
-                          <div 
-                            key={participant.id} 
-                            className="flex items-center p-2 rounded-md border bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
-                            onClick={() => window.location.href = `/profile/${participant.userId}`}
-                          >
-                            <Avatar className="h-10 w-10 mr-3">
-                              <AvatarImage src={participant.user?.profileImage || undefined} />
-                              <AvatarFallback>
-                                {`${participant.user?.firstName?.charAt(0)}${participant.user?.lastName?.charAt(0)}`}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-bold text-gray-900 dark:text-white">{getUserDisplayName(participant.user)}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {participant.status === 'confirmed' && 'Confirmado'}
-                                {participant.status === 'approved' && 'Aprovado'}
-                                {participant.status === 'pending' && 'Pendente'}
-                                {participant.status === 'rejected' && 'Rejeitado'}
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                    )}
+                {participantsQuery.isLoading ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
                   </div>
+                ) : participantsQuery.data && participantsQuery.data.length > 0 ? (
+                  <>
+                    <h3 className="text-lg font-medium">
+                      {isCreator 
+                        ? `Participantes (${participantsQuery.data.length})` 
+                        : `Participantes (${participantsQuery.data.filter(p => p.status === 'approved' || p.status === 'confirmed').length})`
+                      }
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 gap-2">
+                      {participantsQuery.data.map((participant) => (
+                        <ParticipantItem
+                          key={participant.id}
+                          participant={participant}
+                          eventType={event.eventType}
+                          statusColors={{
+                            "confirmed": "bg-blue-100 text-blue-800 border-blue-300",
+                            "approved": "bg-green-100 text-green-800 border-green-300",
+                            "pending": "bg-yellow-100 text-yellow-800 border-yellow-300",
+                            "rejected": "bg-red-100 text-red-800 border-red-300"
+                          }}
+                          statusText={{
+                            "confirmed": "Confirmado",
+                            "approved": "Aprovado",
+                            "pending": "Pendente",
+                            "rejected": "Rejeitado"
+                          }}
+                          onApprove={onApprove}
+                          onReject={onReject}
+                          onRemove={onRemoveParticipant}
+                          onRevert={onRevertParticipant}
+                        />
+                      ))}
+                    </div>
+                  </>
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <span className="block">Nenhum participante registrado ainda.</span>
-                  </div>
+                  <>
+                    <h3 className="text-lg font-medium">Participantes (0)</h3>
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Users className="h-12 w-12 mx-auto text-gray-400 mb-2" />
+                      <span className="block">Nenhum participante registrado ainda.</span>
+                    </div>
+                  </>
                 )}
               </div>
             </TabsContent>
