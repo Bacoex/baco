@@ -342,123 +342,16 @@ function EventCard({
       </CardFooter>
 
       {/* Modal para visualizar participantes */}
-      <Dialog 
-        open={showParticipants} 
-        onOpenChange={setShowParticipants}
-      >
-        <DialogContent aria-describedby="participants-dialog-description" className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Participantes: {event.name}</DialogTitle>
-            <DialogDescription id="participants-dialog-description">
-              {event.eventType === 'private_application' ? 
-                'Gerencie as candidaturas para o seu evento.' : 
-                'Veja quem está participando do seu evento.'}
-            </DialogDescription>
-          </DialogHeader>
-
-          {(event.participants && event.participants.length > 0) ? (
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {event.participants.map((participant) => (
-                <div key={participant.id} className="flex items-center justify-between p-3 border rounded-lg bg-card">
-                  <div className="flex items-center space-x-3">
-                    <Avatar>
-                      <AvatarImage src={participant.user.profileImage || undefined} />
-                      <AvatarFallback>{participant.user.firstName.charAt(0)}{participant.user.lastName.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">{participant.user.firstName} {participant.user.lastName}</p>
-                      <div className="flex items-center gap-2">
-                        <Badge 
-                          variant="outline" 
-                          className={
-                            participant.status === 'pending' 
-                              ? 'bg-yellow-100 text-yellow-800 border-yellow-300' 
-                              : participant.status === 'approved' || participant.status === 'confirmed'
-                                ? 'bg-green-100 text-green-800 border-green-300' 
-                                : 'bg-red-100 text-red-800 border-red-300'
-                          }
-                        >
-                          {participant.status === 'pending' 
-                            ? 'Pendente' 
-                            : participant.status === 'approved' || participant.status === 'confirmed'
-                              ? 'Aprovado' 
-                              : 'Rejeitado'}
-                        </Badge>
-                        <Button
-                          variant="link"
-                          size="sm"
-                          className="text-xs text-orange-600 hover:text-orange-800 p-0 h-auto"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onViewProfile && onViewProfile(participant.user.id);
-                          }}
-                        >
-                          Ver perfil
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {event.eventType === 'private_application' && (
-                    <div className="flex space-x-1">
-                      {participant.status === 'pending' && (
-                        <>
-                          <Button 
-                            onClick={() => onApprove && onApprove(participant.id)} 
-                            size="icon" 
-                            variant="ghost" 
-                            className="text-green-600 hover:text-green-800 hover:bg-green-100"
-                          >
-                            <CheckCircle className="h-5 w-5" />
-                          </Button>
-                          <Button 
-                            onClick={() => onReject && onReject(participant.id)} 
-                            size="icon" 
-                            variant="ghost" 
-                            className="text-red-600 hover:text-red-800 hover:bg-red-100"
-                          >
-                            <XCircle className="h-5 w-5" />
-                          </Button>
-                        </>
-                      )}
-                      
-                      {participant.status === 'rejected' && (
-                        <Button 
-                          onClick={() => onRevertParticipant && onRevertParticipant(participant.id)} 
-                          size="sm" 
-                          variant="outline"
-                        >
-                          Revisar
-                        </Button>
-                      )}
-                      
-                      <Button 
-                        onClick={() => onRemoveParticipant && onRemoveParticipant(participant.id)} 
-                        size="icon" 
-                        variant="ghost" 
-                        className="text-gray-600 hover:text-gray-800 hover:bg-gray-100"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <Users className="h-12 w-12 mx-auto text-gray-400" />
-              <span className="block mt-2 text-gray-500">Nenhum participante ainda.</span>
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowParticipants(false)}>
-              Fechar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ParticipantsDialog
+        eventId={event.id}
+        isOpen={showParticipants}
+        onClose={() => setShowParticipants(false)}
+        onApprove={onApprove}
+        onReject={onReject}
+        onRemove={onRemoveParticipant}
+        onRevert={onRevertParticipant}
+        onViewProfile={onViewProfile}
+      />
 
       {/* Modal para chat do evento */}
       <Dialog open={showChatModal} onOpenChange={setShowChatModal}>
