@@ -17,13 +17,24 @@ export default function SearchPage() {
   console.log("SearchPage: URL completa:", location);
   
   // Usando window.location para obter parâmetros da URL
-  const urlCompleta = window.location.href;
-  console.log("SearchPage: URL completa com janela:", urlCompleta);
+  // Implementação mais robusta para obter o parâmetro de pesquisa
+  let searchQuery = "";
   
-  // Extrai o parâmetro de pesquisa da URL completa
-  const url = new URL(urlCompleta);
-  const searchQuery = url.searchParams.get("q") || "";
-  console.log("SearchPage: Parâmetro de pesquisa:", searchQuery);
+  try {
+    // Tenta obter da URL atual usando new URL()
+    const urlCompleta = window.location.href;
+    console.log("SearchPage: URL completa com janela:", urlCompleta);
+    const url = new URL(urlCompleta);
+    searchQuery = url.searchParams.get("q") || "";
+  } catch (error) {
+    // Fallback: extrai manualmente da query string
+    console.log("Erro ao parsear URL, usando método alternativo");
+    const queryString = window.location.search;
+    const params = new URLSearchParams(queryString);
+    searchQuery = params.get("q") || "";
+  }
+  
+  console.log("SearchPage: Parâmetro de pesquisa obtido:", searchQuery);
   
   // Estado para armazenar os resultados da pesquisa
   const [searchResults, setSearchResults] = useState<any[]>([]);

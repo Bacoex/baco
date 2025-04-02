@@ -10,7 +10,10 @@ export function SearchBar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+      // Use a URL relativa sem barra inicial para evitar problemas de redirecionamento
+      const searchPath = `search?q=${encodeURIComponent(searchTerm.trim())}`;
+      console.log("Redirecionando para:", searchPath);
+      navigate(searchPath);
     }
   };
 
