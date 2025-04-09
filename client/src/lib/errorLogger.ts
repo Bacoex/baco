@@ -19,6 +19,7 @@ export enum ErrorComponent {
   API_REQUEST = 'ApiRequest',
   NOTIFICATION_DUPLICATE = 'NotificacaoDuplicada',
   NOTIFICATION_PROCESSING = 'NotificationProcessing',
+  SHARE_EVENT = 'ShareEvent',
   GENERAL = 'General'
 }
 
@@ -460,6 +461,63 @@ export function logNotificationProcessingError(
       timestamp: new Date().toISOString()
     }
   });
+}
+
+// Função para registrar erros de compartilhamento de eventos
+export function logShareEventError(
+  eventId: number,
+  operation: string,
+  error?: Error,
+  details?: any
+): void {
+  logError(`Erro ao ${operation} evento ID ${eventId}`, ErrorSeverity.ERROR, {
+    component: ErrorComponent.SHARE_EVENT,
+    context: 'Compartilhamento de evento',
+    error,
+    additionalData: {
+      eventId,
+      operation,
+      details,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent
+    }
+  });
+}
+
+// Função para fornecer alternativas quando o compartilhamento falha
+export function generateFallbackShareData(
+  eventId: number,
+  eventName: string,
+  eventDate?: string
+): {
+  title: string;
+  description: string;
+  link: string;
+} {
+  const fallbackData = {
+    title: `${eventName} - Baco Experiências`,
+    description: "Participe deste evento no Baco Experiências!",
+    link: `${window.location.origin}/eventos/${eventId}`
+  };
+  
+  // Registrar na página de logs que usamos dados de fallback
+  logError(
+    `Utilizando dados de fallback para compartilhamento do evento ID ${eventId}`,
+    ErrorSeverity.WARNING,
+    {
+      component: ErrorComponent.SHARE_EVENT,
+      context: 'Fallback de compartilhamento',
+      additionalData: {
+        eventId,
+        eventName,
+        eventDate,
+        fallbackData,
+        timestamp: new Date().toISOString()
+      }
+    }
+  );
+  
+  return fallbackData;
 }
 
 // Função para recuperar estatísticas de erros

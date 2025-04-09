@@ -12,6 +12,7 @@ import PrivacyPolicyPage from "@/pages/privacy-policy-page";
 import TermsOfServicePage from "@/pages/terms-of-service-page";
 import AboutPage from "@/pages/about-page";
 import ErrorLogsPage from "@/pages/error-logs-page";
+import ShareErrorPage from "@/pages/share-error-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
 import { NotificationsProvider } from "./hooks/use-notifications";
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/privacy-policy" component={PrivacyPolicyPage} />
       <Route path="/terms-of-service" component={TermsOfServicePage} />
       <Route path="/about" component={AboutPage} />
+      <Route path="/share-error" component={ShareErrorPage} />
       <Route component={NotFound} />
     </Switch>
   );

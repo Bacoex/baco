@@ -232,14 +232,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/events/:id/share", async (req, res) => {
     try {
       const eventId = parseInt(req.params.id);
-      const event = await storage.getEventById(eventId);
+      const event = await storage.getEvent(eventId);
       
       if (!event) {
         return res.status(404).json({ message: "Evento não encontrado" });
       }
       
       const creator = await storage.getUser(event.creatorId);
-      const category = await storage.getCategoryById(event.categoryId);
+      const categories = await storage.getCategories();
+      const category = categories.find(c => c.id === event.categoryId);
       
       if (!creator || !category) {
         return res.status(404).json({ message: "Dados do evento incompletos" });

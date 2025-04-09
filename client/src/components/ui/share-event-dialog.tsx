@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { Copy, Facebook, Linkedin, Twitter, MessageSquare, Mail } from "lucide-react";
+import { Copy, Facebook, Linkedin, Twitter, MessageSquare, Mail, AlertCircle } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { 
   FacebookShareButton, 
@@ -13,6 +13,10 @@ import {
   WhatsappShareButton, 
   EmailShareButton 
 } from "react-share";
+import { 
+  logShareEventError, 
+  generateFallbackShareData 
+} from "@/lib/errorLogger";
 
 /**
  * Interface para as propriedades do componente
@@ -54,11 +58,43 @@ export function ShareEventDialog({
   const { toast } = useToast();
   const [shareData, setShareData] = useState<ShareData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [useFallback, setUseFallback] = useState(false);
+  const [eventName, setEventName] = useState<string>("");
+  
+  // Buscar os detalhes do evento para fallback se necessário
+  useEffect(() => {
+    if (isOpen && eventId) {
+      // Buscar detalhes básicos do evento para ter um fallback
+      fetch(`/api/events/${eventId}`)
+        .then(res => res.json())
+        .then(eventData => {
+          setEventName(eventData.name || "Evento");
+        })
+        .catch(error => {
+          // Se não conseguir buscar os detalhes, usar um nome genérico
+          setEventName("Evento");
+          // Registrar o erro
+          logShareEventError(eventId, "buscar detalhes para fallback", error);
+        });
+    }
+  }, [isOpen, eventId]);
+
+  // Redirecionar para a página de erro em caso de falha catastrófica
+  const redirectToErrorPage = (errorType: string, message: string) => {
+    onClose(); // Fechar o diálogo
+    const params = new URLSearchParams({
+      eventId: eventId.toString(),
+      type: errorType,
+      message: message
+    });
+    window.location.href = `/share-error?${params.toString()}`;
+  };
 
   // Buscar dados de compartilhamento
   useEffect(() => {
     if (isOpen && eventId) {
       setIsLoading(true);
+      setUseFallback(false);
       
       fetch(`/api/events/${eventId}/share`)
         .then(res => {
@@ -70,16 +106,52 @@ export function ShareEventDialog({
           setIsLoading(false);
         })
         .catch(error => {
-          toast({
-            title: "Erro ao gerar link de compartilhamento",
-            description: error.message || "Não foi possível gerar o link de compartilhamento. Tente novamente.",
-            variant: "destructive",
-          });
-          setIsLoading(false);
-          onClose();
+          // Registrar o erro no sistema de logs
+          logShareEventError(eventId, "gerar link de compartilhamento", error);
+          
+          try {
+            // Tentar ativar o modo fallback
+            setUseFallback(true);
+            setIsLoading(false);
+            
+            toast({
+              title: "Erro ao gerar link de compartilhamento",
+              description: "Usando dados básicos para compartilhamento. Algumas opções podem estar limitadas.",
+              variant: "destructive",
+            });
+          } catch (fatalError) {
+            // Se falhar no fallback, redirecionar para a página de erro
+            logShareEventError(eventId, "erro catastrófico no fallback", fatalError as Error);
+            redirectToErrorPage("fallback_failed", 
+              "Falha no mecanismo de contingência de compartilhamento"
+            );
+          }
         });
     }
   }, [isOpen, eventId, toast, onClose]);
+  
+  // Gerar dados de fallback se necessário
+  useEffect(() => {
+    if (useFallback && eventId && eventName) {
+      const fallbackData = generateFallbackShareData(eventId, eventName);
+      // Criar um objeto de compartilhamento com os dados básicos disponíveis
+      setShareData({
+        link: fallbackData.link,
+        title: fallbackData.title,
+        description: fallbackData.description,
+        image: null,
+        event: {
+          id: eventId,
+          name: eventName,
+          date: "Data não disponível",
+          time: "Horário não disponível",
+          location: "Local não disponível",
+          category: "Categoria não disponível",
+          creator: "Criador não disponível"
+        }
+      });
+    }
+  }, [useFallback, eventId, eventName]);
 
   // Copiar link para a área de transferência
   const copyToClipboard = () => {
@@ -128,6 +200,19 @@ export function ShareEventDialog({
         ) : shareData ? (
           <>
             <div className="py-4">
+              {useFallback && (
+                <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-md p-3 mb-4 flex items-start">
+                  <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 flex-shrink-0 mt-0.5 mr-2" />
+                  <div>
+                    <h4 className="text-sm font-medium text-yellow-800 dark:text-yellow-300">Modo de Fallback Ativado</h4>
+                    <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-1">
+                      Devido a um problema técnico, estamos usando um link alternativo para compartilhamento.
+                      Algumas informações do evento podem estar limitadas.
+                    </p>
+                  </div>
+                </div>
+              )}
+            
               <div className="flex items-center gap-2 mb-4">
                 <Input 
                   value={shareData.link} 
