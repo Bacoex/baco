@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/use-notifications";
@@ -521,7 +522,28 @@ export default function ViewEventModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto relative">
+          {/* Botão de compartilhar flutuante no canto superior esquerdo */}
+          <div className="absolute top-3 left-3 z-10">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full h-8 w-8 p-1.5 hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+                    onClick={handleShare}
+                  >
+                    <Share2 className="h-4 w-4 text-gray-500" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Compartilhar evento</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          
           <DialogHeader>
             <DialogTitle className="sr-only">{event.name}</DialogTitle>
             <DialogDescription className="sr-only">
@@ -658,19 +680,7 @@ export default function ViewEventModal({
               </div>
               
               {/* Botões de ação */}
-              <div className="flex flex-wrap justify-between mt-6">
-                <div className="mb-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="min-w-[120px]"
-                    onClick={handleShare}
-                  >
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Compartilhar
-                  </Button>
-                </div>
-                
+              <div className="flex flex-wrap justify-end mt-6">
                 <div className="mb-2">
                 {!isCreator && (
                   isParticipant ? (
