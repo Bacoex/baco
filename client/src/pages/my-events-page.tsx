@@ -41,6 +41,7 @@ import CreateEventModal from "@/components/ui/create-event-modal";
 import NetworkBackground from "../components/ui/network-background";
 import { ParticipantsDialog } from "@/components/ui/participants-dialog";
 import ViewEventModal from "@/components/ui/view-event-modal";
+import { EditEventModal } from "@/components/ui/edit-event-modal";
 
 // Tipo para categoria de evento
 interface EventCategory {
@@ -104,7 +105,8 @@ function EventCard({
   onRevertParticipant,
   highlightedEventId,
   onViewProfile,
-  onViewEvent  // Adicionamos este novo prop para visualizar o evento
+  onViewEvent,  // Prop para visualizar o evento
+  onEditEvent   // Prop para editar o evento
 }: { 
   event: Event, 
   isCreator?: boolean,
@@ -116,7 +118,8 @@ function EventCard({
   onRevertParticipant?: (participantId: number) => void,
   highlightedEventId?: number | null,
   onViewProfile?: (userId: number) => void,
-  onViewEvent?: (eventId: number) => void  // Tipagem do novo prop
+  onViewEvent?: (eventId: number) => void,  // Visualizar evento
+  onEditEvent?: (eventId: number) => void   // Editar evento
 }) {
   const { toast } = useToast();
   const [showParticipants, setShowParticipants] = useState(false);
@@ -202,7 +205,7 @@ function EventCard({
             <DropdownMenuContent>
               <DropdownMenuLabel>Ações</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEditEvent && onEditEvent(event.id)}>
                 <Edit className="h-4 w-4 mr-2" /> Editar evento
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setShowParticipants(true)}>
@@ -508,6 +511,8 @@ export default function MyEventsPage() {
   const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isViewEventModalOpen, setIsViewEventModalOpen] = useState(false);
+  const [isEditEventModalOpen, setIsEditEventModalOpen] = useState(false);
+  const [eventIdToEdit, setEventIdToEdit] = useState<number | null>(null);
   
   // Efeito para processar parâmetros da URL
   useEffect(() => {
@@ -1034,6 +1039,7 @@ export default function MyEventsPage() {
           variant: "destructive"
         });
       }
+    
     } catch (error) {
       console.error("Erro ao buscar detalhes do evento:", error);
       
@@ -1075,6 +1081,24 @@ export default function MyEventsPage() {
   const handleViewUserProfile = (userId: number) => {
     setSelectedUserId(userId);
     setIsUserProfileOpen(true);
+  };
+  
+  // Função para editar evento
+  const handleEditEvent = (eventId: number) => {
+    // Buscamos o evento nos dados existentes
+    const eventToEdit = createdEventsQuery.data?.find(event => event.id === eventId);
+    
+    if (eventToEdit) {
+      setSelectedEvent(eventToEdit);
+      setEventIdToEdit(eventId);
+      setIsEditEventModalOpen(true);
+    } else {
+      toast({
+        title: "Erro",
+        description: "Evento não encontrado para edição",
+        variant: "destructive"
+      });
+    }
   };
 
   // Função para reverter uma candidatura rejeitada para pendente
@@ -1161,6 +1185,7 @@ export default function MyEventsPage() {
                       onRevertParticipant={handleRevertParticipant}
                       onViewProfile={handleViewUserProfile}
                       onViewEvent={handleViewEvent}
+                      onEditEvent={handleEditEvent}
                     />
                   ))}
                 </div>
@@ -1245,6 +1270,25 @@ export default function MyEventsPage() {
             queryClient.invalidateQueries({ queryKey: ["/api/user/events/creator"] });
             queryClient.invalidateQueries({ queryKey: ["/api/user/events/participating"] });
             setIsViewEventModalOpen(false);
+          }}
+        />
+      )}
+      
+      {/* Modal para edição de evento */}
+      {selectedEvent && (
+        <EditEventModal
+          isOpen={isEditEventModalOpen}
+          onClose={() => setIsEditEventModalOpen(false)}
+          event={selectedEvent}
+          categories={categoriesQuery.data || []}
+          onEventUpdated={() => {
+            queryClient.invalidateQueries({ queryKey: ["/api/user/events/creator"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+            setIsEditEventModalOpen(false);
+            toast({
+              title: "Evento atualizado",
+              description: "As alterações foram salvas com sucesso",
+            });
           }}
         />
       )}
