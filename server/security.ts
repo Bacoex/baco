@@ -221,6 +221,7 @@ export function csrfMiddleware(req: Request, res: Response, next: NextFunction) 
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) && 
       !req.path.startsWith('/api/auth/') && 
       !req.path.startsWith('/api/login') &&
+      !req.path.startsWith('/api/logout') &&
       !req.path.startsWith('/api/register')) {
     
     csrfProtection(req, res, (err) => {
