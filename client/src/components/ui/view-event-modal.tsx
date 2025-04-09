@@ -658,8 +658,13 @@ export default function ViewEventModal({
               </div>
               
               {/* Botões de ação */}
-              <div className="flex justify-between mt-6">
-                <Button variant="outline" size="sm" onClick={handleShare}>
+              <div className="flex flex-wrap gap-2 mt-6">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="min-w-[120px]"
+                  onClick={handleShare}
+                >
                   <Share2 className="h-4 w-4 mr-2" />
                   Compartilhar
                 </Button>
@@ -667,13 +672,19 @@ export default function ViewEventModal({
                 {!isCreator && (
                   isParticipant ? (
                     <Button 
-                      variant="destructive" 
+                      variant="destructive"
+                      size="sm"
+                      className="min-w-[120px]" 
                       onClick={handleCancelParticipation}
                     >
                       Cancelar participação
                     </Button>
                   ) : (
-                    <Button onClick={handleParticipate}>
+                    <Button 
+                      size="sm"
+                      className="min-w-[120px]"
+                      onClick={handleParticipate}
+                    >
                       {event.eventType === 'private_application' ? 'Experienciar' : 'Participar'}
                     </Button>
                   )
@@ -682,18 +693,31 @@ export default function ViewEventModal({
                 {/* Botões de status para experienciar (quando não é criador mas solicitou experienciar) */}
                 {/* Experienciar pendente */}
                 {!isCreator && isParticipant && event.eventType === 'private_application' && participationStatus === 'pending' && (
-                  <Button disabled className="bg-amber-500 hover:bg-amber-500">
+                  <Button 
+                    disabled 
+                    size="sm"
+                    className="bg-amber-500 hover:bg-amber-500 min-w-[120px]"
+                  >
                     Experienciar Pendente
                   </Button>
                 )}
                 
                 {/* Experienciar rejeitado */}
                 {!isCreator && isParticipant && event.eventType === 'private_application' && participationStatus === 'rejected' && (
-                  <div className="space-x-2">
-                    <Button disabled variant="destructive" className="opacity-60">
+                  <div className="flex flex-wrap gap-2">
+                    <Button 
+                      disabled 
+                      variant="destructive" 
+                      size="sm"
+                      className="opacity-60 min-w-[120px]"
+                    >
                       Experienciar Rejeitado
                     </Button>
-                    <Button onClick={handleParticipate}>
+                    <Button 
+                      size="sm"
+                      className="min-w-[120px]"
+                      onClick={handleParticipate}
+                    >
                       Experienciar Novamente
                     </Button>
                   </div>
@@ -701,14 +725,24 @@ export default function ViewEventModal({
                 
                 {/* Participante já aprovado (mostra apenas indicação visual) */}
                 {!isCreator && isParticipant && participationStatus === 'approved' && (
-                  <Button disabled variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                  <Button 
+                    disabled 
+                    variant="outline" 
+                    size="sm"
+                    className="bg-green-100 text-green-700 border-green-300 min-w-[150px]"
+                  >
                     <span className="mr-2">✓</span> Você está participando
                   </Button>
                 )}
                 
                 {/* Participante confirmado (mostra apenas indicação visual) */}
                 {!isCreator && isParticipant && participationStatus === 'confirmed' && (
-                  <Button disabled variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+                  <Button 
+                    disabled 
+                    variant="outline" 
+                    size="sm"
+                    className="bg-blue-100 text-blue-700 border-blue-300 min-w-[150px]"
+                  >
                     <span className="mr-2">✓</span> Participação confirmada
                   </Button>
                 )}
