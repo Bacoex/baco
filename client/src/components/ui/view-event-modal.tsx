@@ -680,37 +680,40 @@ export default function ViewEventModal({
               </div>
               
               {/* Botões de ação */}
-              <div className="flex flex-wrap justify-end mt-6">
-                <div className="mb-2">
+              <div className="flex flex-wrap justify-end mt-6 space-y-4">
+                
+                {/* Botão de participar/cancelar participação */}
                 {!isCreator && (
-                  isParticipant ? (
-                    <Button 
-                      variant="destructive"
-                      size="sm"
-                      className="min-w-[120px]" 
-                      onClick={handleCancelParticipation}
-                    >
-                      Cancelar participação
-                    </Button>
-                  ) : (
-                    <Button 
-                      size="sm"
-                      className="min-w-[120px]"
-                      onClick={handleParticipate}
-                    >
-                      {event.eventType === 'private_application' ? 'Experienciar' : 'Participar'}
-                    </Button>
-                  )
-                )}</div>
+                  <div className="w-full flex justify-end">
+                    {isParticipant ? (
+                      <Button 
+                        variant="destructive"
+                        size="sm"
+                        className="min-w-[160px] ml-4" 
+                        onClick={handleCancelParticipation}
+                      >
+                        Cancelar participação
+                      </Button>
+                    ) : (
+                      <Button 
+                        size="sm"
+                        className="min-w-[160px] ml-4"
+                        onClick={handleParticipate}
+                      >
+                        {event.eventType === 'private_application' ? 'Experienciar' : 'Participar'}
+                      </Button>
+                    )}
+                  </div>
+                )}
                 
                 {/* Botões de status para experienciar (quando não é criador mas solicitou experienciar) */}
                 {/* Experienciar pendente */}
                 {!isCreator && isParticipant && event.eventType === 'private_application' && participationStatus === 'pending' && (
-                  <div className="mb-2">
+                  <div className="w-full flex justify-end">
                     <Button 
                       disabled 
                       size="sm"
-                      className="bg-amber-500 hover:bg-amber-500 min-w-[160px]"
+                      className="bg-amber-500 hover:bg-amber-500 min-w-[160px] ml-4"
                     >
                       Experienciar Pendente
                     </Button>
@@ -719,7 +722,7 @@ export default function ViewEventModal({
                 
                 {/* Experienciar rejeitado */}
                 {!isCreator && isParticipant && event.eventType === 'private_application' && participationStatus === 'rejected' && (
-                  <div className="flex flex-wrap gap-2 mb-2">
+                  <div className="w-full flex flex-wrap justify-end gap-4">
                     <Button 
                       disabled 
                       variant="destructive" 
@@ -740,12 +743,12 @@ export default function ViewEventModal({
                 
                 {/* Participante já aprovado (mostra apenas indicação visual) */}
                 {!isCreator && isParticipant && participationStatus === 'approved' && (
-                  <div className="mb-2">
+                  <div className="w-full flex justify-end">
                     <Button 
                       disabled 
                       variant="outline" 
                       size="sm"
-                      className="bg-green-100 text-green-700 border-green-300 min-w-[160px]"
+                      className="bg-green-100 text-green-700 border-green-300 min-w-[160px] ml-4"
                     >
                       <span className="mr-2">✓</span> Você está participando
                     </Button>
@@ -754,24 +757,25 @@ export default function ViewEventModal({
                 
                 {/* Participante confirmado (mostra apenas indicação visual) */}
                 {!isCreator && isParticipant && participationStatus === 'confirmed' && (
-                  <div className="mb-2">
+                  <div className="w-full flex justify-end">
                     <Button 
                       disabled 
                       variant="outline" 
                       size="sm"
-                      className="bg-blue-100 text-blue-700 border-blue-300 min-w-[160px]"
+                      className="bg-blue-100 text-blue-700 border-blue-300 min-w-[160px] ml-4"
                     >
                       <span className="mr-2">✓</span> Participação confirmada
                     </Button>
                   </div>
                 )}
                 
+                {/* Botões do criador do evento */}
                 {isCreator && (
-                  <div className="w-full flex flex-wrap justify-end gap-2 mt-4 mb-2">
+                  <div className="w-full flex flex-wrap justify-end gap-3">
                     <Button 
                       variant="secondary"
                       size="sm"
-                      className="flex-1 min-w-[130px]"
+                      className="min-w-[140px]"
                       onClick={() => setIsEditEventModalOpen(true)}
                     >
                       <Pencil className="h-4 w-4 mr-2" />
@@ -780,7 +784,7 @@ export default function ViewEventModal({
                     <Button 
                       variant="outline" 
                       size="sm"
-                      className="flex-1 min-w-[130px]"
+                      className="min-w-[140px]"
                       onClick={() => setIsManageCoOrganizersOpen(true)}
                     >
                       <UserPlus className="h-4 w-4 mr-2" />
@@ -789,7 +793,7 @@ export default function ViewEventModal({
                     <Button 
                       variant="destructive" 
                       size="sm"
-                      className="flex-1 min-w-[130px]"
+                      className="min-w-[140px]"
                       onClick={() => setIsDeleteConfirmOpen(true)}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
