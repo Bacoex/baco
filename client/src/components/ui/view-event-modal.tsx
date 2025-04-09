@@ -714,9 +714,11 @@ export default function ViewEventModal({
                 )}
                 
                 {isCreator && (
-                  <div className="space-x-2">
+                  <div className="flex flex-wrap gap-2 mt-4">
                     <Button 
                       variant="secondary"
+                      size="sm"
+                      className="flex-1 min-w-[120px]"
                       onClick={() => setIsEditEventModalOpen(true)}
                     >
                       <Pencil className="h-4 w-4 mr-2" />
@@ -724,6 +726,8 @@ export default function ViewEventModal({
                     </Button>
                     <Button 
                       variant="outline" 
+                      size="sm"
+                      className="flex-1 min-w-[120px]"
                       onClick={() => setIsManageCoOrganizersOpen(true)}
                     >
                       <UserPlus className="h-4 w-4 mr-2" />
@@ -731,6 +735,8 @@ export default function ViewEventModal({
                     </Button>
                     <Button 
                       variant="destructive" 
+                      size="sm"
+                      className="flex-1 min-w-[120px]"
                       onClick={() => setIsDeleteConfirmOpen(true)}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
