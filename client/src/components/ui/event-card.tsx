@@ -639,6 +639,7 @@ export default function EventCard({
             
             {/* Botões de Ação */}
             <div className="flex items-center justify-between">
+              {console.log("Debug EventCard:", { isCreator, event, onEditEvent })}
               {isCreator ? (
                 // Botões para o criador
                 <div className="flex gap-2">

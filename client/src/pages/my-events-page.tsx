@@ -280,10 +280,27 @@ function EventCard({
         {/* Se o usuário atual é o criador do evento */}
         {isCreator ? (
           <div className="flex w-full justify-between">
-            <Button variant="outline" size="sm" onClick={() => setShowParticipants(true)}>
-              <Users className="h-4 w-4 mr-1" />
-              {event.participants?.length || 0} participantes
-            </Button>
+            <div className="flex gap-2">
+              {/* Botão de editar - posicionado acima do botão de chat, próximo ao topo */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => onEditEvent && onEditEvent(event.id)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pencil h-4 w-4 mr-1">
+                  <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                  <path d="m15 5 4 4" />
+                </svg>
+                Editar
+              </Button>
+              
+              {/* Botão de participantes */}
+              <Button variant="outline" size="sm" onClick={() => setShowParticipants(true)}>
+                <Users className="h-4 w-4 mr-1" />
+                {event.participants?.length || 0} participantes
+              </Button>
+            </div>
+            
             <Button variant="outline" size="sm" onClick={() => setShowChatModal(true)}>
               <MessageSquare className="h-4 w-4 mr-1" />
               Chat
