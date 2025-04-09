@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Calendar, MapPin, Clock, Users, Tag, User, Share2, Heart, 
          MessageSquare, MessageSquareX, LockKeyhole, UserPlus, Pencil, Trash2,
-         CheckCircle, XCircle, Loader2 } from "lucide-react";
+         CheckCircle, XCircle, Loader2, DollarSign } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { ParticipantItem } from "./participant-item";
 import { EventChat } from "./event-chat";
@@ -646,10 +646,10 @@ export default function ViewEventModal({
                       <span>Capacidade: {event.capacity} pessoas</span>
                     </div>
                   )}
-                  {event.eventType === 'private_ticket' && event.ticketPrice && (
+                  {event.eventType === 'private_ticket' && (
                     <div className="flex items-center">
-                      <Tag className="h-5 w-5 mr-2 text-primary" />
-                      <span>Ingresso: R$ {event.ticketPrice.toFixed(2).replace('.', ',')}</span>
+                      <DollarSign className="h-5 w-5 mr-2 text-primary" />
+                      <span>Valor: R$ {event.ticketPrice ? event.ticketPrice.toFixed(2).replace('.', ',') : '0,00'}</span>
                     </div>
                   )}
                 </div>
@@ -666,7 +666,7 @@ export default function ViewEventModal({
                         {`${event.creator?.firstName?.charAt(0)}${event.creator?.lastName?.charAt(0)}`}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="font-bold text-gray-900 dark:text-white">{getUserDisplayName(event.creator)}</span>
+                    <span className="font-bold text-primary text-base">{getUserDisplayName(event.creator)}</span>
                   </div>
                 </div>
               </div>
