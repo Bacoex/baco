@@ -522,28 +522,7 @@ export default function ViewEventModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto relative">
-          {/* Botão de compartilhar flutuante no canto superior esquerdo */}
-          <div className="absolute top-3 left-3 z-10">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="rounded-full h-8 w-8 p-1.5 hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
-                    onClick={handleShare}
-                  >
-                    <Share2 className="h-4 w-4 text-gray-500" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <p>Compartilhar evento</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="sr-only">{event.name}</DialogTitle>
             <DialogDescription className="sr-only">
@@ -578,6 +557,27 @@ export default function ViewEventModal({
               
               {/* Overlay escuro para melhor legibilidade do texto */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+              
+              {/* Botão de compartilhar flutuante no canto superior esquerdo */}
+              <div className="absolute top-2 left-2 z-10">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full h-8 w-8 bg-black/30 hover:bg-black/50 backdrop-blur-sm"
+                        onClick={handleShare}
+                      >
+                        <Share2 className="h-4 w-4 text-white" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>Compartilhar evento</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               
               {/* Informações do evento sobrepostas na imagem */}
               <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
