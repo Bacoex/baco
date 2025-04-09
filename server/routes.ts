@@ -225,6 +225,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
   /**
    * Rotas de Eventos
    */
+  
+  /**
+   * Rota para gerar link de compartilhamento para um evento
+   */
+  app.get("/api/events/:id/share", async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const event = await storage.getEventById(eventId);
+      
+      if (!event) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      const creator = await storage.getUser(event.creatorId);
+      const category = await storage.getCategoryById(event.categoryId);
+      
+      if (!creator || !category) {
+        return res.status(404).json({ message: "Dados do evento incompletos" });
+      }
+      
+      // Formatar os dados para compartilhamento
+      const eventDate = new Date(event.date);
+      const formattedDate = eventDate.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+      
+      // Construir o objeto de resposta
+      const shareData = {
+        link: `${req.protocol}://${req.get('host')}/eventos/${eventId}`,
+        title: `${event.name} - Baco Experiências`,
+        description: event.description || "Participe deste evento no Baco Experiências!",
+        image: event.coverImage || null,
+        event: {
+          id: event.id,
+          name: event.name,
+          date: formattedDate,
+          time: event.timeStart + (event.timeEnd ? ` - ${event.timeEnd}` : ""),
+          location: event.location || "Local a definir",
+          category: category.name,
+          creator: `${creator.firstName} ${creator.lastName}`
+        }
+      };
+      
+      return res.status(200).json(shareData);
+    } catch (error) {
+      console.error("Erro ao gerar link de compartilhamento:", error);
+      return res.status(500).json({ 
+        message: "Erro ao gerar link de compartilhamento",
+        error: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+  
   app.get("/api/events", async (req, res) => {
     try {
       let events;
