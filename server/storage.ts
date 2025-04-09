@@ -632,13 +632,23 @@ export class MemStorage implements IStorage {
       throw new Error(`Evento com ID ${id} não encontrado`);
     }
 
+    // Processa os campos especiais antes de fazer a atualização
+    let processedEventData = { ...eventData };
+    
+    // Processar ingressos adicionais (additionalTickets)
+    if (eventData.additionalTickets !== undefined) {
+      console.log(`Evento ${id} atualizando ingressos adicionais:`, eventData.additionalTickets);
+    }
+    
     // Atualiza apenas os campos fornecidos, mantendo os valores existentes para os demais
     const updatedEvent: Event = {
       ...existingEvent,
-      ...eventData,
+      ...processedEventData,
     };
 
     this.eventsMap.set(id, updatedEvent);
+    console.log(`Evento ${id} atualizado com sucesso:`, updatedEvent.name);
+    
     return updatedEvent;
   }
 

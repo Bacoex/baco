@@ -322,6 +322,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Rota para atualizar um evento existente
+  app.put("/api/events/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const userId = req.user!.id;
+      
+      // Verificar se o evento existe
+      const existingEvent = await storage.getEvent(eventId);
+      if (!existingEvent) {
+        return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      // Verificar se o usuário é o criador do evento
+      if (existingEvent.creatorId !== userId) {
+        return res.status(403).json({ message: "Você não tem permissão para editar este evento" });
+      }
+      
+      // Tratar dados de ingressos adicionais, similar à criação
+      let additionalTicketsValue = req.body.additionalTickets;
+      if (req.body.additionalTickets) {
+        console.log(`Atualizando evento com ingressos adicionais: ${req.body.additionalTickets}`);
+        // Se for uma string, já está em formato JSON stringificado
+        if (typeof req.body.additionalTickets === 'string') {
+          additionalTicketsValue = req.body.additionalTickets;
+        } 
+        // Se for um objeto, precisamos convertê-lo para string
+        else if (typeof req.body.additionalTickets === 'object') {
+          additionalTicketsValue = JSON.stringify(req.body.additionalTickets);
+        }
+      }
+      
+      // Validar e preparar os dados para atualização
+      const eventData = {
+        ...req.body,
+        additionalTickets: additionalTicketsValue
+      };
+      
+      // Atualizar o evento
+      const updatedEvent = await storage.updateEvent(eventId, eventData);
+      
+      res.json(updatedEvent);
+    } catch (err) {
+      console.error("Erro ao atualizar evento:", err);
+      if (err instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(err).message });
+      }
+      res.status(500).json({ message: "Erro ao atualizar evento" });
+    }
+  });
+  
   /**
    * Rota para excluir um evento
    * Apenas o criador do evento pode excluí-lo
