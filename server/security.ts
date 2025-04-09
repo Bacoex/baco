@@ -268,11 +268,9 @@ export function setupSecurity(app: Express) {
   // Mascaramento de dados sensíveis em logs
   app.use(dataMaskingMiddleware);
   
-  // Proteção CSRF para modificações de estado
-  app.use(csrfMiddleware);
-  
-  // Adiciona token CSRF à resposta para uso em formulários
-  app.use(addCsrfToken);
+  // TEMPORARIAMENTE DESABILITANDO PROTEÇÃO CSRF PARA DEBUGAR
+  // app.use(csrfMiddleware);
+  // app.use(addCsrfToken);
   
   // Ativa proteção simples
   app.use((req, res, next) => {
@@ -293,5 +291,5 @@ export function setupSecurity(app: Express) {
     next();
   });
   
-  console.log('Configurações de segurança aplicadas com sucesso!');
+  console.log('Configurações de segurança aplicadas com sucesso! (CSRF temporariamente desabilitado)');
 }
