@@ -75,6 +75,8 @@ interface EventProps {
   onRemoveParticipant?: (participantId: number) => void;
   onRevertParticipant?: (participantId: number) => void;
   onViewProfile?: (userId: number) => void;
+  onViewEvent?: (eventId: number) => void;
+  onEditEvent?: (eventId: number) => void;
 }
 
 export default function EventCard({ 
@@ -86,7 +88,9 @@ export default function EventCard({
   onReject,
   onRemoveParticipant,
   onRevertParticipant,
-  onViewProfile
+  onViewProfile,
+  onViewEvent,
+  onEditEvent
 }: EventProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -636,19 +640,39 @@ export default function EventCard({
             {/* Botões de Ação */}
             <div className="flex items-center justify-between">
               {isCreator ? (
-                // Botão de gerenciamento de participantes para o criador
-                <Button 
-                  onClick={(e) => {
-                    e.stopPropagation(); // Impede que o clique do botão abra o modal
-                    setIsParticipantsDialogOpen(true);
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1"
-                >
-                  <UsersIcon className="h-4 w-4" />
-                  <span>Participantes</span>
-                </Button>
+                // Botões para o criador
+                <div className="flex gap-2">
+                  {/* Botão de editar - posicionado acima do botão de chat, próximo ao topo */}
+                  <Button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditEvent && onEditEvent(event.id);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pencil h-4 w-4">
+                      <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                      <path d="m15 5 4 4" />
+                    </svg>
+                    <span>Editar</span>
+                  </Button>
+                  
+                  {/* Botão de gerenciamento de participantes */}
+                  <Button 
+                    onClick={(e) => {
+                      e.stopPropagation(); // Impede que o clique do botão abra o modal
+                      setIsParticipantsDialogOpen(true);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1"
+                  >
+                    <UsersIcon className="h-4 w-4" />
+                    <span>Participantes</span>
+                  </Button>
+                </div>
               ) : (
                 // Botões de participação para não-criadores
                 isParticipating ? (
