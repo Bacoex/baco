@@ -1073,7 +1073,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Usuário ${userId} acessando chat do evento ${eventId}`);
       
       // Obter mensagens
-      const messages = await storage.getChatMessagesByEvent(eventId);
+      let messages = await storage.getChatMessagesByEvent(eventId);
+      
+      // Se o usuário não é o criador do evento, filtrar mensagens com base na data de ingresso
+      if (!isCreator && participation) {
+        // Filtrar apenas mensagens enviadas após a data de entrada do usuário no evento
+        messages = messages.filter(message => {
+          // Se a mensagem não tem data de envio, não deveria aparecer
+          if (!message.sentAt) return false;
+          
+          // Se o participante não tem data de criação (improvável), mas devemos tratar
+          if (!participation.createdAt) return true;
+          
+          // Converter para Date para comparação
+          const messageSentAt = new Date(message.sentAt);
+          const participationCreatedAt = new Date(participation.createdAt);
+          
+          // Retornar apenas mensagens posteriores à entrada do usuário
+          return messageSentAt >= participationCreatedAt;
+        });
+        
+        console.log(`Filtrado mensagens para usuário ${userId}: Total de ${messages.length} mensagens após sua entrada em ${participation.createdAt}`);
+      }
       
       // Carregar informações dos usuários para cada mensagem
       const messagesWithUserInfo = await Promise.all(
