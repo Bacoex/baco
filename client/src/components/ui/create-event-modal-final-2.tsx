@@ -194,9 +194,12 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
       // Adiciona os ingressos adicionais ao payload se existirem
       const payload = {
         ...data,
-        additionalTickets: eventType === 'private_ticket' ? additionalTickets : undefined,
+        additionalTickets: eventType === 'private_ticket' && additionalTickets.length > 0 
+          ? JSON.stringify(additionalTickets) 
+          : undefined,
       };
       
+      console.log("Enviando payload para criação de evento:", payload);
       const response = await apiRequest("POST", "/api/events", payload);
       return await response.json();
     },

@@ -586,18 +586,42 @@ export class MemStorage implements IStorage {
 
   async createEvent(event: InsertEvent, creatorId: number): Promise<Event> {
     const id = this.eventIdCounter++;
+    
+    // Processa os additionalTickets se existirem no objeto do evento
+    let additionalTicketsValue = event.additionalTickets;
+    
+    // Se o evento tiver ingressos adicionais, fazemos log para debug
+    if (event.additionalTickets) {
+      console.log(`Evento com ingressos adicionais: ${event.additionalTickets}`);
+      // Se for uma string, já está em formato JSON stringificado
+      if (typeof event.additionalTickets === 'string') {
+        additionalTicketsValue = event.additionalTickets;
+      } 
+      // Se for um objeto, precisamos convertê-lo para string
+      else if (typeof event.additionalTickets === 'object') {
+        additionalTicketsValue = JSON.stringify(event.additionalTickets);
+      }
+    }
+    
     const newEvent: Event = { 
       ...event, 
       id, 
       creatorId,
       createdAt: new Date(),
       isActive: true,
-      importantInfo: null,
-      additionalTickets: null,
+      importantInfo: event.importantInfo || null,
+      additionalTickets: additionalTicketsValue || null,
       paymentMethods: null
     };
+    
     this.eventsMap.set(id, newEvent);
-    console.log(`Evento criado: ID=${id}, Nome=${event.name}, Criador=${creatorId}`);
+    console.log(`Evento criado: ID=${id}, Nome=${event.name}, Tipo=${event.eventType}, Criador=${creatorId}`);
+    
+    // Se for do tipo ticket, mostramos informações específicas
+    if (event.eventType === 'private_ticket') {
+      console.log(`Preço do ticket: ${event.ticketPrice}, Ingressos adicionais: ${newEvent.additionalTickets || 'nenhum'}`);
+    }
+    
     return newEvent;
   }
 
