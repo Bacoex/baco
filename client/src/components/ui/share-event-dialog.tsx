@@ -90,11 +90,16 @@ export function ShareEventDialog({
     window.location.href = `/share-error?${params.toString()}`;
   };
 
+  // Referência para controlar chamadas API duplicadas
+  const fetchingRef = useRef(false);
+  
   // Buscar dados de compartilhamento
   useEffect(() => {
-    if (isOpen && eventId) {
+    // Evita múltiplas chamadas simultâneas e ciclos desnecessários
+    if (isOpen && eventId && !fetchingRef.current && !shareData) {
       setIsLoading(true);
       setUseFallback(false);
+      fetchingRef.current = true;
       
       fetch(`/api/events/${eventId}/share`)
         .then(res => {
@@ -104,6 +109,7 @@ export function ShareEventDialog({
         .then(data => {
           setShareData(data);
           setIsLoading(false);
+          fetchingRef.current = false;
         })
         .catch(error => {
           // Registrar o erro no sistema de logs
@@ -125,33 +131,50 @@ export function ShareEventDialog({
             redirectToErrorPage("fallback_failed", 
               "Falha no mecanismo de contingência de compartilhamento"
             );
+          } finally {
+            fetchingRef.current = false;
           }
         });
     }
-  }, [isOpen, eventId, toast, onClose]);
+    
+    // Resetar o estado quando o diálogo fecha
+    return () => {
+      if (!isOpen) {
+        setShareData(null);
+        setUseFallback(false);
+        fetchingRef.current = false;
+      }
+    };
+  }, [isOpen, eventId, toast, onClose, shareData]);
   
   // Gerar dados de fallback se necessário
   useEffect(() => {
-    if (useFallback && eventId && eventName) {
-      const fallbackData = generateFallbackShareData(eventId, eventName);
-      // Criar um objeto de compartilhamento com os dados básicos disponíveis
-      setShareData({
-        link: fallbackData.link,
-        title: fallbackData.title,
-        description: fallbackData.description,
-        image: null,
-        event: {
-          id: eventId,
-          name: eventName,
-          date: "Data não disponível",
-          time: "Horário não disponível",
-          location: "Local não disponível",
-          category: "Categoria não disponível",
-          creator: "Criador não disponível"
-        }
-      });
+    if (useFallback && eventId && eventName && !shareData) {
+      try {
+        const fallbackData = generateFallbackShareData(eventId, eventName);
+        // Criar um objeto de compartilhamento com os dados básicos disponíveis
+        setShareData({
+          link: fallbackData.link,
+          title: fallbackData.title,
+          description: fallbackData.description,
+          image: null,
+          event: {
+            id: eventId,
+            name: eventName,
+            date: "Data não disponível",
+            time: "Horário não disponível",
+            location: "Local não disponível",
+            category: "Categoria não disponível",
+            creator: "Criador não disponível"
+          }
+        });
+      } catch (error) {
+        // Se ainda assim falhar, redirecionar para a página de erro
+        redirectToErrorPage("fallback_generation_failed", 
+          "Falha na geração dos dados de contingência");
+      }
     }
-  }, [useFallback, eventId, eventName]);
+  }, [useFallback, eventId, eventName, shareData]);
 
   // Copiar link para a área de transferência
   const copyToClipboard = () => {
@@ -277,13 +300,13 @@ export function ShareEventDialog({
               <Separator className="my-4" />
               
               <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-md">
-                <h3 className="text-sm font-medium mb-2">Detalhes do evento</h3>
-                <p className="text-sm"><strong>Nome:</strong> {shareData.event.name}</p>
-                <p className="text-sm"><strong>Data:</strong> {shareData.event.date}</p>
-                <p className="text-sm"><strong>Horário:</strong> {shareData.event.time}</p>
-                <p className="text-sm"><strong>Local:</strong> {shareData.event.location}</p>
-                <p className="text-sm"><strong>Categoria:</strong> {shareData.event.category}</p>
-                <p className="text-sm"><strong>Criado por:</strong> {shareData.event.creator}</p>
+                <h3 className="text-sm font-medium mb-2 text-gray-800 dark:text-gray-200">Detalhes do evento</h3>
+                <p className="text-sm text-gray-700 dark:text-gray-300"><strong className="text-gray-800 dark:text-gray-200">Nome:</strong> {shareData.event.name}</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300"><strong className="text-gray-800 dark:text-gray-200">Data:</strong> {shareData.event.date}</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300"><strong className="text-gray-800 dark:text-gray-200">Horário:</strong> {shareData.event.time}</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300"><strong className="text-gray-800 dark:text-gray-200">Local:</strong> {shareData.event.location}</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300"><strong className="text-gray-800 dark:text-gray-200">Categoria:</strong> {shareData.event.category}</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300"><strong className="text-gray-800 dark:text-gray-200">Criado por:</strong> {shareData.event.creator}</p>
               </div>
             </div>
           </>
