@@ -28,6 +28,14 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByGoogleId(googleId: string): Promise<User | undefined>;
   updateUserGoogleId(userId: number, googleId: string): Promise<User>;
+  
+  // Segurança
+  incrementRateLimitCounter(key: string): Promise<number>;
+  decrementRateLimitCounter(key: string): Promise<void>;
+  resetRateLimitCounter(key: string): Promise<void>;
+  resetAllRateLimitCounters(): Promise<void>;
+  storeEncryptedData(userId: number, dataType: string, data: string): Promise<void>;
+  getEncryptedData(userId: number, dataType: string): Promise<string | null>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, userData: Partial<User>): Promise<User>;
 
@@ -101,7 +109,11 @@ export class MemStorage implements IStorage {
   private notificationRecipients: NotificationRecipient[] = []; // Array para armazenar destinatários de notificações
   private notificationIdCounter: number = 1; // Contador para IDs de notificações
   private notificationRecipientIdCounter: number = 1; // Contador para IDs de destinatários de notificações
-
+  
+  // Segurança - contador para rate limiting
+  private rateLimitCounters: Map<string, { count: number, resetAt: number }> = new Map();
+  private encryptedUserData: Map<string, string> = new Map(); // Formato: userId_dataType -> dados criptografados
+  
   // IDs para autoincrementar
   private userIdCounter: number;
   private categoryIdCounter: number;
@@ -1121,6 +1133,82 @@ export class MemStorage implements IStorage {
         const timeB = b.sentAt?.getTime() || 0;
         return timeA - timeB;
       });
+  }
+  
+  // Métodos para controle de rate limit
+  
+  /**
+   * Incrementa o contador de rate limit para uma chave específica
+   * @param key Identificador único para o contador (ex: IP, rota, etc)
+   * @returns O valor atual do contador após o incremento
+   */
+  async incrementRateLimitCounter(key: string): Promise<number> {
+    const now = Date.now();
+    const counter = this.rateLimitCounters.get(key);
+    
+    if (!counter || counter.resetAt < now) {
+      // Se o contador não existe ou expirou, cria um novo
+      this.rateLimitCounters.set(key, {
+        count: 1,
+        resetAt: now + 15 * 60 * 1000 // 15 minutos
+      });
+      return 1;
+    } else {
+      // Incrementa o contador existente
+      counter.count += 1;
+      return counter.count;
+    }
+  }
+  
+  /**
+   * Decrementa o contador de rate limit para uma chave específica
+   * @param key Identificador único para o contador
+   */
+  async decrementRateLimitCounter(key: string): Promise<void> {
+    const counter = this.rateLimitCounters.get(key);
+    
+    if (counter && counter.count > 0) {
+      counter.count -= 1;
+    }
+  }
+  
+  /**
+   * Reseta o contador de rate limit para uma chave específica
+   * @param key Identificador único para o contador
+   */
+  async resetRateLimitCounter(key: string): Promise<void> {
+    this.rateLimitCounters.delete(key);
+  }
+  
+  /**
+   * Reseta todos os contadores de rate limit
+   */
+  async resetAllRateLimitCounters(): Promise<void> {
+    this.rateLimitCounters.clear();
+  }
+  
+  /**
+   * Armazena dados sensíveis criptografados para um usuário
+   * @param userId ID do usuário
+   * @param dataType Tipo de dado (ex: 'payment', 'document', etc)
+   * @param data Dados a serem criptografados e armazenados
+   */
+  async storeEncryptedData(userId: number, dataType: string, data: string): Promise<void> {
+    // Criptografa os dados antes de armazenar (a criptografia é feita no módulo de segurança)
+    // Aqui apenas armazenamos o resultado já criptografado
+    const key = `${userId}_${dataType}`;
+    this.encryptedUserData.set(key, data);
+  }
+  
+  /**
+   * Recupera dados sensíveis criptografados de um usuário
+   * @param userId ID do usuário
+   * @param dataType Tipo de dado a ser recuperado
+   * @returns Dados criptografados ou null se não existirem
+   */
+  async getEncryptedData(userId: number, dataType: string): Promise<string | null> {
+    const key = `${userId}_${dataType}`;
+    return this.encryptedUserData.get(key) || null;
   }
 }
 

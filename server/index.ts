@@ -1,10 +1,15 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { setupSecurity } from "./security";
+import helmet from "helmet";
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Configurações de segurança baseadas no Helmet (proteção contra ataques comuns)
+app.use(helmet());
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -37,6 +42,10 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Aplicando configurações de segurança adicionais
+  setupSecurity(app);
+  
+  // Registrando as rotas da API
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
