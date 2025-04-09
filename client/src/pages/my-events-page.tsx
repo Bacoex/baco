@@ -1292,21 +1292,11 @@ export default function MyEventsPage() {
       )}
       
       {/* Modal para edição de evento */}
-      {selectedEvent && (
+      {eventIdToEdit && (
         <EditEventModal
           isOpen={isEditEventModalOpen}
           onClose={() => setIsEditEventModalOpen(false)}
-          event={selectedEvent}
-          categories={categoriesQuery.data || []}
-          onEventUpdated={() => {
-            queryClient.invalidateQueries({ queryKey: ["/api/user/events/creator"] });
-            queryClient.invalidateQueries({ queryKey: ["/api/events"] });
-            setIsEditEventModalOpen(false);
-            toast({
-              title: "Evento atualizado",
-              description: "As alterações foram salvas com sucesso",
-            });
-          }}
+          eventId={eventIdToEdit}
         />
       )}
     </div>
