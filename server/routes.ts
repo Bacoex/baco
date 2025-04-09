@@ -1043,6 +1043,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Evento não encontrado" });
       }
       
+      // Verificar se o evento é do tipo que permite chat (apenas experienciar)
+      if (event.eventType !== 'private_application') {
+        return res.status(403).json({ 
+          message: "Chat só está disponível para eventos do tipo 'Experienciar'" 
+        });
+      }
+      
       // Verificar se o usuário é participante ou criador do evento
       const isCreator = event.creatorId === userId;
       
@@ -1129,6 +1136,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const event = await storage.getEvent(eventId);
       if (!event) {
         return res.status(404).json({ message: "Evento não encontrado" });
+      }
+      
+      // Verificar se o evento é do tipo que permite chat (apenas experienciar)
+      if (event.eventType !== 'private_application') {
+        return res.status(403).json({ 
+          message: "Chat só está disponível para eventos do tipo 'Experienciar'" 
+        });
       }
       
       // Verificar se o usuário é participante ou criador do evento

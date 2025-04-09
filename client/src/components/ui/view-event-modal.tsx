@@ -590,10 +590,12 @@ export default function ViewEventModal({
           </div>
           
           <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-3 mb-4">
+            <TabsList className={`grid ${event.eventType === 'private_application' ? 'grid-cols-3' : 'grid-cols-2'} mb-4`}>
               <TabsTrigger value="details">Detalhes</TabsTrigger>
               <TabsTrigger value="participants">Participantes</TabsTrigger>
-              <TabsTrigger value="chat">Chat</TabsTrigger>
+              {event.eventType === 'private_application' && (
+                <TabsTrigger value="chat">Chat</TabsTrigger>
+              )}
             </TabsList>
             
             {/* Tab de detalhes do evento */}
@@ -808,31 +810,23 @@ export default function ViewEventModal({
               </div>
             </TabsContent>
             
-            {/* Tab de chat */}
-            <TabsContent value="chat">
-              {/* Verificar se o evento é do tipo que permite chat (privado ou com experienciar) */}
-              {event.eventType === 'public' ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <MessageSquareX className="h-12 w-12 mx-auto text-gray-400 mb-2" />
-                  <p>O chat não está disponível para eventos públicos.</p>
-                </div>
-              ) : (
-                <>
-                  {/* Verificar se o usuário é participante aprovado ou confirmado */}
-                  {isCreator || (event.participants && event.participants.some(p => p.userId === user?.id && (p.status === 'approved' || p.status === 'confirmed'))) ? (
-                    <div className="h-[400px]">
-                      <EventChat eventId={event.id} />
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <LockKeyhole className="h-12 w-12 mx-auto text-gray-400 mb-2" />
-                      <p>O chat só está disponível para participantes aprovados.</p>
-                      <p className="text-sm mt-2">Participe do evento para acessar o chat.</p>
-                    </div>
-                  )}
-                </>
-              )}
-            </TabsContent>
+            {/* Tab de chat - Só será exibido para eventos do tipo "Experienciar" */}
+            {event.eventType === 'private_application' && (
+              <TabsContent value="chat">
+                {/* Verificar se o usuário é participante aprovado ou confirmado */}
+                {isCreator || (event.participants && event.participants.some(p => p.userId === user?.id && (p.status === 'approved' || p.status === 'confirmed'))) ? (
+                  <div className="h-[400px]">
+                    <EventChat eventId={event.id} />
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <LockKeyhole className="h-12 w-12 mx-auto text-gray-400 mb-2" />
+                    <p>O chat só está disponível para participantes aprovados.</p>
+                    <p className="text-sm mt-2">Participe do evento para acessar o chat.</p>
+                  </div>
+                )}
+              </TabsContent>
+            )}
           </Tabs>
         </DialogContent>
       </Dialog>
