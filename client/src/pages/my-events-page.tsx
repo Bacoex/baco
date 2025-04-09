@@ -264,7 +264,7 @@ function EventCard({
             </Eneagon>
           </div>
           <div className="ml-3">
-            <p className="text-sm font-medium">
+            <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
               {getUserDisplayName({ firstName: event.creator?.firstName || "", lastName: event.creator?.lastName || "" })}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">
