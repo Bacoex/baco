@@ -268,6 +268,41 @@
     animation: highlight-pulse 2s ease-in-out;
   }
   
+  /* Estilos personalizados para barra de rolagem */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(var(--primary), 0.4);
+    border-radius: 9999px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(var(--primary), 0.7);
+  }
+  
+  .scrollbar-thumb-rounded-md::-webkit-scrollbar-thumb {
+    border-radius: 6px;
+  }
+  
+  .scrollbar-thumb-primary\/50::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--primary) / 0.5);
+  }
+  
+  .scrollbar-thumb-primary\/70:hover::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--primary) / 0.7);
+  }
+  
+  .scrollbar-track-transparent::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
   @keyframes highlight-pulse {
     0%, 100% {
       box-shadow: 0 0 0 rgba(var(--primary), 0.4);
