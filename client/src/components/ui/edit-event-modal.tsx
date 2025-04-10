@@ -272,7 +272,15 @@ export function EditEventModal({ isOpen, onClose, eventId }: EditEventModalProps
 
   if (isLoading) {
     return (
-      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <Dialog 
+        open={isOpen} 
+        onOpenChange={(open) => {
+          // Impede que o modal feche durante o carregamento
+          if (!open) {
+            onClose();
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Carregando...</DialogTitle>
@@ -283,7 +291,19 @@ export function EditEventModal({ isOpen, onClose, eventId }: EditEventModalProps
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={(open) => {
+        // Impede que o modal feche durante o upload de imagem
+        if (!open && isUploading) {
+          return;
+        }
+        // Caso contrário, fecha normalmente
+        if (!open) {
+          onClose();
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Evento</DialogTitle>
