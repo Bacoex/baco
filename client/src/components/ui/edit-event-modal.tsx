@@ -430,18 +430,14 @@ export function EditEventModal({ isOpen, onClose, eventId }: EditEventModalProps
 
               {showMapSelector && (
                 <div className="border rounded-md p-4 bg-gray-50">
-                  <p className="text-sm text-gray-500 mb-4">
-                    Aqui seria integrada a API do Google Maps para seleção de localização.
-                    No momento, insira o endereço manualmente.
-                  </p>
-                  <Button 
-                    type="button" 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => setShowMapSelector(false)}
-                  >
-                    Fechar mapa
-                  </Button>
+                  <LocationMapSelector 
+                    onLocationSelect={(location, coordinates) => {
+                      form.setValue("location", location);
+                      form.setValue("coordinates", coordinates);
+                      setShowMapSelector(false);
+                    }}
+                    initialLocation={form.getValues("location")}
+                  />
                 </div>
               )}
 
