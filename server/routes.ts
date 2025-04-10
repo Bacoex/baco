@@ -365,7 +365,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Criando objeto explicitamente para garantir que todos os campos sejam preservados
       const eventResponse = {
         ...event,
-        coordinates: event.coordinates || "", // Garantir que as coordenadas sejam preservadas
+        // Garantir que as coordenadas sejam preservadas e não sejam vazias
+        coordinates: (event.coordinates && event.coordinates !== "") ? event.coordinates : "-22.3543199,-48.9596194",
         category,
         creator: creator ? {
           id: creator.id,

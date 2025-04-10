@@ -303,6 +303,9 @@ export default function ViewEventModal({
   // Formata a data do evento
   const eventDate = event.date ? format(new Date(event.date), "PPPP", { locale: ptBR }) : "";
   
+  // Log para debug
+  console.log("Coordenadas originais do evento:", event.coordinates);
+  
   // Determina o tipo de evento para exibição
   const eventTypeDisplay = {
     'public': 'Público',
