@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calendar, MapPin, Clock, Users, Tag, User, Share2, Heart, 
+import { Calendar, MapPin, Map, Clock, Users, Tag, User, Share2, Heart, 
          MessageSquare, MessageSquareX, LockKeyhole, UserPlus, Pencil, Trash2,
          CheckCircle, XCircle, Loader2, DollarSign } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -660,12 +660,24 @@ export default function ViewEventModal({
                     </div>
                     
                     {/* Mini mapa estático */}
-                    <div className="relative w-full h-[120px] rounded-md overflow-hidden">
-                      <img 
-                        src={`https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(event.location)}&zoom=14&size=400x120&markers=color:red%7C${encodeURIComponent(event.location)}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}`}
-                        alt="Localização do evento"
-                        className="w-full h-full object-cover"
-                      />
+                    <div className="relative w-full h-[120px] rounded-md overflow-hidden bg-gray-100">
+                      {/* Tentando consertar problema: Usar as coordenadas do event original se as coordenadas do evento carregado estiverem vazias */}
+                      {(event.coordinates && event.coordinates.trim() !== "") ? (
+                        <img 
+                          src={`https://maps.googleapis.com/maps/api/staticmap?center=${event.coordinates}&zoom=14&size=400x120&markers=color:red%7C${event.coordinates}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}`}
+                          alt="Localização do evento"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            console.log("Erro ao carregar imagem do mapa estático");
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <MapPin className="h-10 w-10 text-gray-400" />
+                          <span className="ml-2 text-gray-500">Localização aproximada</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   {event.capacity && (
