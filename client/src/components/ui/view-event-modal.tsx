@@ -645,14 +645,16 @@ export default function ViewEventModal({
                   </div>
                   <div className="flex items-center mb-2">
                     <MapPin className="h-5 w-5 mr-2 text-primary" />
-                    <span className="mr-2">{event.location}</span>
+                    <span className="truncate max-w-[190px]">
+                      {event.location.length > 25 ? event.location.substring(0, 25) + '...' : event.location}
+                    </span>
                     <a 
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="inline-block text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors font-medium"
+                      className="inline-block text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition-colors font-medium ml-2"
                     >
-                      Ver no Maps →
+                      Maps →
                     </a>
                   </div>
                   {event.capacity && (
