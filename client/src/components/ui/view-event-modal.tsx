@@ -667,15 +667,27 @@ export default function ViewEventModal({
                     {event.location && event.location.length > 0 && (
                       <div className="relative w-full h-[120px] rounded-md overflow-hidden bg-gray-100">
                         {(event.coordinates && event.coordinates.trim() !== "") ? (
-                          <img 
-                            src={`https://maps.googleapis.com/maps/api/staticmap?center=${event.coordinates}&zoom=14&size=400x120&markers=color:red%7C${event.coordinates}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}`}
-                            alt="Localização do evento"
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              console.log("Erro ao carregar imagem do mapa estático");
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
+                          <>
+                            <div className="absolute inset-0 flex items-center justify-center opacity-60">
+                              <MapPin className="h-12 w-12 text-primary" />
+                              <span className="ml-2 text-gray-700 font-medium">Localização: {event.location.substring(0, 30)}...</span>
+                            </div>
+                            <img 
+                              src={`https://maps.googleapis.com/maps/api/staticmap?center=${event.coordinates}&zoom=14&size=400x120&markers=color:red%7C${event.coordinates}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}`}
+                              alt="Localização do evento"
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                console.log("Erro ao carregar imagem do mapa estático");
+                                e.currentTarget.style.display = 'none';
+                                // Mostrar fallback quando a imagem falhar
+                                const parent = e.currentTarget.parentElement;
+                                if (parent) {
+                                  const fallback = parent.querySelector('.absolute');
+                                  if (fallback) fallback.classList.remove('opacity-60');
+                                }
+                              }}
+                            />
+                          </>
                         ) : (
                           <div className="flex items-center justify-center h-full">
                             <MapPin className="h-10 w-10 text-gray-400" />
