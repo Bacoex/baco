@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import * as path from "path";
 import { WebSocketServer } from "ws";
@@ -39,11 +40,22 @@ function calculateAge(birthDateString: string): number {
  * Registra todas as rotas da API
  */
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Servir arquivos estáticos da pasta uploads
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
   // Adicionar middleware de monitoramento de erros
   app.use(errorMonitoringMiddleware);
   
   // Configura autenticação
   setupAuth(app);
+  
+  // Registrar rotas de upload de arquivos
+  import('./routes-upload').then(module => {
+    module.registerUploadRoutes(app);
+    console.log('Rotas de upload registradas');
+  }).catch(err => {
+    console.error('Erro ao registrar rotas de upload:', err);
+  });
   
   // Rota para obter informações de um usuário específico
   app.get('/api/users/:id', async (req, res) => {
