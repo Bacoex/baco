@@ -8,6 +8,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { insertEventSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
+import { MapPin, X, Upload, ImageIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -35,7 +36,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { X, Upload, ImageIcon, MapPin } from "lucide-react";
 
 interface EditEventModalProps {
   isOpen: boolean;
@@ -407,110 +407,114 @@ export function EditEventModal({ isOpen, onClose, eventId }: EditEventModalProps
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Local*</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Endereço do evento" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="coordinates"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      <div className="flex items-center justify-between w-full">
-                        <span>Localização pelo GPS</span>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="gap-1 text-xs"
-                          onClick={() => {
-                            // Verificar se a API do Google Maps está carregada
-                            if (window.google && window.google.maps) {
-                              // Abrir modal do seletor de localização
-                              try {
-                                const mapOptions = {
-                                  center: { lat: -23.5505, lng: -46.6333 }, // São Paulo como padrão
-                                  zoom: 13,
-                                  mapTypeControl: false,
-                                  fullscreenControl: false,
-                                };
-                                
-                                // Criar um modal para o mapa
-                                const mapModal = window.open(
-                                  "", 
-                                  "Selecionar Localização", 
-                                  "width=600,height=450,resizable=yes"
-                                );
-                                
-                                if (mapModal) {
-                                  mapModal.document.write(`
-                                    <html>
-                                      <head>
-                                        <title>Selecione a Localização</title>
-                                        <style>
-                                          body, html, #map { 
-                                            height: 100%; 
-                                            margin: 0; 
-                                            padding: 0;
-                                            font-family: Arial, sans-serif;
-                                          }
-                                          #info {
-                                            position: absolute;
-                                            bottom: 20px;
-                                            left: 10px;
-                                            right: 10px;
-                                            padding: 10px;
-                                            background: white;
-                                            border-radius: 4px;
-                                            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-                                            z-index: 10;
-                                          }
-                                          #confirmBtn {
-                                            background: #3b82f6;
-                                            color: white;
-                                            border: none;
-                                            padding: 8px 16px;
-                                            border-radius: 4px;
-                                            cursor: pointer;
-                                            float: right;
-                                          }
-                                        </style>
-                                      </head>
-                                      <body>
-                                        <div id="map"></div>
-                                        <div id="info">
-                                          <p id="address">Clique no mapa para selecionar uma localização</p>
-                                          <button id="confirmBtn">Confirmar</button>
-                                        </div>
-                                        <script>
-                                          function initMap() {
-                                            const map = new google.maps.Map(document.getElementById('map'), ${JSON.stringify(mapOptions)});
-                                            let marker = null;
-                                            let selectedLocation = null;
-                                            const geocoder = new google.maps.Geocoder();
-                                            const infoElement = document.getElementById('address');
+                    <div className="flex items-center space-x-2">
+                      <FormControl className="flex-grow">
+                        <Input placeholder="Endereço do evento" {...field} />
+                      </FormControl>
+                      <Button 
+                        type="button" 
+                        size="icon" 
+                        variant="outline"
+                        title="Selecionar no mapa"
+                        onClick={() => {
+                          // Verificar se a API do Google Maps está carregada
+                          if (window.google && window.google.maps) {
+                            // Abrir modal do seletor de localização
+                            try {
+                              const mapOptions = {
+                                center: { lat: -23.5505, lng: -46.6333 }, // São Paulo como padrão
+                                zoom: 13,
+                                mapTypeControl: false,
+                                fullscreenControl: false,
+                              };
+                              
+                              // Criar um modal para o mapa
+                              const mapModal = window.open(
+                                "", 
+                                "Selecionar Localização", 
+                                "width=600,height=450,resizable=yes"
+                              );
+                              
+                              if (mapModal) {
+                                mapModal.document.write(`
+                                  <html>
+                                    <head>
+                                      <title>Selecione a Localização</title>
+                                      <style>
+                                        body, html, #map { 
+                                          height: 100%; 
+                                          margin: 0; 
+                                          padding: 0;
+                                          font-family: Arial, sans-serif;
+                                        }
+                                        #info {
+                                          position: absolute;
+                                          bottom: 20px;
+                                          left: 10px;
+                                          right: 10px;
+                                          padding: 10px;
+                                          background: white;
+                                          border-radius: 4px;
+                                          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                                          z-index: 10;
+                                        }
+                                        #confirmBtn {
+                                          background: #3b82f6;
+                                          color: white;
+                                          border: none;
+                                          padding: 8px 16px;
+                                          border-radius: 4px;
+                                          cursor: pointer;
+                                          float: right;
+                                        }
+                                      </style>
+                                    </head>
+                                    <body>
+                                      <div id="map"></div>
+                                      <div id="info">
+                                        <p id="address">Clique no mapa para selecionar uma localização</p>
+                                        <button id="confirmBtn">Confirmar</button>
+                                      </div>
+                                      <script>
+                                        function initMap() {
+                                          const map = new google.maps.Map(document.getElementById('map'), ${JSON.stringify(mapOptions)});
+                                          let marker = null;
+                                          let selectedLocation = null;
+                                          const geocoder = new google.maps.Geocoder();
+                                          const infoElement = document.getElementById('address');
+                                          
+                                          map.addListener('click', (event) => {
+                                            const location = event.latLng;
+                                            if (marker) marker.setMap(null);
                                             
-                                            map.addListener('click', (event) => {
-                                              const location = event.latLng;
-                                              if (marker) marker.setMap(null);
-                                              
-                                              marker = new google.maps.Marker({
-                                                position: location,
-                                                map: map,
-                                                draggable: true
-                                              });
-                                              
+                                            marker = new google.maps.Marker({
+                                              position: location,
+                                              map: map,
+                                              draggable: true
+                                            });
+                                            
+                                            selectedLocation = {
+                                              lat: location.lat(),
+                                              lng: location.lng()
+                                            };
+                                            
+                                            // Obter endereço a partir das coordenadas
+                                            geocoder.geocode({ location: selectedLocation }, (results, status) => {
+                                              if (status === 'OK' && results[0]) {
+                                                infoElement.innerHTML = results[0].formatted_address;
+                                              } else {
+                                                infoElement.innerHTML = \`\${selectedLocation.lat.toFixed(6)}, \${selectedLocation.lng.toFixed(6)}\`;
+                                              }
+                                            });
+                                            
+                                            // Atualizar ao arrastar o marcador
+                                            marker.addListener('dragend', () => {
+                                              const newLocation = marker.getPosition();
                                               selectedLocation = {
-                                                lat: location.lat(),
-                                                lng: location.lng()
+                                                lat: newLocation.lat(),
+                                                lng: newLocation.lng()
                                               };
                                               
-                                              // Obter endereço a partir das coordenadas
                                               geocoder.geocode({ location: selectedLocation }, (results, status) => {
                                                 if (status === 'OK' && results[0]) {
                                                   infoElement.innerHTML = results[0].formatted_address;
@@ -518,91 +522,73 @@ export function EditEventModal({ isOpen, onClose, eventId }: EditEventModalProps
                                                   infoElement.innerHTML = \`\${selectedLocation.lat.toFixed(6)}, \${selectedLocation.lng.toFixed(6)}\`;
                                                 }
                                               });
-                                              
-                                              // Atualizar ao arrastar o marcador
-                                              marker.addListener('dragend', () => {
-                                                const newLocation = marker.getPosition();
-                                                selectedLocation = {
-                                                  lat: newLocation.lat(),
-                                                  lng: newLocation.lng()
-                                                };
-                                                
-                                                geocoder.geocode({ location: selectedLocation }, (results, status) => {
-                                                  if (status === 'OK' && results[0]) {
-                                                    infoElement.innerHTML = results[0].formatted_address;
-                                                  } else {
-                                                    infoElement.innerHTML = \`\${selectedLocation.lat.toFixed(6)}, \${selectedLocation.lng.toFixed(6)}\`;
-                                                  }
-                                                });
-                                              });
                                             });
-                                            
-                                            document.getElementById('confirmBtn').addEventListener('click', () => {
-                                              if (selectedLocation) {
-                                                const coordsStr = \`\${selectedLocation.lat.toFixed(6)},\${selectedLocation.lng.toFixed(6)}\`;
-                                                window.opener.postMessage({
-                                                  type: 'location_selected',
-                                                  coordinates: coordsStr,
-                                                  address: document.getElementById('address').innerHTML
-                                                }, '*');
-                                                window.close();
-                                              } else {
-                                                alert('Selecione uma localização clicando no mapa.');
-                                              }
-                                            });
-                                          }
-                                        </script>
-                                        <script src="https://maps.googleapis.com/maps/api/js?key=\${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&callback=initMap" async defer></script>
-                                      </body>
-                                    </html>
-                                  `);
-                                  
-                                  // Manipular mensagem do modal
-                                  window.addEventListener('message', (event) => {
-                                    if (event.data.type === 'location_selected') {
-                                      // Atualizar campos de localização e coordenadas
-                                      form.setValue('coordinates', event.data.coordinates);
-                                      form.setValue('location', event.data.address);
-                                      toast({
-                                        title: "Localização selecionada",
-                                        description: `Endereço: ${event.data.address}`,
-                                      });
-                                    }
-                                  });
-                                }
-                              } catch (error) {
-                                console.error('Erro ao inicializar o mapa:', error);
-                                toast({
-                                  title: "Erro ao abrir o mapa",
-                                  description: "Não foi possível inicializar o mapa do Google.",
-                                  variant: "destructive",
+                                          });
+                                          
+                                          document.getElementById('confirmBtn').addEventListener('click', () => {
+                                            if (selectedLocation) {
+                                              const coordsStr = \`\${selectedLocation.lat.toFixed(6)},\${selectedLocation.lng.toFixed(6)}\`;
+                                              window.opener.postMessage({
+                                                type: 'location_selected',
+                                                coordinates: coordsStr,
+                                                address: document.getElementById('address').innerHTML
+                                              }, '*');
+                                              window.close();
+                                            } else {
+                                              alert('Selecione uma localização clicando no mapa.');
+                                            }
+                                          });
+                                        }
+                                      </script>
+                                      <script src="https://maps.googleapis.com/maps/api/js?key=\${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&callback=initMap" async defer></script>
+                                    </body>
+                                  </html>
+                                `);
+                                
+                                // Manipular mensagem do modal
+                                window.addEventListener('message', (event) => {
+                                  if (event.data.type === 'location_selected') {
+                                    // Atualizar campos de localização e coordenadas
+                                    form.setValue('coordinates', event.data.coordinates);
+                                    form.setValue('location', event.data.address);
+                                    toast({
+                                      title: "Localização selecionada",
+                                      description: `Endereço: ${event.data.address}`,
+                                    });
+                                  }
                                 });
                               }
-                            } else {
+                            } catch (error) {
+                              console.error('Erro ao inicializar o mapa:', error);
                               toast({
-                                title: "Google Maps não disponível",
-                                description: "A API do Google Maps não está disponível.",
+                                title: "Erro ao abrir o mapa",
+                                description: "Não foi possível inicializar o mapa do Google.",
                                 variant: "destructive",
                               });
                             }
-                          }}
-                        >
-                          <MapPin className="h-3 w-3" />
-                          Selecionar no Mapa
-                        </Button>
-                      </div>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Por exemplo: -23.5505,-46.6333"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Opcional. Clique no botão para selecionar uma localização no mapa.
-                    </FormDescription>
+                          } else {
+                            toast({
+                              title: "Google Maps não disponível",
+                              description: "A API do Google Maps não está disponível.",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                      >
+                        <MapPin className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
+                )}
+              />
+
+              {/* Campo oculto de coordenadas */}
+              <FormField
+                control={form.control}
+                name="coordinates"
+                render={({ field }) => (
+                  <input type="hidden" {...field} />
                 )}
               />
             </div>
@@ -628,7 +614,7 @@ export function EditEventModal({ isOpen, onClose, eventId }: EditEventModalProps
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {categories?.map((category) => (
+                        {categories?.map((category: any) => (
                           <SelectItem
                             key={category.id}
                             value={String(category.id)}
