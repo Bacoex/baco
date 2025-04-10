@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { format } from "date-fns";
@@ -36,7 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { X, Upload } from "lucide-react";
+import { X, Upload, ImageIcon } from "lucide-react";
 
 interface EditEventModalProps {
   isOpen: boolean;
@@ -63,6 +63,8 @@ export function EditEventModal({ isOpen, onClose, eventId }: EditEventModalProps
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Buscar informações do evento
   const { data: event, isLoading } = useQuery({
@@ -182,6 +184,82 @@ export function EditEventModal({ isOpen, onClose, eventId }: EditEventModalProps
       });
     },
   });
+
+  // Função para upload de imagem local
+  const uploadImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      setIsUploading(true);
+      
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await fetch('/api/upload/event-image', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao fazer upload da imagem');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Atualiza o campo coverImage com a URL da imagem enviada
+      form.setValue('coverImage', data.imageUrl);
+      setImagePreview(data.imageUrl);
+      
+      toast({
+        title: 'Imagem enviada',
+        description: 'A imagem foi enviada com sucesso.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erro ao enviar imagem',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+    onSettled: () => {
+      setIsUploading(false);
+    }
+  });
+  
+  // Manipula a seleção de arquivo
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    // Verifica o tipo do arquivo
+    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
+      toast({
+        title: 'Tipo de arquivo inválido',
+        description: 'Por favor, selecione uma imagem (jpg, jpeg, png, gif, webp)',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Verifica o tamanho do arquivo (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'Arquivo muito grande',
+        description: 'O tamanho máximo permitido é 5MB',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Faz o upload do arquivo
+    uploadImageMutation.mutate(file);
+  };
+  
+  // Função para abrir o seletor de arquivos
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
 
   // Função para enviar o formulário
   function onSubmit(data: z.infer<typeof formSchema>) {
@@ -449,20 +527,43 @@ export function EditEventModal({ isOpen, onClose, eventId }: EditEventModalProps
                         </div>
                       )}
                       
+                      {/* Input para upload de arquivo (oculto) */}
+                      <input
+                        type="file"
+                        id="file-upload"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                        onChange={handleFileSelect}
+                      />
+                      
                       {!imagePreview && (
                         <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-300 rounded-md">
-                          <div className="space-y-1 text-center">
+                          <div className="space-y-3 text-center">
                             <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                            <div className="flex text-sm text-gray-600">
-                              <label
-                                htmlFor="image-url"
-                                className="relative cursor-pointer rounded-md bg-white font-medium text-primary hover:text-primary/80 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2"
-                              >
-                                <span>Adicione a URL da imagem</span>
-                              </label>
+                            <div className="flex flex-col gap-3 text-sm text-gray-600">
+                              <div className="flex items-center justify-center">
+                                <label
+                                  htmlFor="image-url"
+                                  className="relative cursor-pointer rounded-md bg-white font-medium text-primary hover:text-primary/80 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2"
+                                >
+                                  <span>Adicione a URL da imagem</span>
+                                </label>
+                              </div>
+                              <div className="flex items-center justify-center">
+                                <button
+                                  type="button"
+                                  onClick={triggerFileInput}
+                                  className="relative cursor-pointer rounded-md bg-white font-medium text-primary hover:text-primary/80 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 flex items-center gap-1"
+                                  disabled={isUploading}
+                                >
+                                  <ImageIcon className="h-4 w-4" />
+                                  <span>{isUploading ? "Enviando..." : "Enviar imagem do computador"}</span>
+                                </button>
+                              </div>
                             </div>
                             <p className="text-xs text-gray-500">
-                              Forneça o endereço completo da imagem online
+                              Formatos suportados: JPG, PNG, GIF, WEBP (max. 5MB)
                             </p>
                           </div>
                         </div>
