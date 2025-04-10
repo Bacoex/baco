@@ -643,19 +643,30 @@ export default function ViewEventModal({
                       {event.timeEnd && ` - ${event.timeEnd}`}
                     </span>
                   </div>
-                  <div className="flex items-center mb-2">
-                    <MapPin className="h-5 w-5 mr-2 text-primary" />
-                    <span className="truncate max-w-[190px]">
-                      {event.location.length > 25 ? event.location.substring(0, 25) + '...' : event.location}
-                    </span>
-                    <a 
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-block text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition-colors font-medium ml-2"
-                    >
-                      Maps →
-                    </a>
+                  <div className="mb-4">
+                    <div className="flex items-center mb-2">
+                      <MapPin className="h-5 w-5 mr-2 text-primary" />
+                      <span className="truncate max-w-[190px]">
+                        {event.location.length > 25 ? event.location.substring(0, 25) + '...' : event.location}
+                      </span>
+                      <a 
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-block text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition-colors font-medium ml-2"
+                      >
+                        Ver
+                      </a>
+                    </div>
+                    
+                    {/* Mini mapa estático */}
+                    <div className="relative w-full h-[120px] rounded-md overflow-hidden">
+                      <img 
+                        src={`https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(event.location)}&zoom=14&size=400x120&markers=color:red%7C${encodeURIComponent(event.location)}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}`}
+                        alt="Localização do evento"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                   </div>
                   {event.capacity && (
                     <div className="flex items-center">
