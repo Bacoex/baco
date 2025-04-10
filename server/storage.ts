@@ -602,6 +602,9 @@ export class MemStorage implements IStorage {
     // Processa os additionalTickets se existirem no objeto do evento
     let additionalTicketsValue = event.additionalTickets;
     
+    // Log para ajudar a depurar as coordenadas
+    console.log(`Criando evento com coordenadas: "${event.coordinates}"`);
+    
     // Se o evento tiver ingressos adicionais, fazemos log para debug
     if (event.additionalTickets) {
       console.log(`Evento com ingressos adicionais: ${event.additionalTickets}`);
@@ -615,6 +618,9 @@ export class MemStorage implements IStorage {
       }
     }
     
+    // Garantir que as coordenadas sejam salvas, mesmo que sejam uma string vazia
+    const coordinates = event.coordinates ?? "";
+    
     const newEvent: Event = { 
       ...event, 
       id, 
@@ -623,11 +629,12 @@ export class MemStorage implements IStorage {
       isActive: true,
       importantInfo: event.importantInfo || null,
       additionalTickets: additionalTicketsValue || null,
-      paymentMethods: null
+      paymentMethods: null,
+      coordinates: coordinates
     };
     
     this.eventsMap.set(id, newEvent);
-    console.log(`Evento criado: ID=${id}, Nome=${event.name}, Tipo=${event.eventType}, Criador=${creatorId}`);
+    console.log(`Evento criado: ID=${id}, Nome=${event.name}, Tipo=${event.eventType}, Criador=${creatorId}, Coordenadas=${coordinates || 'nenhuma'}`);
     
     // Se for do tipo ticket, mostramos informações específicas
     if (event.eventType === 'private_ticket') {
@@ -647,9 +654,18 @@ export class MemStorage implements IStorage {
     // Processa os campos especiais antes de fazer a atualização
     let processedEventData = { ...eventData };
     
+    // Log para ajudar a depurar as coordenadas na atualização
+    console.log(`Atualizando evento com coordenadas: "${eventData.coordinates}"`);
+    
     // Processar ingressos adicionais (additionalTickets)
     if (eventData.additionalTickets !== undefined) {
       console.log(`Evento ${id} atualizando ingressos adicionais:`, eventData.additionalTickets);
+    }
+    
+    // Garantir que as coordenadas sejam preservadas ou atualizadas corretamente
+    if (eventData.coordinates !== undefined) {
+      processedEventData.coordinates = eventData.coordinates;
+      console.log(`Atualizando coordenadas para: "${processedEventData.coordinates}"`);
     }
     
     // Atualiza apenas os campos fornecidos, mantendo os valores existentes para os demais
@@ -659,7 +675,7 @@ export class MemStorage implements IStorage {
     };
 
     this.eventsMap.set(id, updatedEvent);
-    console.log(`Evento ${id} atualizado com sucesso:`, updatedEvent.name);
+    console.log(`Evento ${id} atualizado com sucesso:`, updatedEvent.name, `Coordenadas: ${updatedEvent.coordinates || 'nenhuma'}`);
     
     return updatedEvent;
   }

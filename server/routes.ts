@@ -410,6 +410,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventId = parseInt(req.params.id);
       const userId = req.user!.id;
       
+      console.log("Atualizando evento:", eventId, "Dados recebidos:", req.body);
+      
       // Verificar se o evento existe
       const existingEvent = await storage.getEvent(eventId);
       if (!existingEvent) {
@@ -419,6 +421,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verificar se o usuário é o criador do evento
       if (existingEvent.creatorId !== userId) {
         return res.status(403).json({ message: "Você não tem permissão para editar este evento" });
+      }
+      
+      // Log para depurar coordenadas recebidas
+      if (req.body.coordinates) {
+        console.log("Coordenadas recebidas para atualização:", req.body.coordinates);
       }
       
       // Tratar dados de ingressos adicionais, similar à criação
@@ -444,6 +451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Atualizar o evento
       const updatedEvent = await storage.updateEvent(eventId, eventData);
       
+      console.log("Evento atualizado com sucesso:", updatedEvent);
       res.json(updatedEvent);
     } catch (err) {
       console.error("Erro ao atualizar evento:", err);
