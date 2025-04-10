@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { X, Upload } from "lucide-react";
 
 interface EditEventModalProps {
   isOpen: boolean;
@@ -43,14 +44,14 @@ interface EditEventModalProps {
   eventId: number;
 }
 
-const formSchema = insertEventSchema.omit({
-  creatorId: true,
-  isActive: true,
-  createdAt: true,
-}).extend({
+const formSchema = z.object({
+  name: z.string().min(1, "O nome é obrigatório"),
+  description: z.string().min(1, "A descrição é obrigatória"),
   date: z.string().min(1, "A data é obrigatória"),
   timeStart: z.string().min(1, "O horário de início é obrigatório"),
   timeEnd: z.string().optional(),
+  location: z.string().min(1, "O local é obrigatório"),
+  coordinates: z.string().optional(),
   coverImage: z.string().optional(),
   capacity: z.string().optional().nullable(),
   ticketPrice: z.string().optional().nullable(),
@@ -61,6 +62,7 @@ const formSchema = insertEventSchema.omit({
 export function EditEventModal({ isOpen, onClose, eventId }: EditEventModalProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Buscar informações do evento
   const { data: event, isLoading } = useQuery({
@@ -132,6 +134,11 @@ export function EditEventModal({ isOpen, onClose, eventId }: EditEventModalProps
         capacity: event.capacity ? String(event.capacity) : "",
         ticketPrice: event.ticketPrice ? String(event.ticketPrice) : "",
       });
+      
+      // Atualizar preview da imagem se houver
+      if (event.coverImage) {
+        setImagePreview(event.coverImage);
+      }
     }
   }, [event, form]);
 
@@ -408,13 +415,59 @@ export function EditEventModal({ isOpen, onClose, eventId }: EditEventModalProps
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Imagem de Capa</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="URL da imagem"
-                        {...field}
-                        value={field.value || ""}
-                      />
-                    </FormControl>
+                    <div className="space-y-2">
+                      <FormControl>
+                        <Input
+                          placeholder="URL da imagem"
+                          {...field}
+                          value={field.value || ""}
+                          onChange={(e) => {
+                            field.onChange(e.target.value);
+                            setImagePreview(e.target.value);
+                          }}
+                        />
+                      </FormControl>
+                      
+                      {/* Preview da imagem */}
+                      {imagePreview && (
+                        <div className="relative mt-2 max-w-md mx-auto">
+                          <img 
+                            src={imagePreview} 
+                            alt="Preview da imagem" 
+                            className="h-48 w-full object-cover rounded-md" 
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setImagePreview(null);
+                              field.onChange("");
+                            }}
+                            className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded-full hover:bg-black/90"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+                      
+                      {!imagePreview && (
+                        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-300 rounded-md">
+                          <div className="space-y-1 text-center">
+                            <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                            <div className="flex text-sm text-gray-600">
+                              <label
+                                htmlFor="image-url"
+                                className="relative cursor-pointer rounded-md bg-white font-medium text-primary hover:text-primary/80 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2"
+                              >
+                                <span>Adicione a URL da imagem</span>
+                              </label>
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              Forneça o endereço completo da imagem online
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <FormDescription>
                       URL da imagem que será exibida no topo do card do evento
                     </FormDescription>
