@@ -9,6 +9,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { insertEventSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { MapPin, X, Upload, ImageIcon } from "lucide-react";
+import { LocationMapSelector } from "./location-map-selector";
 import {
   Dialog,
   DialogContent,
