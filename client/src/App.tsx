@@ -13,6 +13,7 @@ import TermsOfServicePage from "@/pages/terms-of-service-page";
 import AboutPage from "@/pages/about-page";
 import ErrorLogsPage from "@/pages/error-logs-page";
 import ShareErrorPage from "@/pages/share-error-page";
+import MapDebugPage from "@/pages/map-debug-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
 import { NotificationsProvider } from "./hooks/use-notifications";
@@ -31,6 +32,7 @@ function Router() {
       <ProtectedRoute path="/my-events" component={MyEventsPage} />
       <ProtectedRoute path="/search" component={SearchPage} />
       <ProtectedRoute path="/error-logs" component={ErrorLogsPage} />
+      <ProtectedRoute path="/map-debug" component={MapDebugPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/privacy-policy" component={PrivacyPolicyPage} />
       <Route path="/terms-of-service" component={TermsOfServicePage} />
