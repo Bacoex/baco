@@ -647,18 +647,16 @@ export default function ViewEventModal({
                     <MapPin className="h-5 w-5 mr-2 text-primary" />
                     <span>{event.location}</span>
                   </div>
-                  {event.coordinates && (
-                    <div className="ml-7 mb-2">
-                      <a 
-                        href={`https://www.google.com/maps?q=${event.coordinates}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-block text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors font-medium"
-                      >
-                        Ver no Google Maps →
-                      </a>
-                    </div>
-                  )}
+                  <div className="ml-7 mb-2">
+                    <a 
+                      href={`https://www.google.com/maps?q=${event.coordinates || "-22.3543199,-48.9596194"}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-block text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors font-medium"
+                    >
+                      Ver no Google Maps →
+                    </a>
+                  </div>
                   {event.capacity && (
                     <div className="flex items-center">
                       <Users className="h-5 w-5 mr-2 text-primary" />
