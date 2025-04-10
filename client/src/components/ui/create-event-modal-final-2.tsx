@@ -239,7 +239,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto left-[50%] translate-x-[-50%]">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto left-[50%] translate-x-[-50%] scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-transparent hover:scrollbar-thumb-primary/70">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Criar Evento</DialogTitle>
         </DialogHeader>

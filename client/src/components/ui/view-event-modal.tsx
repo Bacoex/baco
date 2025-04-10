@@ -522,7 +522,7 @@ export default function ViewEventModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto left-[50%] translate-x-[-50%] curved-bg">
+        <DialogContent className="w-[95vw] lg:w-[80vw] xl:w-[70vw] max-h-[90vh] overflow-y-auto left-[50%] translate-x-[-50%] curved-bg scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-transparent hover:scrollbar-thumb-primary/70">
           <DialogHeader>
             <DialogTitle className="sr-only">{event.name}</DialogTitle>
             <DialogDescription className="sr-only">
