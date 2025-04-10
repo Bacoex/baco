@@ -522,7 +522,7 @@ export default function ViewEventModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="w-[98vw] sm:w-[96vw] md:w-[92vw] lg:w-[90vw] xl:w-[85vw] max-h-[90vh] overflow-y-auto left-[50%] translate-x-[-50%] curved-bg scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-transparent hover:scrollbar-thumb-primary/70">
+        <DialogContent className="w-[98vw] sm:w-[96vw] md:w-[92vw] lg:w-[90vw] xl:w-[85vw] 2xl:w-full 2xl:max-w-7xl max-h-[90vh] overflow-y-auto left-[50%] translate-x-[-50%] curved-bg scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-transparent hover:scrollbar-thumb-primary/70">
           <DialogHeader>
             <DialogTitle className="sr-only">{event.name}</DialogTitle>
             <DialogDescription className="sr-only">
@@ -639,6 +639,16 @@ export default function ViewEventModal({
                   <div className="flex items-center">
                     <MapPin className="h-5 w-5 mr-2 text-primary" />
                     <span>{event.location}</span>
+                    {event.coordinates && (
+                      <a 
+                        href={`https://www.google.com/maps?q=${event.coordinates}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded-sm hover:bg-blue-600 transition-colors"
+                      >
+                        Ver no Maps
+                      </a>
+                    )}
                   </div>
                   {event.capacity && (
                     <div className="flex items-center">
