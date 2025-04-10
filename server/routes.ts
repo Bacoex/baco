@@ -377,16 +377,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/events", ensureAuthenticated, async (req, res) => {
     try {
+      console.log("Criando evento com dados:", req.body);
       const eventData = insertEventSchema.parse(req.body);
+      
+      // Garantir que as coordenadas sejam salvas corretamente
+      if (req.body.coordinates) {
+        console.log("Coordenadas recebidas:", req.body.coordinates);
+      }
+      
       const event = await storage.createEvent(eventData, req.user!.id);
       const categories = await storage.getCategories();
       const category = categories.find(cat => cat.id === event.categoryId);
 
+      console.log("Evento criado com sucesso:", event);
+      
       res.status(201).json({
         ...event,
         category
       });
     } catch (err) {
+      console.error("Erro ao criar evento:", err);
       if (err instanceof ZodError) {
         return res.status(400).json({ message: fromZodError(err).message });
       }
