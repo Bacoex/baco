@@ -56,7 +56,7 @@ export function SupportDialog({ children }: SupportDialogProps) {
         </div>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto left-[50%] translate-x-[-50%] scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-transparent">
-        <DialogHeader>
+        <DialogHeader className="pt-6">
           <DialogTitle className="text-xl text-center flex items-center justify-center gap-2">
             <HelpCircle className="w-5 h-5 text-orange-500" />
             <span>Suporte ao Usuário</span>
