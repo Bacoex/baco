@@ -5,6 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { useLocation } from "wouter";
+import { ArrowLeft } from "lucide-react";
 import { 
   Card,
   CardContent,
@@ -20,6 +22,7 @@ import {
 export default function AboutPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [feedbackForm, setFeedbackForm] = useState({
     name: user?.firstName || "",
     email: user?.email || "",
@@ -69,8 +72,18 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-black flex flex-col">
-      {/* Cabeçalho com título */}
+      {/* Cabeçalho com título e botão de voltar */}
       <header className="py-8 px-4 relative text-center">
+        <div className="absolute top-2 left-4">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => setLocation("/")}
+            className="bg-black/30 hover:bg-black/50 text-white rounded-full h-10 w-10"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </div>
         <h1 className="text-3xl md:text-4xl font-bold tracking-widest uppercase text-center" 
             style={{letterSpacing: '0.25em', fontFamily: 'serif'}}>
           <span className="text-white">✧</span>
