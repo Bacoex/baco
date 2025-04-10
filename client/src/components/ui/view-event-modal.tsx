@@ -636,7 +636,7 @@ export default function ViewEventModal({
                       {event.timeEnd && ` - ${event.timeEnd}`}
                     </span>
                   </div>
-                  <div className="flex items-center">
+                  <div className="flex items-center flex-wrap">
                     <MapPin className="h-5 w-5 mr-2 text-primary" />
                     <span>{event.location}</span>
                     {event.coordinates && (
@@ -644,7 +644,7 @@ export default function ViewEventModal({
                         href={`https://www.google.com/maps?q=${event.coordinates}`} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded-sm hover:bg-blue-600 transition-colors"
+                        className="ml-3 text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors font-medium"
                       >
                         Ver no Maps
                       </a>
