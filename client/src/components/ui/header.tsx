@@ -66,7 +66,7 @@ export function Header() {
                   Meus Eventos
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                 <SupportDialog>
                   <div className="flex items-center w-full">
                     <HelpCircle className="mr-2 h-4 w-4" />

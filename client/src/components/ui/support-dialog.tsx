@@ -19,6 +19,12 @@ interface SupportDialogProps {
 export function SupportDialog({ children }: SupportDialogProps) {
   const [open, setOpen] = React.useState(false);
   const supportEmail = "bacoexperiencias@gmail.com";
+  
+  // Impede a propagação do evento de clique para que o dropdown não feche
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpen(true);
+  };
 
   const handleOpenEmail = () => {
     window.open(`mailto:${supportEmail}`, "_blank");
@@ -40,12 +46,14 @@ export function SupportDialog({ children }: SupportDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {children || (
-          <div className="flex items-center cursor-pointer">
-            <HelpCircle className="mr-2 h-4 w-4" />
-            <span>Suporte</span>
-          </div>
-        )}
+        <div onClick={handleClick}>
+          {children || (
+            <div className="flex items-center cursor-pointer">
+              <HelpCircle className="mr-2 h-4 w-4" />
+              <span>Suporte</span>
+            </div>
+          )}
+        </div>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto left-[50%] translate-x-[-50%] scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-transparent">
         <DialogHeader>
