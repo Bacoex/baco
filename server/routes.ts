@@ -359,8 +359,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       );
 
-      res.json({
+      // Log para debug
+      console.log("EVENT API - Coordenadas originais:", event.coordinates);
+      
+      // Criando objeto explicitamente para garantir que todos os campos sejam preservados
+      const eventResponse = {
         ...event,
+        coordinates: event.coordinates || "", // Garantir que as coordenadas sejam preservadas
         category,
         creator: creator ? {
           id: creator.id,
@@ -369,7 +374,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           profileImage: creator.profileImage
         } : null,
         participants: participantsWithDetails
-      });
+      };
+      
+      // Log para confirmar que as coordenadas estão sendo enviadas corretamente
+      console.log("EVENT API - Coordenadas na resposta:", eventResponse.coordinates);
+      
+      res.json(eventResponse);
     } catch (err) {
       res.status(500).json({ message: "Erro ao buscar evento" });
     }
@@ -391,10 +401,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Evento criado com sucesso:", event);
       
-      res.status(201).json({
+      // Cria um objeto de resposta com todos os campos explicitamente definidos
+      const eventResponse = {
         ...event,
+        coordinates: event.coordinates || "", // Garante que as coordenadas sejam preservadas
         category
-      });
+      };
+      
+      // Log para confirmar que as coordenadas estão sendo enviadas corretamente
+      console.log("EVENT CREATE API - Coordenadas na resposta:", eventResponse.coordinates);
+      
+      res.status(201).json(eventResponse);
     } catch (err) {
       console.error("Erro ao criar evento:", err);
       if (err instanceof ZodError) {
@@ -452,7 +469,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedEvent = await storage.updateEvent(eventId, eventData);
       
       console.log("Evento atualizado com sucesso:", updatedEvent);
-      res.json(updatedEvent);
+      
+      // Criar resposta explicitamente para garantir que as coordenadas sejam preservadas
+      const eventResponse = {
+        ...updatedEvent,
+        coordinates: updatedEvent.coordinates || "" // Garantir que as coordenadas sejam preservadas
+      };
+      
+      // Log para confirmar que as coordenadas estão sendo enviadas corretamente
+      console.log("EVENT UPDATE API - Coordenadas na resposta:", eventResponse.coordinates);
+      
+      res.json(eventResponse);
     } catch (err) {
       console.error("Erro ao atualizar evento:", err);
       if (err instanceof ZodError) {
