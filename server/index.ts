@@ -44,7 +44,7 @@ app.use((req, res, next) => {
 (async () => {
   // Aplicando configurações de segurança adicionais
   setupSecurity(app);
-  
+
   // Registrando as rotas da API
   const server = await registerRoutes(app);
 
@@ -53,7 +53,7 @@ app.use((req, res, next) => {
     const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
-    throw err;
+    console.error('Error:', err);
   });
 
   // importantly only setup vite in development and after
