@@ -1,5 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import * as path from "path";
+import { WebSocketServer } from "ws";
 import { storage } from "./storage";
 import { setupAuth, comparePasswords, hashPassword } from "./auth";
 import { ZodError } from "zod";
@@ -17,6 +19,7 @@ import {
   ErrorSeverity,
   ErrorType
 } from "./errorMonitoring";
+import { uploadEventImage, getPublicImageUrl } from "./upload";
 
 // Função de utilidade para calcular idade
 function calculateAge(birthDateString: string): number {
