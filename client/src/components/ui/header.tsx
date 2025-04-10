@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { LogOut, Menu, User, HelpCircle, Info, Bell, AlertCircle } from "lucide-react";
 import { NotificationsMenu } from "@/components/ui/notifications-menu";
+import { SupportDialog } from "@/components/ui/support-dialog";
 
 export function Header() {
   const { user, logoutMutation } = useAuth();
@@ -65,11 +66,13 @@ export function Header() {
                   Meus Eventos
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <a href="mailto:bacoexperiencias@gmail.com" target="_blank" rel="noopener noreferrer">
-                  <HelpCircle className="mr-2 h-4 w-4" />
-                  Suporte
-                </a>
+              <DropdownMenuItem>
+                <SupportDialog>
+                  <div className="flex items-center w-full">
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    <span>Suporte</span>
+                  </div>
+                </SupportDialog>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/about">
