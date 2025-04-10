@@ -547,18 +547,25 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
 
             {showMapSelector && (
               <div className="border rounded-md p-4 bg-gray-50">
-                <p className="text-sm text-gray-500 mb-4">
-                  Aqui seria integrada a API do Google Maps para seleção de localização.
-                  No momento, insira o endereço manualmente.
-                </p>
-                <Button 
-                  type="button" 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => setShowMapSelector(false)}
-                >
-                  Fechar mapa
-                </Button>
+                <LocationMapSelector 
+                  initialLocation={form.getValues("location")}
+                  onLocationSelect={(address, coordinates) => {
+                    console.log("Selecionou localização:", address, coordinates);
+                    form.setValue("location", address);
+                    form.setValue("coordinates", coordinates);
+                    setShowMapSelector(false);
+                  }}
+                />
+                <div className="mt-2 flex justify-end">
+                  <Button 
+                    type="button" 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setShowMapSelector(false)}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
               </div>
             )}
 
