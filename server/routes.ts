@@ -21,6 +21,7 @@ import {
   ErrorType
 } from "./errorMonitoring";
 import { uploadEventImage, getPublicImageUrl } from "./upload";
+import { registerUploadRoutes } from "./routes-upload";
 
 // Função de utilidade para calcular idade
 function calculateAge(birthDateString: string): number {
