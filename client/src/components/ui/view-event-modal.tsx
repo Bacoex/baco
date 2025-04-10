@@ -23,6 +23,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import DebugView from "./debug-view";
 import { useNotifications } from "@/hooks/use-notifications";
 import { getUserDisplayName, cn } from "@/lib/utils";
 import { useLocation } from "wouter";
@@ -295,6 +296,9 @@ export default function ViewEventModal({
   
   // Se não houver evento, não renderiza o modal
   if (!event) return null;
+  
+  // DEBUG: ver o evento completo incluindo coordenadas
+  console.log("DEBUG - Evento completo:", event);
   
   // Formata a data do evento
   const eventDate = event.date ? format(new Date(event.date), "PPPP", { locale: ptBR }) : "";
@@ -636,20 +640,22 @@ export default function ViewEventModal({
                       {event.timeEnd && ` - ${event.timeEnd}`}
                     </span>
                   </div>
-                  <div className="flex items-center flex-wrap">
+                  <div className="flex items-center flex-wrap mb-2">
                     <MapPin className="h-5 w-5 mr-2 text-primary" />
                     <span>{event.location}</span>
-                    {event.coordinates && (
+                  </div>
+                  {event.coordinates && (
+                    <div className="ml-7 mb-2">
                       <a 
                         href={`https://www.google.com/maps?q=${event.coordinates}`} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="ml-3 text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors font-medium"
+                        className="inline-block text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors font-medium"
                       >
-                        Ver no Maps
+                        Ver no Google Maps →
                       </a>
-                    )}
-                  </div>
+                    </div>
+                  )}
                   {event.capacity && (
                     <div className="flex items-center">
                       <Users className="h-5 w-5 mr-2 text-primary" />
