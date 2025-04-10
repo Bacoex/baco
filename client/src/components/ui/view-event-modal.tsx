@@ -649,7 +649,7 @@ export default function ViewEventModal({
                   </div>
                   <div className="ml-7 mb-2">
                     <a 
-                      href={`https://www.google.com/maps?q=${event.coordinates || "-22.3543199,-48.9596194"}`} 
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="inline-block text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors font-medium"
