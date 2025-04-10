@@ -715,7 +715,7 @@ export default function EventCard({
         <ViewEventModal
           event={{
             ...event,
-            coordinates: '',
+            coordinates: event.coordinates, // Manter as coordenadas originais do evento
             isActive: true,
             createdAt: new Date(),
             category: event.category ? {
