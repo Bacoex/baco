@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import { Link } from 'wouter';
 import { 
   Card, 
   CardContent, 
@@ -301,10 +302,21 @@ export default function ErrorLogsPage() {
           </div>
           
           <div className="flex flex-col space-y-4 mb-6">
-            <div className="flex justify-between items-center">
-              <h1 className="text-xl font-semibold text-white">Log de Erros</h1>
-              <div className="flex space-x-2">
-                <div className="flex space-x-2">
+            <div className="flex justify-between items-center flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <a href="/">
+                  <Button variant="outline" className="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left mr-1">
+                      <path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>
+                    </svg>
+                    Voltar
+                  </Button>
+                </a>
+                <h1 className="text-xl font-semibold text-white">Log de Erros</h1>
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Select
                     value={filter}
                     onValueChange={(value) => setFilter(value as ErrorSeverity | 'all')}
@@ -339,31 +351,33 @@ export default function ErrorLogsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                
-                <Button 
-                  variant={showDuplicatesOnly ? "secondary" : "outline"} 
-                  onClick={() => setShowDuplicatesOnly(!showDuplicatesOnly)}
-                  className="flex items-center"
-                >
-                  <AlertTriangle className="h-4 w-4 mr-1" />
-                  {showDuplicatesOnly ? "Mostrar Todos" : "Apenas Notificações Duplicadas"}
-                </Button>
-                
-                <Button variant="ghost" onClick={loadLogs}>
-                  <RotateCcw className="h-4 w-4 mr-1" />
-                  Atualizar
-                </Button>
-                
-                <Button variant="outline" onClick={handleRemoveOldLogs}>
-                  <Clock className="h-4 w-4 mr-1" />
-                  Remover Antigos
-                </Button>
-                
-                <Button variant="destructive" onClick={handleClearLogs}>
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Limpar Tudo
-                </Button>
               </div>
+            </div>
+            
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                variant={showDuplicatesOnly ? "secondary" : "outline"} 
+                onClick={() => setShowDuplicatesOnly(!showDuplicatesOnly)}
+                className="flex items-center"
+              >
+                <AlertTriangle className="h-4 w-4 mr-1" />
+                {showDuplicatesOnly ? "Mostrar Todos" : "Apenas Notificações Duplicadas"}
+              </Button>
+              
+              <Button variant="ghost" onClick={loadLogs}>
+                <RotateCcw className="h-4 w-4 mr-1" />
+                Atualizar
+              </Button>
+              
+              <Button variant="outline" onClick={handleRemoveOldLogs}>
+                <Clock className="h-4 w-4 mr-1" />
+                Remover Antigos
+              </Button>
+              
+              <Button variant="destructive" onClick={handleClearLogs}>
+                <Trash2 className="h-4 w-4 mr-1" />
+                Limpar Tudo
+              </Button>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
