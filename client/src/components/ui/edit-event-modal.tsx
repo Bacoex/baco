@@ -214,6 +214,9 @@ export function EditEventModal({ isOpen, onClose, eventId }: EditEventModalProps
         title: 'Imagem enviada',
         description: 'A imagem foi enviada com sucesso.',
       });
+      
+      // Não devemos fechar o modal após o upload da imagem,
+      // apenas mostrar uma mensagem de sucesso e continuar na edição
     },
     onError: (error: Error) => {
       toast({
