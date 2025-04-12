@@ -403,19 +403,45 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                     </Select>
                     <FormMessage />
                     {showCustomSubcategory && (
-                      <div className="mt-2">
-                        <Input
-                          placeholder="Digite uma subcategoria personalizada"
-                          value={customSubcategoryName}
-                          onChange={(e) => setCustomSubcategoryName(e.target.value)}
-                          className="border-primary"
-                          onKeyDown={(e) => {
-                            // Prevenir submissão do formulário quando pressionar Enter neste campo
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                            }
-                          }}
-                        />
+                      <div className="mt-2 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Input
+                            placeholder="Digite uma subcategoria personalizada"
+                            value={customSubcategoryName}
+                            onChange={(e) => setCustomSubcategoryName(e.target.value)}
+                            className="border-primary flex-grow"
+                            onKeyDown={(e) => {
+                              // Prevenir submissão do formulário quando pressionar Enter neste campo
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                              }
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="bg-orange-500 text-white hover:bg-orange-600"
+                            onClick={() => {
+                              if (!customSubcategoryName.trim()) {
+                                toast({
+                                  title: "Campo obrigatório",
+                                  description: "Por favor, digite um nome para a subcategoria personalizada",
+                                  variant: "destructive"
+                                });
+                                return;
+                              }
+                              toast({
+                                title: "Subcategoria adicionada",
+                                description: `A subcategoria "${customSubcategoryName.trim()}" foi definida com sucesso.`,
+                              });
+                            }}
+                          >
+                            Confirmar
+                          </Button>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          Digite o nome da subcategoria personalizada e clique em "Confirmar"
+                        </p>
                       </div>
                     )}
                   </FormItem>
