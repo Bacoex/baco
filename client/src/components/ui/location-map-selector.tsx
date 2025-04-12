@@ -26,7 +26,8 @@ const mapOptions = {
 };
 
 // Definir as bibliotecas como constante para evitar recriação a cada renderização
-const libraries = ['places'];
+// Usando 'as any' para contornar limitações de tipagem da biblioteca
+const libraries = ['places'] as any;
 
 interface LocationMapSelectorProps {
   onLocationSelect: (location: string, coordinates: string) => void;
