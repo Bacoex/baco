@@ -85,6 +85,7 @@ export interface IStorage {
   createNotification(data: InsertNotification): Promise<Notification>;
   addNotificationRecipients(notificationId: number, userIds: number[]): Promise<NotificationRecipient[]>;
   getNotificationsByUser(userId: number): Promise<{notification: Notification, recipient: NotificationRecipient}[]>;
+  getNotificationsBySourceAndType(sourceId: number, type: string): Promise<Notification[]>;
   markNotificationAsRead(recipientId: number): Promise<void>;
   deleteNotificationForUser(recipientId: number): Promise<void>;
   getEventParticipantsAndCreator(eventId: number): Promise<number[]>; // Retorna IDs de todos os usuários envolvidos em um evento
