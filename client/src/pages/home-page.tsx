@@ -95,7 +95,7 @@ export default function HomePage() {
       <Header />
       
       {/* Filtro de categorias */}
-      <div className="relative pt-24">
+      <div className="relative pt-24 w-full overflow-hidden">
         <CategoryFilter
           categories={categories as EventCategory[]}
           selectedCategory={selectedCategory}

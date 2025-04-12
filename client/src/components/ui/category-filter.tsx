@@ -32,9 +32,9 @@ export default function CategoryFilter({
 }: CategoryFilterProps) {
   return (
     <div className="py-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="w-full">
         <ScrollArea className="w-full whitespace-nowrap">
-          <div className="flex px-2 space-x-3">
+          <div className="flex pl-4 pr-8 space-x-3">
             <Button
               variant={selectedCategory === null ? "default" : "outline"}
               size="sm"
