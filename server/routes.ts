@@ -251,11 +251,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!city && event.location) {
           console.log(`Tentando extrair cidade da localização: "${event.location}"`);
           
+          // Caso específico para localização em formato brasileiro "Bauru, SP"
+          const spPattern = /([^,]+),\s*SP/i;
+          const spMatch = event.location.match(spPattern);
+          if (spMatch && spMatch[1]) {
+            city = spMatch[1].trim();
+            console.log(`Cidade extraída do padrão "[Cidade], SP": "${city}"`);
+          }
+          // Tentar o caso específico de "São Paulo"
+          else if (event.location.includes("São Paulo") || event.location.includes("Sao Paulo")) {
+            city = "São Paulo";
+            console.log(`Encontrado "São Paulo" na localização`);
+          }
           // Tentar o caso específico de "Rio de Janeiro" que pode aparecer de várias formas
-          if (event.location.includes("Rio de Janeiro")) {
+          else if (event.location.includes("Rio de Janeiro")) {
             city = "Rio de Janeiro";
             console.log(`Encontrado "Rio de Janeiro" na localização`);
-          } 
+          }
+          // Formato como "Avaré, State of São Paulo, Brazil"
+          else if (event.location.includes("State of")) {
+            const statePattern = /([^,]+),\s*State\s+of/i;
+            const stateMatch = event.location.match(statePattern);
+            if (stateMatch && stateMatch[1]) {
+              city = stateMatch[1].trim();
+              console.log(`Cidade extraída antes de "State of": "${city}"`);
+            }
+          }
+          // Especial para a cidade de Avaré
+          else if (event.location.includes("Avaré")) {
+            city = "Avaré";
+            console.log(`Encontrado "Avaré" na localização`);
+          }
           // Formato como "Av. Atlântica, 1702 - Copacabana, Rio de Janeiro - RJ"
           else if (event.location.includes(" - ")) {
             const parts = event.location.split(" - ");
