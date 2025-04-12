@@ -184,8 +184,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const existingSubcategory = existingSubcategories.find(sub => 
           sub.name.toLowerCase() === name.toLowerCase()
         );
-        console.log(`Subcategoria com nome similar já existe: ${existingSubcategory.name} (ID: ${existingSubcategory.id})`);
-        return res.status(200).json(existingSubcategory);
+        if (existingSubcategory) {
+          console.log(`Subcategoria com nome similar já existe: ${existingSubcategory.name} (ID: ${existingSubcategory.id})`);
+          return res.status(200).json(existingSubcategory);
+        }
       }
 
       // Se já existe subcategoria com mesmo slug, verifica se também tem o mesmo nome
@@ -194,14 +196,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           sub.slug.toLowerCase() === slug.toLowerCase()
         );
         
-        // Se o slug existe mas com nome diferente, gera erro
-        if (existingSubcategory.name.toLowerCase() !== name.toLowerCase()) {
-          return res.status(409).json({ message: "Já existe uma subcategoria com este slug" });
+        if (existingSubcategory) {
+          // Se o slug existe mas com nome diferente, gera erro
+          if (existingSubcategory.name.toLowerCase() !== name.toLowerCase()) {
+            return res.status(409).json({ message: "Já existe uma subcategoria com este slug" });
+          }
+          
+          // Se é exatamente a mesma subcategoria, retorna-a
+          console.log(`Subcategoria com slug similar já existe: ${existingSubcategory.name} (ID: ${existingSubcategory.id})`);
+          return res.status(200).json(existingSubcategory);
         }
-        
-        // Se é exatamente a mesma subcategoria, retorna-a
-        console.log(`Subcategoria com slug similar já existe: ${existingSubcategory.name} (ID: ${existingSubcategory.id})`);
-        return res.status(200).json(existingSubcategory);
       }
 
       // Criar a nova subcategoria
@@ -216,6 +220,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao criar subcategoria:", error);
       res.status(500).json({ message: "Erro ao criar subcategoria" });
+    }
+  });
+
+  /**
+   * Rotas de Filtros
+   */
+  app.get("/api/filters/cities", async (req, res) => {
+    try {
+      // Buscar todos os eventos
+      const events = await storage.getEvents();
+      
+      // Extrair cidades únicas e contar ocorrências
+      const cityCount = new Map<string, number>();
+      
+      events.forEach(event => {
+        if (event.location) {
+          // Extrair apenas a cidade da localização (assumindo formato "Endereço, Cidade, Estado, CEP, País")
+          const locationParts = event.location.split(',');
+          let city = "";
+          
+          if (locationParts.length >= 2) {
+            // Pegar parte que contém a cidade
+            city = locationParts[1].trim();
+          } else {
+            // Se não tiver o formato esperado, usar a localização completa
+            city = event.location.trim();
+          }
+          
+          // Incrementar contador para esta cidade
+          if (city) {
+            cityCount.set(city, (cityCount.get(city) || 0) + 1);
+          }
+        }
+      });
+      
+      // Converter para array de objetos
+      const citiesWithCount = Array.from(cityCount.entries()).map(([name, count]) => ({
+        name,
+        count
+      }));
+      
+      res.json(citiesWithCount);
+    } catch (error) {
+      console.error("Erro ao buscar cidades para filtro:", error);
+      res.status(500).json({ message: "Erro ao buscar cidades" });
+    }
+  });
+  
+  app.get("/api/filters/subcategories", async (req, res) => {
+    try {
+      const categoryId = req.query.categoryId ? parseInt(req.query.categoryId as string) : undefined;
+      
+      // Buscar subcategorias
+      let subcategories;
+      if (categoryId) {
+        subcategories = await storage.getSubcategoriesByCategory(categoryId);
+      } else {
+        subcategories = await storage.getSubcategories();
+      }
+      
+      // Buscar todos os eventos para contar ocorrências de cada subcategoria
+      const events = await storage.getEvents();
+      
+      // Contar ocorrências de cada subcategoria
+      const subCount = new Map<number, number>();
+      events.forEach(event => {
+        if (event.subcategoryId) {
+          subCount.set(event.subcategoryId, (subCount.get(event.subcategoryId) || 0) + 1);
+        }
+      });
+      
+      // Adicionar contagem às subcategorias
+      const subcategoriesWithCount = subcategories.map(sub => ({
+        ...sub,
+        count: subCount.get(sub.id) || 0
+      }));
+      
+      res.json(subcategoriesWithCount);
+    } catch (error) {
+      console.error("Erro ao buscar subcategorias para filtro:", error);
+      res.status(500).json({ message: "Erro ao buscar subcategorias" });
     }
   });
 
@@ -294,11 +379,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Registrar o erro no sistema de logs
       try {
-        logError(`Erro na API de pesquisa: ${errorMessage}`, ErrorSeverity.ERROR, {
-          component: "SearchAPI", 
-          context: "Pesquisa",
-          additionalData: { query: req.query.q }
-        });
+        logError(
+          ErrorType.GENERAL,
+          ErrorSeverity.ERROR,
+          "SearchAPI",
+          `Erro na API de pesquisa: ${errorMessage}`,
+          { 
+            context: "Pesquisa",
+            query: req.query.q 
+          }
+        );
       } catch (logError) {
         console.error("[SEARCH] Falha ao registrar erro:", logError);
       }

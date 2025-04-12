@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Header } from "@/components/ui/header";
@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { PlusIcon, Loader2 } from "lucide-react";
 import { EventCategory, Event } from "@shared/schema";
 import { getQueryFn, queryClient } from "@/lib/queryClient";
+import { EventFilterControl } from "@/components/ui/event-filter-control";
+import { FilterOptions } from "@/components/ui/filter-dialog";
 
 /**
  * Componente da página inicial
@@ -23,6 +25,10 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [sharedEvent, setSharedEvent] = useState<Event | null>(null);
+  const [activeFilters, setActiveFilters] = useState<FilterOptions>({
+    cities: [],
+    subcategories: []
+  });
   
   // Para obter a URL atual
   const [location] = useLocation();
@@ -73,6 +79,44 @@ export default function HomePage() {
   const openCreateModal = () => setIsCreateModalOpen(true);
   const closeCreateModal = () => setIsCreateModalOpen(false);
   const handleCategorySelect = (slug: string | null) => setSelectedCategory(slug);
+  
+  // Função para lidar com mudanças nos filtros
+  const handleFilterChange = (filters: FilterOptions) => {
+    setActiveFilters(filters);
+  };
+  
+  // Filtrar eventos de acordo com os filtros selecionados
+  const filteredEvents = useMemo(() => {
+    if (!events || events.length === 0) return [];
+    
+    return (events as Event[]).filter(event => {
+      // Filtro de cidade
+      if (activeFilters.cities.length > 0) {
+        // Extrair cidade da localização do evento
+        const locationParts = event.location?.split(',') || [];
+        let eventCity = "";
+        
+        if (locationParts.length >= 2) {
+          eventCity = locationParts[1].trim();
+        } else if (event.location) {
+          eventCity = event.location.trim();
+        }
+        
+        if (eventCity && !activeFilters.cities.includes(eventCity)) {
+          return false;
+        }
+      }
+      
+      // Filtro de subcategoria
+      if (activeFilters.subcategories.length > 0) {
+        if (!event.subcategoryId || !activeFilters.subcategories.includes(event.subcategoryId)) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  }, [events, activeFilters]);
   
   // Fecha o modal de visualização de evento compartilhado
   const closeViewModal = () => {
