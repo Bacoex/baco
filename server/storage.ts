@@ -293,7 +293,8 @@ export class MemStorage implements IStorage {
       { name: "Show", slug: "concert", color: "#10b981" },
       { name: "LGBT+", slug: "lgbt", color: "pride" },
       { name: "Eventos 18+", slug: "adult", color: "#ef4444", ageRestriction: 18 },
-      { name: "Esporte", slug: "sports", color: "#2563eb" }
+      { name: "Esporte", slug: "sports", color: "#2563eb" },
+      { name: "Turismo", slug: "tourism", color: "#16a34a" }
     ];
 
     console.log("Inicializando categorias...");
@@ -387,7 +388,17 @@ export class MemStorage implements IStorage {
       { categorySlug: "sports", subcategory: { name: "Ciclismo", slug: "cycling", categoryId: 0 }},
       { categorySlug: "sports", subcategory: { name: "Natação", slug: "swimming", categoryId: 0 }},
       { categorySlug: "sports", subcategory: { name: "Tênis", slug: "tennis", categoryId: 0 }},
-      { categorySlug: "sports", subcategory: { name: "Lutas", slug: "martial-arts", categoryId: 0 }}
+      { categorySlug: "sports", subcategory: { name: "Lutas", slug: "martial-arts", categoryId: 0 }},
+      
+      // Subcategorias para Turismo
+      { categorySlug: "tourism", subcategory: { name: "Trilha Leve", slug: "easy-trail", categoryId: 0 }},
+      { categorySlug: "tourism", subcategory: { name: "Trilha Moderada", slug: "moderate-trail", categoryId: 0 }},
+      { categorySlug: "tourism", subcategory: { name: "Trilha Difícil", slug: "hard-trail", categoryId: 0 }},
+      { categorySlug: "tourism", subcategory: { name: "Passeio Urbano", slug: "urban-tour", categoryId: 0 }},
+      { categorySlug: "tourism", subcategory: { name: "Passeio Cultural", slug: "cultural-tour", categoryId: 0 }},
+      { categorySlug: "tourism", subcategory: { name: "Visita Guiada", slug: "guided-tour", categoryId: 0 }},
+      { categorySlug: "tourism", subcategory: { name: "Ecoturismo", slug: "eco-tourism", categoryId: 0 }},
+      { categorySlug: "tourism", subcategory: { name: "Cachoeiras", slug: "waterfalls", categoryId: 0 }}
     ];
 
     console.log("Inicializando subcategorias...");
