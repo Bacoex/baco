@@ -755,15 +755,17 @@ export default function ViewEventModal({
                 {/* Botões de status para experienciar (quando não é criador mas solicitou experienciar) */}
                 {/* Experienciar pendente (usa triângulo de status) */}
                 {!isCreator && isParticipant && event.eventType === 'private_application' && participationStatus === 'pending' && (
-                  <div className="w-full flex justify-center items-center mt-4">
-                    <StatusTriangle status="pending" className="mx-auto" />
+                  <div className="w-full flex flex-col justify-center items-center mt-4">
+                    <StatusTriangle status="pending" className="mb-2" />
+                    <span className="text-sm text-yellow-600 font-medium">Aguardando</span>
                   </div>
                 )}
                 
                 {/* Experienciar rejeitado (com triângulo de status) */}
                 {!isCreator && isParticipant && event.eventType === 'private_application' && participationStatus === 'rejected' && (
                   <div className="w-full flex flex-col justify-center items-center mt-4">
-                    <StatusTriangle status="rejected" className="mb-3" />
+                    <StatusTriangle status="rejected" className="mb-2" />
+                    <span className="text-sm text-red-600 font-medium mb-3">Rejeitado</span>
                     <Button 
                       size="sm"
                       className="w-[160px]"
@@ -776,15 +778,17 @@ export default function ViewEventModal({
                 
                 {/* Participante já aprovado (mostra apenas indicação visual com triângulo) */}
                 {!isCreator && isParticipant && participationStatus === 'approved' && (
-                  <div className="w-full flex justify-center items-center mt-4">
-                    <StatusTriangle status="approved" className="mx-auto" />
+                  <div className="w-full flex flex-col justify-center items-center mt-4">
+                    <StatusTriangle status="approved" className="mb-2" />
+                    <span className="text-sm text-green-600 font-medium">Aprovado</span>
                   </div>
                 )}
                 
                 {/* Participante confirmado (mostra apenas indicação visual com triângulo) */}
                 {!isCreator && isParticipant && participationStatus === 'confirmed' && (
-                  <div className="w-full flex justify-center items-center mt-4">
-                    <StatusTriangle status="confirmed" className="mx-auto" />
+                  <div className="w-full flex flex-col justify-center items-center mt-4">
+                    <StatusTriangle status="confirmed" className="mb-2" />
+                    <span className="text-sm text-blue-600 font-medium">Confirmado</span>
                   </div>
                 )}
                 
