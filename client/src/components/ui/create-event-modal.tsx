@@ -82,6 +82,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
   const [showCustomSubcategory, setShowCustomSubcategory] = useState(false);
   const [customSubcategoryName, setCustomSubcategoryName] = useState('');
   const [isAddingSubcategory, setIsAddingSubcategory] = useState(false);
+  const [dropdownOpened, setDropdownOpened] = useState(false);
   
   // Debug log para verificar se as categorias estão sendo passadas corretamente
   console.log("Categorias disponíveis no CreateEventModal:", categories);
@@ -441,9 +442,17 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                               {subcategory.name}
                             </SelectItem>
                           ))}
-                          <SelectItem value="-1" className="text-primary font-medium">
+                          <SelectItem value="-1" className="text-primary font-medium border-t mt-2 pt-2" id="add-subcategory-item">
                             + Adicionar outra subcategoria
                           </SelectItem>
+                          {/* Log do estado do dropdown para depuração */}
+                          {console.log("Renderizando dropdown de subcategorias:", {
+                            subcategorias: subcategories,
+                            isLoadingSubcategories,
+                            isAddingSubcategory,
+                            showCustomSubcategory,
+                            disabled: isLoadingSubcategories || isAddingSubcategory
+                          })}
                         </SelectContent>
                       </Select>
                       <FormMessage />
