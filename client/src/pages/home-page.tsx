@@ -9,11 +9,11 @@ import ViewEventModal from "@/components/ui/view-event-modal";
 import NetworkBackground from "@/components/ui/network-background";
 import { SearchBar } from "@/components/ui/search-bar";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, Loader2 } from "lucide-react";
+import { PlusIcon, Loader2, FilterIcon } from "lucide-react";
 import { EventCategory, Event } from "@shared/schema";
 import { getQueryFn, queryClient } from "@/lib/queryClient";
-import { EventFilterControl } from "@/components/ui/event-filter-control";
-import { FilterOptions } from "@/components/ui/filter-dialog";
+import { FilterDialog, FilterOptions } from "@/components/ui/filter-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 /**
  * Componente da página inicial
@@ -159,13 +159,24 @@ export default function HomePage() {
                   ? `Eventos de ${(categories as EventCategory[]).find(c => c.slug === selectedCategory)?.name || selectedCategory}` 
                   : "Eventos em destaque"}
               </h2>
-              <EventFilterControl 
-                onFilterChange={handleFilterChange} 
-                categoryId={selectedCategory 
-                  ? (categories as EventCategory[]).find(c => c.slug === selectedCategory)?.id 
-                  : undefined
-                }
-              />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <FilterDialog 
+                        onFilterChange={handleFilterChange} 
+                        categoryId={selectedCategory 
+                          ? (categories as EventCategory[]).find(c => c.slug === selectedCategory)?.id 
+                          : undefined
+                        }
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Filtrar eventos por cidade ou subcategoria</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <div className="mx-auto w-24 h-0.5 bg-primary rounded-full mt-1"></div>
           </div>
