@@ -149,6 +149,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao buscar subcategorias" });
     }
   });
+  
+  /**
+   * Rota para criar uma nova subcategoria
+   * Permite que usuários adicionem subcategorias personalizadas
+   */
+  app.post("/api/subcategories", async (req, res) => {
+    try {
+      const { name, slug, categoryId } = req.body;
+      
+      // Validar dados da subcategoria
+      if (!name || !slug || !categoryId) {
+        return res.status(400).json({ message: "Nome, slug e ID da categoria são obrigatórios" });
+      }
+
+      // Verificar se a categoria existe
+      const category = await storage.getCategory(categoryId);
+      if (!category) {
+        return res.status(404).json({ message: "Categoria não encontrada" });
+      }
+
+      // Verificar se já existe subcategoria com mesmo nome/slug
+      const existingSubcategories = await storage.getSubcategoriesByCategory(categoryId);
+      const nameExists = existingSubcategories.some(sub => 
+        sub.name.toLowerCase() === name.toLowerCase()
+      );
+      
+      const slugExists = existingSubcategories.some(sub => 
+        sub.slug.toLowerCase() === slug.toLowerCase()
+      );
+
+      if (nameExists) {
+        return res.status(409).json({ message: "Já existe uma subcategoria com este nome" });
+      }
+
+      if (slugExists) {
+        return res.status(409).json({ message: "Já existe uma subcategoria com este slug" });
+      }
+
+      // Criar a nova subcategoria
+      const newSubcategory = await storage.createSubcategory({
+        name, 
+        slug, 
+        categoryId
+      });
+
+      // Responder com a subcategoria criada
+      res.status(201).json(newSubcategory);
+    } catch (error) {
+      console.error("Erro ao criar subcategoria:", error);
+      res.status(500).json({ message: "Erro ao criar subcategoria" });
+    }
+  });
 
   /**
    * Rota de Pesquisa
