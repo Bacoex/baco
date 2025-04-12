@@ -65,14 +65,53 @@ export default function HomePage() {
     queryFn: getQueryFn({ on401: "returnNull" })
   });
   
-  // Busca todos os eventos com possível filtro de categoria
+  // Busca todos os eventos com possíveis filtros (categoria, cidade, subcategoria)
   const { 
     data: events = [], 
     isLoading: eventsLoading,
     isError: eventsError 
   } = useQuery({
-    queryKey: ["/api/events", selectedCategory],
-    queryFn: getQueryFn({ on401: "returnNull" })
+    queryKey: ["/api/events", selectedCategory, activeFilters],
+    queryFn: async ({ queryKey }) => {
+      try {
+        // Construir URL base com os parâmetros de filtro
+        let url = "/api/events";
+        const params = new URLSearchParams();
+        
+        // Adicionar categoria se selecionada
+        if (selectedCategory) {
+          params.append("category", selectedCategory);
+        }
+        
+        // Adicionar cidade se filtrada
+        if (activeFilters.cities.length > 0) {
+          params.append("city", activeFilters.cities[0]); // Por enquanto só podemos filtrar por uma cidade
+        }
+        
+        // Adicionar subcategoria se filtrada
+        if (activeFilters.subcategories.length > 0) {
+          params.append("subcategory", activeFilters.subcategories[0].toString()); // Por enquanto só podemos filtrar por uma subcategoria
+        }
+        
+        // Adicionar parâmetros à URL se existirem
+        const queryString = params.toString();
+        if (queryString) {
+          url += `?${queryString}`;
+        }
+        
+        console.log("Filtrando eventos com URL:", url);
+        
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error("Erro ao buscar eventos filtrados");
+        }
+        return await response.json();
+      } catch (error) {
+        console.error("Erro ao filtrar eventos:", error);
+        return [];
+      }
+    },
+    staleTime: 5 * 1000, // 5 segundos
   });
   
   // Funções auxiliares
@@ -85,38 +124,7 @@ export default function HomePage() {
     setActiveFilters(filters);
   };
   
-  // Filtrar eventos de acordo com os filtros selecionados
-  const filteredEvents = useMemo(() => {
-    if (!events || events.length === 0) return [];
-    
-    return (events as Event[]).filter(event => {
-      // Filtro de cidade
-      if (activeFilters.cities.length > 0) {
-        // Extrair cidade da localização do evento
-        const locationParts = event.location?.split(',') || [];
-        let eventCity = "";
-        
-        if (locationParts.length >= 2) {
-          eventCity = locationParts[1].trim();
-        } else if (event.location) {
-          eventCity = event.location.trim();
-        }
-        
-        if (eventCity && !activeFilters.cities.includes(eventCity)) {
-          return false;
-        }
-      }
-      
-      // Filtro de subcategoria
-      if (activeFilters.subcategories.length > 0) {
-        if (!event.subcategoryId || !activeFilters.subcategories.includes(event.subcategoryId)) {
-          return false;
-        }
-      }
-      
-      return true;
-    });
-  }, [events, activeFilters]);
+  // Não precisamos mais filtrar os eventos manualmente, pois a API já retorna os eventos filtrados
   
   // Fecha o modal de visualização de evento compartilhado
   const closeViewModal = () => {
@@ -192,24 +200,25 @@ export default function HomePage() {
             </div>
           ) : (events as Event[]).length === 0 ? (
             <div className="text-center p-8 border border-dashed border-gray-700 rounded-lg bg-black/50 backdrop-blur-sm">
-              <p className="text-lg text-gray-300">Nenhum evento encontrado.</p>
-              <p className="text-md text-gray-400 mt-2">
-                Que tal ser o primeiro a criar um evento?
+              <p className="text-lg text-gray-300">
+                {(activeFilters.cities.length > 0 || activeFilters.subcategories.length > 0) 
+                  ? "Nenhum evento encontrado com os filtros selecionados." 
+                  : "Nenhum evento encontrado."}
               </p>
-              <Button onClick={openCreateModal} className="mt-4 bg-primary hover:bg-primary/90">
-                Criar Evento
-              </Button>
-            </div>
-          ) : filteredEvents.length === 0 ? (
-            <div className="text-center p-8 border border-dashed border-gray-700 rounded-lg bg-black/50 backdrop-blur-sm">
-              <p className="text-lg text-gray-300">Nenhum evento encontrado com os filtros selecionados.</p>
               <p className="text-md text-gray-400 mt-2">
-                Tente outros filtros ou <Button variant="link" className="p-0 h-auto text-primary" onClick={() => setActiveFilters({ cities: [], subcategories: [] })}>remova todos os filtros</Button>.
+                {(activeFilters.cities.length > 0 || activeFilters.subcategories.length > 0) 
+                  ? <>Tente outros filtros ou <Button variant="link" className="p-0 h-auto text-primary" onClick={() => setActiveFilters({ cities: [], subcategories: [] })}>remova todos os filtros</Button>.</>
+                  : "Que tal ser o primeiro a criar um evento?"}
               </p>
+              {(activeFilters.cities.length === 0 && activeFilters.subcategories.length === 0) && (
+                <Button onClick={openCreateModal} className="mt-4 bg-primary hover:bg-primary/90">
+                  Criar Evento
+                </Button>
+              )}
             </div>
           ) : (
             <div className="space-y-6">
-              {filteredEvents.map((event) => (
+              {(events as Event[]).map((event) => (
                 <EventCard key={event.id} event={event} />
               ))}
             </div>

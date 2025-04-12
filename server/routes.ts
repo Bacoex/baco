@@ -541,12 +541,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/events", async (req, res) => {
     try {
       let events;
+      
+      // Filtrar inicialmente por categoria se fornecida
       if (req.query.category) {
         const category = await storage.getCategoryBySlug(req.query.category as string);
         events = category ? await storage.getEventsByCategory(category.id) : await storage.getEvents();
       } else {
         events = await storage.getEvents();
       }
+      
+      // Filtrar por cidade
+      if (req.query.city) {
+        const cityFilter = (req.query.city as string).toLowerCase();
+        console.log(`Aplicando filtro de cidade: "${cityFilter}"`);
+        
+        events = events.filter(event => {
+          // Extrair cidade do nome do evento
+          let cityFromName = "";
+          if (event.name) {
+            const eventMatch = event.name.match(/em\s+([^,]+)($|,)/i);
+            if (eventMatch && eventMatch[1]) {
+              cityFromName = eventMatch[1].trim().toLowerCase();
+            }
+          }
+          
+          // Extrair cidade da localização
+          let cityFromLocation = "";
+          if (event.location) {
+            // Diferentes padrões para localização
+            if (event.location.toLowerCase().includes(cityFilter)) {
+              cityFromLocation = cityFilter;
+            }
+          }
+          
+          // Verificar se alguma das cidades extraídas corresponde ao filtro
+          const matchesCity = cityFromName === cityFilter || cityFromLocation === cityFilter;
+          
+          if (matchesCity) {
+            console.log(`Evento "${event.name}" corresponde ao filtro de cidade "${cityFilter}"`);
+          }
+          
+          return matchesCity;
+        });
+      }
+      
+      // Filtrar por subcategoria
+      if (req.query.subcategory) {
+        const subcategoryId = parseInt(req.query.subcategory as string);
+        if (!isNaN(subcategoryId)) {
+          console.log(`Aplicando filtro de subcategoria: ID=${subcategoryId}`);
+          events = events.filter(event => {
+            const matches = event.subcategoryId === subcategoryId;
+            if (matches) {
+              console.log(`Evento "${event.name}" corresponde ao filtro de subcategoria ID=${subcategoryId}`);
+            }
+            return matches;
+          });
+        }
+      }
+      
+      console.log(`Total de eventos após filtros: ${events.length}`);
 
       const eventsWithDetails = await Promise.all(
         events.map(async (event) => {
@@ -569,6 +623,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(eventsWithDetails);
     } catch (err) {
+      console.error("Erro ao filtrar eventos:", err);
       res.status(500).json({ message: "Erro ao buscar eventos" });
     }
   });

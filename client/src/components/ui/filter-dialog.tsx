@@ -84,21 +84,22 @@ export function FilterDialog({ onFilterChange, categoryId }: FilterDialogProps) 
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
 
-  // Buscar subcategorias disponíveis
+  // Buscar subcategorias ativas disponíveis (apenas aquelas que têm eventos)
   const { data: subcategoriesData } = useQuery<SubCategory[]>({
-    queryKey: ["/api/filters/subcategories", categoryId],
+    queryKey: ["/api/filters/subcategories/active", categoryId],
     queryFn: async () => {
       try {
+        // Usar a nova rota que retorna apenas subcategorias com eventos associados
         const url = categoryId 
-          ? `/api/filters/subcategories?categoryId=${categoryId}` 
-          : "/api/filters/subcategories";
+          ? `/api/filters/subcategories/active?categoryId=${categoryId}` 
+          : "/api/filters/subcategories/active";
         const response = await fetch(url);
         if (!response.ok) {
-          throw new Error("Erro ao buscar subcategorias");
+          throw new Error("Erro ao buscar subcategorias ativas");
         }
         return await response.json();
       } catch (error) {
-        console.error("Erro ao carregar subcategorias:", error);
+        console.error("Erro ao carregar subcategorias ativas:", error);
         return [];
       }
     },
