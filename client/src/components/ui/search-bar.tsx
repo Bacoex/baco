@@ -1,9 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
 
-export function SearchBar() {
+interface SearchBarProps {
+  filterButton?: ReactNode;
+}
+
+export function SearchBar({ filterButton }: SearchBarProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [, navigate] = useLocation();
   
@@ -30,6 +34,14 @@ export function SearchBar() {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1 bg-transparent border-0 p-3 pl-4 pr-10 text-white placeholder:text-white/60 focus-visible:ring-0 focus-visible:ring-offset-0"
         />
+        
+        {/* Botão de filtro (opcional) antes da lupa */}
+        {filterButton && (
+          <div className="absolute right-10 flex items-center">
+            {filterButton}
+          </div>
+        )}
+        
         <button 
           type="submit" 
           className="absolute right-3 text-white/70 hover:text-white"
