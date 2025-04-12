@@ -41,6 +41,7 @@ export interface IStorage {
 
   // Categorias de eventos
   getCategories(): Promise<EventCategory[]>;
+  getCategory(id: number): Promise<EventCategory | undefined>;
   getCategoryBySlug(slug: string): Promise<EventCategory | undefined>;
   createCategory(category: InsertEventCategory): Promise<EventCategory>;
 
@@ -557,6 +558,10 @@ export class MemStorage implements IStorage {
     return Array.from(this.categoriesMap.values()).sort((a, b) => 
       a.name.localeCompare(b.name, 'pt-BR')
     );
+  }
+
+  async getCategory(id: number): Promise<EventCategory | undefined> {
+    return this.categoriesMap.get(id);
   }
 
   async getCategoryBySlug(slug: string): Promise<EventCategory | undefined> {
