@@ -725,7 +725,7 @@ export default function ViewEventModal({
               </div>
               
               {/* Botões de ação */}
-              <div className="flex flex-wrap justify-end mt-6 space-y-4">
+              <div className="mt-6">
                 
                 {/* Botão de participar/cancelar participação */}
                 {!isCreator && (
