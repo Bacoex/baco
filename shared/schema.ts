@@ -383,6 +383,9 @@ export const insertEventSchema = createInsertSchema(events).omit({
   id: true,
   createdAt: true,
   creatorId: true
+}).extend({
+  // Campo para subcategoria personalizada (quando subcategoryId é -1)
+  customSubcategoryName: z.string().optional()
 });
 
 /**

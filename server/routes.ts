@@ -447,6 +447,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.body.coordinates) {
         console.log("Coordenadas recebidas:", req.body.coordinates);
       }
+
+      // Verificar se é uma subcategoria personalizada
+      if (eventData.subcategoryId === -1 && eventData.customSubcategoryName) {
+        // Extrair o nome e criar um slug para a subcategoria personalizada
+        const subcategoryName = eventData.customSubcategoryName.trim();
+        const subcategorySlug = subcategoryName
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
+        
+        // Verificar se já existe uma subcategoria com esse nome para a categoria
+        const existingSubcategories = await storage.getSubcategoriesByCategory(eventData.categoryId);
+        const similarSubcategory = existingSubcategories.find(
+          sub => sub.name.toLowerCase() === subcategoryName.toLowerCase()
+        );
+        
+        if (similarSubcategory) {
+          // Usar subcategoria existente
+          console.log(`Usando subcategoria existente: ${similarSubcategory.name} (ID: ${similarSubcategory.id})`);
+          eventData.subcategoryId = similarSubcategory.id;
+        } else {
+          // Criar nova subcategoria
+          const newSubcategory = await storage.createSubcategory({
+            name: subcategoryName,
+            slug: subcategorySlug,
+            categoryId: eventData.categoryId
+          });
+          
+          console.log(`Criada nova subcategoria: ${newSubcategory.name} (ID: ${newSubcategory.id})`);
+          eventData.subcategoryId = newSubcategory.id;
+        }
+        
+        // Remover o campo customSubcategoryName antes de criar o evento
+        delete eventData.customSubcategoryName;
+      }
       
       const event = await storage.createEvent(eventData, req.user!.id);
       const categories = await storage.getCategories();
