@@ -88,7 +88,7 @@ export function FilterDialog({ onFilterChange, categoryId }: FilterDialogProps) 
   });
 
   // Buscar subcategorias ativas disponíveis (apenas aquelas que têm eventos)
-  const { data: subcategoriesData } = useQuery<SubCategory[]>({
+  const { data: subcategoriesData, refetch: refetchSubcategories } = useQuery<SubCategory[]>({
     queryKey: ["/api/filters/subcategories/active", categoryId],
     queryFn: async () => {
       try {
@@ -100,13 +100,16 @@ export function FilterDialog({ onFilterChange, categoryId }: FilterDialogProps) 
         if (!response.ok) {
           throw new Error("Erro ao buscar subcategorias ativas");
         }
-        return await response.json();
+        const data = await response.json();
+        console.log("Subcategorias carregadas:", data);
+        return data;
       } catch (error) {
         console.error("Erro ao carregar subcategorias ativas:", error);
         return [];
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    refetchOnWindowFocus: true,
+    staleTime: 1000, // Reduzido para 1 segundo para atualizar mais rapidamente
   });
 
   // Filtrar cidades pela busca
@@ -206,10 +209,11 @@ export function FilterDialog({ onFilterChange, categoryId }: FilterDialogProps) 
         subcategories: selectedSubcategories
       });
     } else {
-      // Quando o diálogo for aberto, atualizar dados de cidades
+      // Quando o diálogo for aberto, atualizar dados de cidades e subcategorias
       refetchCities();
+      refetchSubcategories();
     }
-  }, [isOpen, refetchCities]);
+  }, [isOpen, refetchCities, refetchSubcategories]);
 
   // Total de filtros ativos
   const totalActiveFilters = selectedCities.length + selectedSubcategories.length;
@@ -298,7 +302,7 @@ export function FilterDialog({ onFilterChange, categoryId }: FilterDialogProps) 
                 <AccordionItem value="city">
                   <AccordionTrigger>Cidade</AccordionTrigger>
                   <AccordionContent>
-                    <div className="space-y-4">
+                    <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
                       <div>
                         <Label htmlFor="city-search">Buscar cidade</Label>
                         <Input 
@@ -310,7 +314,7 @@ export function FilterDialog({ onFilterChange, categoryId }: FilterDialogProps) 
                         />
                       </div>
                       
-                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                      <div className="space-y-2">
                         {filteredCities.length > 0 ? (
                           filteredCities.map((city) => (
                             <div key={city.name} className="flex items-center space-x-2">
@@ -348,7 +352,7 @@ export function FilterDialog({ onFilterChange, categoryId }: FilterDialogProps) 
                 <AccordionItem value="subcategory">
                   <AccordionTrigger>Subcategoria</AccordionTrigger>
                   <AccordionContent>
-                    <div className="space-y-4">
+                    <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
                       <div>
                         <Label htmlFor="subcategory-search">Buscar subcategoria</Label>
                         <Input 
@@ -360,7 +364,7 @@ export function FilterDialog({ onFilterChange, categoryId }: FilterDialogProps) 
                         />
                       </div>
                       
-                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                      <div className="space-y-2">
                         {filteredSubcategories.length > 0 ? (
                           filteredSubcategories.map((subcategory) => (
                             <div key={subcategory.id} className="flex items-center space-x-2">
