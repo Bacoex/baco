@@ -79,6 +79,9 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
   const [selectedCategoryId, setSelectedCategoryId] = useState<number>(0);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [isLoadingSubcategories, setIsLoadingSubcategories] = useState(false);
+  const [showCustomSubcategory, setShowCustomSubcategory] = useState(false);
+  const [customSubcategoryName, setCustomSubcategoryName] = useState('');
+  const [isAddingSubcategory, setIsAddingSubcategory] = useState(false);
   
   // Debug log para verificar se as categorias estão sendo passadas corretamente
   console.log("Categorias disponíveis no CreateEventModal:", categories);
@@ -387,42 +390,157 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
 
             {/* Subcategoria (aparece só quando uma categoria é selecionada) */}
             {selectedCategoryId > 0 && (
-              <FormField
-                control={form.control}
-                name="subcategoryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Subcategoria</FormLabel>
-                    <FormDescription className="text-xs">
-                      Opcional - Selecione uma subcategoria para classificar seu evento
-                    </FormDescription>
-                    <Select 
-                      onValueChange={(value) => {
-                        // Convertemos para número ou null se for 0
-                        const numValue = parseInt(value);
-                        field.onChange(numValue === 0 ? null : numValue);
-                      }}
-                      value={field.value !== null && field.value !== undefined ? field.value.toString() : "0"}
-                      disabled={isLoadingSubcategories || subcategories.length === 0}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={isLoadingSubcategories ? "Carregando..." : subcategories.length === 0 ? "Sem subcategorias disponíveis" : "Selecione uma subcategoria"} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="0">Nenhuma subcategoria</SelectItem>
-                        {subcategories.map((subcategory) => (
-                          <SelectItem key={subcategory.id} value={subcategory.id.toString()}>
-                            {subcategory.name}
+              <>
+                <FormField
+                  control={form.control}
+                  name="subcategoryId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subcategoria</FormLabel>
+                      <FormDescription className="text-xs">
+                        Opcional - Selecione uma subcategoria para classificar seu evento
+                      </FormDescription>
+                      <Select 
+                        onValueChange={(value) => {
+                          const numValue = parseInt(value);
+                          
+                          // Se selecionou "Adicionar outra subcategoria"
+                          if (numValue === -1) {
+                            setShowCustomSubcategory(true);
+                            // Resetamos o valor do campo para que não seja enviado -1
+                            field.onChange(null);
+                          } else {
+                            // Convertemos para número ou null se for 0
+                            field.onChange(numValue === 0 ? null : numValue);
+                            setShowCustomSubcategory(false);
+                          }
+                        }}
+                        value={field.value !== null && field.value !== undefined ? field.value.toString() : "0"}
+                        disabled={isLoadingSubcategories || subcategories.length === 0 || isAddingSubcategory}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={isLoadingSubcategories ? "Carregando..." : subcategories.length === 0 ? "Sem subcategorias disponíveis" : "Selecione uma subcategoria"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="0">Nenhuma subcategoria</SelectItem>
+                          {subcategories.map((subcategory) => (
+                            <SelectItem key={subcategory.id} value={subcategory.id.toString()}>
+                              {subcategory.name}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="-1" className="text-primary font-medium">
+                            + Adicionar outra subcategoria
                           </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Campo para adicionar subcategoria personalizada */}
+                {showCustomSubcategory && (
+                  <div className="mt-2 border border-primary/20 rounded-md p-4 bg-primary/5">
+                    <h4 className="text-sm font-medium mb-2">Nova Subcategoria</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <FormLabel className="text-xs">Nome da subcategoria</FormLabel>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            placeholder="Digite o nome da nova subcategoria"
+                            value={customSubcategoryName}
+                            onChange={(e) => setCustomSubcategoryName(e.target.value)}
+                            disabled={isAddingSubcategory}
+                          />
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={async () => {
+                              if (!customSubcategoryName.trim()) {
+                                toast({
+                                  title: "Nome inválido",
+                                  description: "Digite um nome para a subcategoria",
+                                  variant: "destructive",
+                                });
+                                return;
+                              }
+                              
+                              setIsAddingSubcategory(true);
+                              try {
+                                // Criar slug a partir do nome (formato padronizado para URLs)
+                                const slug = customSubcategoryName
+                                  .toLowerCase()
+                                  .normalize('NFD')
+                                  .replace(/[\u0300-\u036f]/g, '')
+                                  .replace(/[^\w\s]/g, '')
+                                  .replace(/\s+/g, '-');
+                                
+                                // Enviar a nova subcategoria para o servidor
+                                const res = await apiRequest("POST", "/api/subcategories", {
+                                  name: customSubcategoryName,
+                                  slug,
+                                  categoryId: selectedCategoryId
+                                });
+                                
+                                if (!res.ok) {
+                                  const errorData = await res.json();
+                                  throw new Error(errorData.message || 'Erro ao criar subcategoria');
+                                }
+                                
+                                const newSubcategory = await res.json();
+                                
+                                // Adicionar a nova subcategoria à lista e selecionar
+                                setSubcategories([...subcategories, newSubcategory]);
+                                form.setValue("subcategoryId", newSubcategory.id);
+                                
+                                toast({
+                                  title: "Sucesso!",
+                                  description: "Subcategoria adicionada com sucesso",
+                                });
+                                
+                                // Limpar e fechar o formulário de nova subcategoria
+                                setCustomSubcategoryName('');
+                                setShowCustomSubcategory(false);
+                              } catch (error) {
+                                console.error("Erro ao adicionar subcategoria:", error);
+                                toast({
+                                  title: "Erro",
+                                  description: error instanceof Error ? error.message : "Erro ao adicionar subcategoria",
+                                  variant: "destructive",
+                                });
+                              } finally {
+                                setIsAddingSubcategory(false);
+                              }
+                            }}
+                            disabled={!customSubcategoryName.trim() || isAddingSubcategory}
+                          >
+                            {isAddingSubcategory ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : "Adicionar"}
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setShowCustomSubcategory(false);
+                              setCustomSubcategoryName('');
+                            }}
+                            disabled={isAddingSubcategory}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                        <FormDescription className="text-xs mt-2">
+                          A subcategoria ficará disponível para todos os usuários após a adição.
+                        </FormDescription>
+                      </div>
+                    </div>
+                  </div>
                 )}
-              />
+              </>
             )}
 
             {/* Data e hora */}
