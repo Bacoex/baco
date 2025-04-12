@@ -449,7 +449,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verificar se é uma subcategoria personalizada
+      console.log("Verificando subcategoria personalizada:", eventData);
+      
       if (eventData.subcategoryId === -1 && eventData.customSubcategoryName) {
+        console.log("Detectada subcategoria personalizada:", eventData.customSubcategoryName);
+        
         // Extrair o nome e criar um slug para a subcategoria personalizada
         const subcategoryName = eventData.customSubcategoryName.trim();
         const subcategorySlug = subcategoryName
@@ -460,8 +464,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .replace(/-+/g, '-')
           .replace(/^-|-$/g, '');
         
+        console.log("Nome da subcategoria:", subcategoryName);
+        console.log("Slug gerado:", subcategorySlug);
+        
         // Verificar se já existe uma subcategoria com esse nome para a categoria
         const existingSubcategories = await storage.getSubcategoriesByCategory(eventData.categoryId);
+        console.log("Subcategorias existentes:", existingSubcategories);
+        
         const similarSubcategory = existingSubcategories.find(
           sub => sub.name.toLowerCase() === subcategoryName.toLowerCase()
         );
@@ -472,6 +481,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eventData.subcategoryId = similarSubcategory.id;
         } else {
           // Criar nova subcategoria
+          console.log("Criando nova subcategoria:", subcategoryName);
           const newSubcategory = await storage.createSubcategory({
             name: subcategoryName,
             slug: subcategorySlug,
@@ -484,6 +494,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Remover o campo customSubcategoryName antes de criar o evento
         delete eventData.customSubcategoryName;
+        console.log("Dados do evento após processar subcategoria personalizada:", eventData);
+      } else {
+        console.log("Nenhuma subcategoria personalizada detectada ou subcategoryId não é -1:", 
+                   eventData.subcategoryId, eventData.customSubcategoryName);
       }
       
       const event = await storage.createEvent(eventData, req.user!.id);

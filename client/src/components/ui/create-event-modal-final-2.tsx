@@ -239,13 +239,16 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
   function onSubmit(data: EventFormValues) {
     // Se selecionou "Outros" e preencheu uma subcategoria personalizada
     if (data.subcategoryId === -1 && customSubcategoryName.trim()) {
+      console.log("Criando evento com subcategoria personalizada:", customSubcategoryName.trim());
       // Adiciona a subcategoria personalizada aos dados do evento
       const dataWithCustomSubcategory = {
         ...data,
         customSubcategoryName: customSubcategoryName.trim()
       };
+      console.log("Dados completos a serem enviados:", dataWithCustomSubcategory);
       createEventMutation.mutate(dataWithCustomSubcategory);
     } else {
+      console.log("Criando evento com subcategoria padrão:", data.subcategoryId);
       createEventMutation.mutate(data);
     }
   }
