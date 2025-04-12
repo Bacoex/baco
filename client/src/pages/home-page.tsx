@@ -163,7 +163,7 @@ export default function HomePage() {
       <main className="flex-grow px-4 pb-20 relative z-10">
         <div className="container mx-auto">
           
-          {/* Título da seção com filtro */}
+          {/* Título da seção */}
           <div className="flex flex-col items-center pb-6">
             <div className="mb-2 flex items-center gap-3 justify-center">
               <h2 className="text-xl font-semibold inline-block text-white">
@@ -171,24 +171,6 @@ export default function HomePage() {
                   ? `Eventos de ${(categories as EventCategory[]).find(c => c.slug === selectedCategory)?.name || selectedCategory}` 
                   : "Eventos em destaque"}
               </h2>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div>
-                      <FilterDialog 
-                        onFilterChange={handleFilterChange} 
-                        categoryId={selectedCategory 
-                          ? (categories as EventCategory[]).find(c => c.slug === selectedCategory)?.id 
-                          : undefined
-                        }
-                      />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Filtrar eventos por cidade ou subcategoria</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
             </div>
             <div className="mx-auto w-24 h-0.5 bg-primary rounded-full mt-1"></div>
           </div>
@@ -230,8 +212,29 @@ export default function HomePage() {
         </div>
       </main>
       
-      {/* Barra de pesquisa */}
-      <SearchBar />
+      {/* Barra de pesquisa com filtro */}
+      <SearchBar
+        filterButton={
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="text-white/70 hover:text-white">
+                  <FilterDialog 
+                    onFilterChange={handleFilterChange} 
+                    categoryId={selectedCategory 
+                      ? (categories as EventCategory[]).find(c => c.slug === selectedCategory)?.id 
+                      : undefined
+                    }
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Filtrar eventos por cidade ou subcategoria</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        }
+      />
       
       {/* Botão de criar evento */}
       <div className="fixed bottom-24 right-8 z-20">
