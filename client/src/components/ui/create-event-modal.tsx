@@ -106,6 +106,14 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
       }
       const data = await response.json();
       console.log('Subcategories loaded:', data);
+      
+      // Verificar se há subcategorias
+      if (data.length === 0) {
+        console.log('Nenhuma subcategoria encontrada para esta categoria');
+      } else {
+        console.log(`${data.length} subcategorias encontradas`);
+      }
+      
       setSubcategories(data);
     } catch (error) {
       console.error('Erro ao carregar subcategorias:', error);
@@ -419,7 +427,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                           }
                         }}
                         value={field.value !== null && field.value !== undefined ? field.value.toString() : "0"}
-                        disabled={isLoadingSubcategories || subcategories.length === 0 || isAddingSubcategory}
+                        disabled={isLoadingSubcategories || isAddingSubcategory}
                       >
                         <FormControl>
                           <SelectTrigger>
