@@ -179,12 +179,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sub.slug.toLowerCase() === slug.toLowerCase()
       );
 
+      // Se já existe subcategoria com mesmo nome, retorna a existente em vez de erro
       if (nameExists) {
-        return res.status(409).json({ message: "Já existe uma subcategoria com este nome" });
+        const existingSubcategory = existingSubcategories.find(sub => 
+          sub.name.toLowerCase() === name.toLowerCase()
+        );
+        console.log(`Subcategoria com nome similar já existe: ${existingSubcategory.name} (ID: ${existingSubcategory.id})`);
+        return res.status(200).json(existingSubcategory);
       }
 
+      // Se já existe subcategoria com mesmo slug, verifica se também tem o mesmo nome
       if (slugExists) {
-        return res.status(409).json({ message: "Já existe uma subcategoria com este slug" });
+        const existingSubcategory = existingSubcategories.find(sub => 
+          sub.slug.toLowerCase() === slug.toLowerCase()
+        );
+        
+        // Se o slug existe mas com nome diferente, gera erro
+        if (existingSubcategory.name.toLowerCase() !== name.toLowerCase()) {
+          return res.status(409).json({ message: "Já existe uma subcategoria com este slug" });
+        }
+        
+        // Se é exatamente a mesma subcategoria, retorna-a
+        console.log(`Subcategoria com slug similar já existe: ${existingSubcategory.name} (ID: ${existingSubcategory.id})`);
+        return res.status(200).json(existingSubcategory);
       }
 
       // Criar a nova subcategoria

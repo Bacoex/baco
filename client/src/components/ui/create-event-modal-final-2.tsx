@@ -237,31 +237,20 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
 
   // Submit do formulário
   function onSubmit(data: EventFormValues) {
-    // Se selecionou "Outros" e não preencheu uma subcategoria personalizada
-    if (data.subcategoryId === -1 && !customSubcategoryName.trim()) {
-      // Mostra um erro de validação
+    // Não permitir envio se a opção "Outros" (-1) estiver selecionada
+    // Neste caso, o usuário precisa clicar em "Confirmar" primeiro
+    if (data.subcategoryId === -1) {
       toast({
-        title: "Campo obrigatório",
-        description: "Por favor, digite um nome para a subcategoria personalizada",
+        title: "Confirme a subcategoria",
+        description: "Por favor, digite uma subcategoria personalizada e clique em 'Confirmar' antes de criar o evento",
         variant: "destructive"
       });
-      return; // Não prossegue com o envio
+      return;
     }
     
-    // Se selecionou "Outros" e preencheu uma subcategoria personalizada
-    if (data.subcategoryId === -1 && customSubcategoryName.trim()) {
-      console.log("Criando evento com subcategoria personalizada:", customSubcategoryName.trim());
-      // Adiciona a subcategoria personalizada aos dados do evento
-      const dataWithCustomSubcategory = {
-        ...data,
-        customSubcategoryName: customSubcategoryName.trim()
-      };
-      console.log("Dados completos a serem enviados:", dataWithCustomSubcategory);
-      createEventMutation.mutate(dataWithCustomSubcategory);
-    } else {
-      console.log("Criando evento com subcategoria padrão:", data.subcategoryId);
-      createEventMutation.mutate(data);
-    }
+    // Enviar normalmente com a subcategoria já criada e selecionada
+    console.log("Criando evento com subcategoria:", data.subcategoryId);
+    createEventMutation.mutate(data);
   }
 
   return (
@@ -421,7 +410,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                             type="button"
                             size="sm"
                             className="bg-orange-500 text-white hover:bg-orange-600"
-                            onClick={() => {
+                            onClick={async () => {
                               if (!customSubcategoryName.trim()) {
                                 toast({
                                   title: "Campo obrigatório",
@@ -430,10 +419,80 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                                 });
                                 return;
                               }
-                              toast({
-                                title: "Subcategoria adicionada",
-                                description: `A subcategoria "${customSubcategoryName.trim()}" foi definida com sucesso.`,
-                              });
+                              
+                              try {
+                                // Obter o ID da categoria selecionada
+                                const categoryId = form.getValues("categoryId");
+                                if (!categoryId) {
+                                  toast({
+                                    title: "Erro",
+                                    description: "Selecione uma categoria primeiro",
+                                    variant: "destructive"
+                                  });
+                                  return;
+                                }
+                                
+                                // Criar slug da subcategoria
+                                const name = customSubcategoryName.trim();
+                                const slug = name
+                                  .toLowerCase()
+                                  .normalize('NFD')
+                                  .replace(/[\u0300-\u036f]/g, '')
+                                  .replace(/[^a-z0-9]/g, '-')
+                                  .replace(/-+/g, '-')
+                                  .replace(/^-|-$/g, '');
+                                
+                                console.log("Enviando nova subcategoria:", {
+                                  name,
+                                  slug,
+                                  categoryId
+                                });
+                                
+                                // Enviar requisição para criar a subcategoria
+                                const response = await fetch('/api/subcategories', {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json'
+                                  },
+                                  body: JSON.stringify({
+                                    name,
+                                    slug,
+                                    categoryId
+                                  })
+                                });
+                                
+                                if (!response.ok) {
+                                  throw new Error("Falha ao criar subcategoria");
+                                }
+                                
+                                const newSubcategory = await response.json();
+                                console.log("Subcategoria criada:", newSubcategory);
+                                
+                                // Atualizar a lista de subcategorias
+                                setSubcategories(prev => [...prev, newSubcategory]);
+                                
+                                // Selecionar a subcategoria recém-criada
+                                form.setValue("subcategoryId", newSubcategory.id);
+                                
+                                // Esconder o campo de subcategoria personalizada
+                                setShowCustomSubcategory(false);
+                                
+                                // Mostrar mensagem de sucesso
+                                toast({
+                                  title: "Subcategoria criada",
+                                  description: `A subcategoria "${name}" foi criada com sucesso e já está disponível para todos os usuários.`,
+                                });
+                                
+                                // Limpar o campo
+                                setCustomSubcategoryName("");
+                              } catch (error) {
+                                console.error("Erro ao criar subcategoria:", error);
+                                toast({
+                                  title: "Erro",
+                                  description: "Não foi possível criar a subcategoria. Tente novamente.",
+                                  variant: "destructive"
+                                });
+                              }
                             }}
                           >
                             Confirmar
