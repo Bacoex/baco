@@ -553,7 +553,10 @@ export class MemStorage implements IStorage {
   // Implementação de categorias
 
   async getCategories(): Promise<EventCategory[]> {
-    return Array.from(this.categoriesMap.values());
+    // Retorna as categorias ordenadas alfabeticamente pelo nome
+    return Array.from(this.categoriesMap.values()).sort((a, b) => 
+      a.name.localeCompare(b.name, 'pt-BR')
+    );
   }
 
   async getCategoryBySlug(slug: string): Promise<EventCategory | undefined> {
@@ -572,13 +575,16 @@ export class MemStorage implements IStorage {
   // Implementação de subcategorias
 
   async getSubcategories(): Promise<EventSubcategory[]> {
-    return Array.from(this.subcategoriesMap.values());
+    // Retorna todas as subcategorias ordenadas alfabeticamente pelo nome
+    return Array.from(this.subcategoriesMap.values())
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
   }
 
   async getSubcategoriesByCategory(categoryId: number): Promise<EventSubcategory[]> {
-    return Array.from(this.subcategoriesMap.values()).filter(
-      (subcategory) => subcategory.categoryId === categoryId
-    );
+    // Filtra as subcategorias pela categoria e ordena alfabeticamente pelo nome
+    return Array.from(this.subcategoriesMap.values())
+      .filter((subcategory) => subcategory.categoryId === categoryId)
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
   }
 
   async getSubcategory(id: number): Promise<EventSubcategory | undefined> {
