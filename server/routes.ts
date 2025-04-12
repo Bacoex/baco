@@ -781,29 +781,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...updatedParticipant
       };
       
-      // Criar notificação para o usuário solicitante
-      const notification = await storage.createNotification({
-        title: "Solicitação não aprovada",
-        message: `Sua solicitação para experienciar o evento "${event.name}" não foi aprovada.`,
-        type: "participation_rejected",
-        eventId: event.id,
-        sourceId: participant.id,
-        sourceType: "participation"
-      });
+      // Verificar se já existe uma notificação de rejeição para essa participação
+      const existingRejectionNotifications = await storage.getNotificationsBySourceAndType(
+        participant.id,
+        "participation_rejected"
+      );
       
-      // Adicionar o usuário solicitante como destinatário
-      await storage.addNotificationRecipients(notification.id, [participant.userId]);
+      // Verificar se já existe notificação de rejeição para esse participante
+      const existingRejectionNotification = existingRejectionNotifications.some(
+        notification => notification.sourceId === participant.id
+      );
       
-      console.log(`Criada notificação ${notification.id} para o solicitante ${participant.userId} (rejeição)`);
+      // Variável para armazenar informações de notificação
+      let notificationInfo = null;
       
-      // Adicionar informações de notificação como uma propriedade extra
-      (responseData as any).notification = {
-        forParticipant: {
+      if (!existingRejectionNotification) {
+        // Criar notificação para o usuário solicitante
+        const notification = await storage.createNotification({
+          title: "Solicitação não aprovada",
+          message: `Sua solicitação para experienciar o evento "${event.name}" não foi aprovada.`,
+          type: "participation_rejected",
+          eventId: event.id,
+          sourceId: participant.id,
+          sourceType: "participation"
+        });
+        
+        // Adicionar o usuário solicitante como destinatário
+        await storage.addNotificationRecipients(notification.id, [participant.userId]);
+        
+        console.log(`Criada notificação ${notification.id} para o solicitante ${participant.userId} (rejeição)`);
+        
+        // Armazenar informações da notificação para a resposta
+        notificationInfo = {
           title: notification.title,
           message: notification.message,
           userId: participant.userId
-        }
-      };
+        };
+      } else {
+        console.log(`Notificação de rejeição já existe para participante ${participant.id} no evento ${event.id}`);
+        // Não geramos uma nova notificação quando já existe uma
+        notificationInfo = null;
+        
+        // Registrar no log de erro como aviso
+        logError(
+          ErrorType.NOTIFICATION_DUPLICATE,
+          ErrorSeverity.WARNING,
+          'NotificationService',
+          `Tentativa de criar notificação duplicada: tipo=participation_rejected, evento=${event.id}, participante=${participant.id}`,
+          { type: 'participation_rejected', sourceId: participant.id, userId: participant.userId, eventId: event.id }
+        );
+      }
+      
+      // Adicionar informações de notificação como uma propriedade extra se houver
+      if (notificationInfo) {
+        (responseData as any).notification = {
+          forParticipant: notificationInfo
+        };
+      }
       
       res.json(responseData);
     } catch (err) {
