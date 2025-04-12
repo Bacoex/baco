@@ -237,6 +237,17 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
 
   // Submit do formulário
   function onSubmit(data: EventFormValues) {
+    // Se selecionou "Outros" e não preencheu uma subcategoria personalizada
+    if (data.subcategoryId === -1 && !customSubcategoryName.trim()) {
+      // Mostra um erro de validação
+      toast({
+        title: "Campo obrigatório",
+        description: "Por favor, digite um nome para a subcategoria personalizada",
+        variant: "destructive"
+      });
+      return; // Não prossegue com o envio
+    }
+    
     // Se selecionou "Outros" e preencheu uma subcategoria personalizada
     if (data.subcategoryId === -1 && customSubcategoryName.trim()) {
       console.log("Criando evento com subcategoria personalizada:", customSubcategoryName.trim());
@@ -398,6 +409,12 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                           value={customSubcategoryName}
                           onChange={(e) => setCustomSubcategoryName(e.target.value)}
                           className="border-primary"
+                          onKeyDown={(e) => {
+                            // Prevenir submissão do formulário quando pressionar Enter neste campo
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                            }
+                          }}
                         />
                       </div>
                     )}
