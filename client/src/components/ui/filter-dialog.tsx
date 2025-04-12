@@ -226,14 +226,14 @@ export function FilterDialog({ onFilterChange, categoryId }: FilterDialogProps) 
           <Button 
             variant="outline" 
             size="sm"
-            className="flex items-center justify-center h-9 w-9 rounded-full p-0 relative"
+            className="flex items-center justify-center h-7 w-7 rounded-full p-0 relative bg-transparent border-none"
             aria-label="Filtrar eventos"
           >
             <FilterIcon className="h-4 w-4" />
             {totalActiveFilters > 0 && (
               <Badge 
                 variant="destructive" 
-                className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center rounded-full"
+                className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center rounded-full text-xs"
                 aria-label={`${totalActiveFilters} filtros ativos`}
               >
                 {totalActiveFilters}

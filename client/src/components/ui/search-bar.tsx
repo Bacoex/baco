@@ -32,22 +32,22 @@ export function SearchBar({ filterButton }: SearchBarProps) {
           placeholder="Buscar eventos..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1 bg-transparent border-0 p-3 pl-4 pr-10 text-white placeholder:text-white/60 focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="flex-1 bg-transparent border-0 p-3 pl-4 pr-20 text-white placeholder:text-white/60 focus-visible:ring-0 focus-visible:ring-offset-0"
         />
         
         {/* Botão de filtro (opcional) antes da lupa */}
         {filterButton && (
-          <div className="absolute right-10 flex items-center">
+          <div className="absolute right-12 flex items-center">
             {filterButton}
           </div>
         )}
         
         <button 
           type="submit" 
-          className="absolute right-3 text-white/70 hover:text-white"
+          className="absolute right-3 text-white/70 hover:text-white flex items-center justify-center h-9 w-9 rounded-full p-0"
           aria-label="Buscar"
         >
-          <Search className="h-5 w-5" />
+          <Search className="h-4 w-4" />
         </button>
       </form>
     </div>
