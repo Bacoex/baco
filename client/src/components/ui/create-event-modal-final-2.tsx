@@ -23,6 +23,7 @@ import {
   X,
   CalendarIcon,
   MapIcon,
+  PlusCircle,
   Clock3,
   CalendarDays
 } from "lucide-react";
@@ -236,7 +237,17 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
 
   // Submit do formulário
   function onSubmit(data: EventFormValues) {
-    createEventMutation.mutate(data);
+    // Se selecionou "Outros" e preencheu uma subcategoria personalizada
+    if (data.subcategoryId === -1 && customSubcategoryName.trim()) {
+      // Adiciona a subcategoria personalizada aos dados do evento
+      const dataWithCustomSubcategory = {
+        ...data,
+        customSubcategoryName: customSubcategoryName.trim()
+      };
+      createEventMutation.mutate(dataWithCustomSubcategory);
+    } else {
+      createEventMutation.mutate(data);
+    }
   }
 
   return (
@@ -377,6 +388,16 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                       </SelectContent>
                     </Select>
                     <FormMessage />
+                    {showCustomSubcategory && (
+                      <div className="mt-2">
+                        <Input
+                          placeholder="Digite uma subcategoria personalizada"
+                          value={customSubcategoryName}
+                          onChange={(e) => setCustomSubcategoryName(e.target.value)}
+                          className="border-primary"
+                        />
+                      </div>
+                    )}
                   </FormItem>
                 )}
               />
