@@ -551,66 +551,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Filtrar por cidade (suporte a múltiplas cidades)
-      if (req.query.city) {
-        const cityFilters = Array.isArray(req.query.city) 
-          ? req.query.city.map(city => city.toLowerCase())
-          : [(req.query.city as string).toLowerCase()];
+      try {
+        if (req.query.city) {
+          // Converter para um array de cidades em minúsculas
+          let cityFilters: string[] = [];
           
-        console.log(`Aplicando filtro de cidades: ${JSON.stringify(cityFilters)}`);
-        
-        events = events.filter(event => {
-          // Verificar cada cidade do filtro
-          return cityFilters.some(cityFilter => {
-            // Extrair cidade do nome do evento (se contiver "em [Cidade]")
-            let cityFromName = "";
-            if (event.name) {
-              const eventMatch = event.name.match(/em\s+([^,]+)($|,)/i);
-              if (eventMatch && eventMatch[1]) {
-                cityFromName = eventMatch[1].trim().toLowerCase();
-              }
-            }
-            
-            // Extrair cidade da localização
-            let cityFromLocation = "";
-            if (event.location) {
-              // Diferentes padrões para localização
-              if (event.location.toLowerCase().includes(cityFilter)) {
-                cityFromLocation = cityFilter;
-              }
-            }
-            
-            // Verificar se alguma das cidades extraídas corresponde ao filtro
-            const matchesCity = cityFromName === cityFilter || cityFromLocation === cityFilter;
-            
-            if (matchesCity) {
-              console.log(`Evento "${event.name}" corresponde ao filtro de cidade "${cityFilter}"`);
-            }
-            
-            return matchesCity;
-          });
-        });
+          if (Array.isArray(req.query.city)) {
+            // Se já for um array, processar cada item
+            cityFilters = req.query.city
+              .filter((city): city is string => typeof city === 'string')
+              .map(city => city.toLowerCase());
+          } else if (typeof req.query.city === 'string') {
+            // Se for apenas uma string, colocar em um array
+            cityFilters = [req.query.city.toLowerCase()];
+          }
+          
+          console.log(`Aplicando filtro de cidades: ${JSON.stringify(cityFilters)}`);
+          
+          if (cityFilters.length > 0) {
+            events = events.filter(event => {
+              // Verificar cada cidade do filtro
+              return cityFilters.some(cityFilter => {
+                // Extrair cidade do nome do evento (se contiver "em [Cidade]")
+                let cityFromName = "";
+                if (event.name) {
+                  const eventMatch = event.name.match(/em\s+([^,]+)($|,)/i);
+                  if (eventMatch && eventMatch[1]) {
+                    cityFromName = eventMatch[1].trim().toLowerCase();
+                  }
+                }
+                
+                // Extrair cidade da localização
+                let cityFromLocation = "";
+                if (event.location) {
+                  // Verificar se a localização contém a cidade
+                  if (event.location.toLowerCase().includes(cityFilter)) {
+                    cityFromLocation = cityFilter;
+                  }
+                }
+                
+                // Verificar se alguma das cidades extraídas corresponde ao filtro
+                const matchesCity = cityFromName === cityFilter || cityFromLocation === cityFilter;
+                
+                if (matchesCity) {
+                  console.log(`Evento "${event.name}" corresponde ao filtro de cidade "${cityFilter}"`);
+                }
+                
+                return matchesCity;
+              });
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao processar filtro de cidades:", error);
       }
       
       // Filtrar por subcategoria (suporte a múltiplas subcategorias)
-      if (req.query.subcategory) {
-        const subcategoryFilters = Array.isArray(req.query.subcategory)
-          ? req.query.subcategory.map(sub => parseInt(sub as string)).filter(id => !isNaN(id))
-          : [parseInt(req.query.subcategory as string)].filter(id => !isNaN(id));
+      try {
+        if (req.query.subcategory) {
+          // Converter para um array de IDs de subcategorias
+          let subcategoryFilters: number[] = [];
           
-        if (subcategoryFilters.length > 0) {
-          console.log(`Aplicando filtro de subcategorias: ${JSON.stringify(subcategoryFilters)}`);
-          
-          events = events.filter(event => {
-            // Verificar se o evento tem uma subcategoria que está na lista de filtros
-            const matches = event.subcategoryId && subcategoryFilters.includes(event.subcategoryId);
-            
-            if (matches) {
-              console.log(`Evento "${event.name}" corresponde ao filtro de subcategoria ID=${event.subcategoryId}`);
+          if (Array.isArray(req.query.subcategory)) {
+            // Se já for um array, processar cada item
+            subcategoryFilters = req.query.subcategory
+              .filter((sub): sub is string => typeof sub === 'string')
+              .map(sub => parseInt(sub))
+              .filter(id => !isNaN(id));
+          } else if (typeof req.query.subcategory === 'string') {
+            // Se for apenas uma string, colocar em um array
+            const parsed = parseInt(req.query.subcategory);
+            if (!isNaN(parsed)) {
+              subcategoryFilters = [parsed];
             }
+          }
+          
+          if (subcategoryFilters.length > 0) {
+            console.log(`Aplicando filtro de subcategorias: ${JSON.stringify(subcategoryFilters)}`);
             
-            return matches;
-          });
+            events = events.filter(event => {
+              // Verificar se o evento tem uma subcategoria que está na lista de filtros
+              const matches = !!event.subcategoryId && subcategoryFilters.includes(event.subcategoryId);
+              
+              if (matches) {
+                console.log(`Evento "${event.name}" corresponde ao filtro de subcategoria ID=${event.subcategoryId}`);
+              }
+              
+              return matches;
+            });
+          }
         }
+      } catch (error) {
+        console.error("Erro ao processar filtro de subcategorias:", error);
       }
       
       console.log(`Total de eventos após filtros: ${events.length}`);
