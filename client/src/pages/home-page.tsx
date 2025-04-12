@@ -151,14 +151,23 @@ export default function HomePage() {
       <main className="flex-grow px-4 pb-20 relative z-10">
         <div className="container mx-auto">
           
-          {/* Título da seção */}
-          <div className="text-center pb-6">
-            <h2 className="text-xl font-semibold inline-block text-white">
-              {selectedCategory 
-                ? `Eventos de ${(categories as EventCategory[]).find(c => c.slug === selectedCategory)?.name || selectedCategory}` 
-                : "Eventos em destaque"}
-            </h2>
-            <div className="mx-auto w-24 h-0.5 bg-primary rounded-full mt-2"></div>
+          {/* Título da seção com filtro */}
+          <div className="flex flex-col items-center pb-6">
+            <div className="mb-2 flex items-center gap-3 justify-center">
+              <h2 className="text-xl font-semibold inline-block text-white">
+                {selectedCategory 
+                  ? `Eventos de ${(categories as EventCategory[]).find(c => c.slug === selectedCategory)?.name || selectedCategory}` 
+                  : "Eventos em destaque"}
+              </h2>
+              <EventFilterControl 
+                onFilterChange={handleFilterChange} 
+                categoryId={selectedCategory 
+                  ? (categories as EventCategory[]).find(c => c.slug === selectedCategory)?.id 
+                  : undefined
+                }
+              />
+            </div>
+            <div className="mx-auto w-24 h-0.5 bg-primary rounded-full mt-1"></div>
           </div>
           
           {/* Grade de eventos */}
@@ -180,9 +189,16 @@ export default function HomePage() {
                 Criar Evento
               </Button>
             </div>
+          ) : filteredEvents.length === 0 ? (
+            <div className="text-center p-8 border border-dashed border-gray-700 rounded-lg bg-black/50 backdrop-blur-sm">
+              <p className="text-lg text-gray-300">Nenhum evento encontrado com os filtros selecionados.</p>
+              <p className="text-md text-gray-400 mt-2">
+                Tente outros filtros ou <Button variant="link" className="p-0 h-auto text-primary" onClick={() => setActiveFilters({ cities: [], subcategories: [] })}>remova todos os filtros</Button>.
+              </p>
+            </div>
           ) : (
             <div className="space-y-6">
-              {(events as Event[]).map((event) => (
+              {filteredEvents.map((event) => (
                 <EventCard key={event.id} event={event} />
               ))}
             </div>

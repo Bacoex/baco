@@ -23,24 +23,13 @@ export function EventFilterControl({ onFilterChange, categoryId, className = "" 
     onFilterChange(filters);
   };
 
-  // Conta o total de filtros ativos
-  const totalActiveFilters = activeFilters.cities.length + activeFilters.subcategories.length;
-
   return (
     <div className={`flex items-center ${className}`}>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="relative">
+            <div>
               <FilterDialog onFilterChange={handleFilterChange} categoryId={categoryId} />
-              {totalActiveFilters > 0 && (
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center rounded-full"
-                >
-                  {totalActiveFilters}
-                </Badge>
-              )}
             </div>
           </TooltipTrigger>
           <TooltipContent>

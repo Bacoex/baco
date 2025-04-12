@@ -209,18 +209,22 @@ export function FilterDialog({ onFilterChange, categoryId }: FilterDialogProps) 
 
   return (
     <div>
-      {/* Botão de filtro com badge mostrando total de filtros ativos */}
+      {/* Botão de filtro discreto com ícone */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
           <Button 
             variant="outline" 
             size="sm"
-            className="flex items-center gap-1"
+            className="flex items-center justify-center h-9 w-9 rounded-full p-0 relative"
+            aria-label="Filtrar eventos"
           >
             <FilterIcon className="h-4 w-4" />
-            <span>Filtrar</span>
             {totalActiveFilters > 0 && (
-              <Badge variant="default" className="ml-1 h-5 w-5 rounded-full p-0 flex items-center justify-center">
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center rounded-full"
+                aria-label={`${totalActiveFilters} filtros ativos`}
+              >
                 {totalActiveFilters}
               </Badge>
             )}
