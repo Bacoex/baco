@@ -91,6 +91,8 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
   
   // Função para carregar subcategorias quando uma categoria é selecionada
   const loadSubcategories = async (categoryId: number) => {
+    console.log('Loading subcategories for category ID:', categoryId);
+    
     if (categoryId <= 0) {
       setSubcategories([]);
       return;
@@ -103,6 +105,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
         throw new Error('Erro ao carregar subcategorias');
       }
       const data = await response.json();
+      console.log('Subcategories loaded:', data);
       setSubcategories(data);
     } catch (error) {
       console.error('Erro ao carregar subcategorias:', error);
