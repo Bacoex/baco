@@ -84,6 +84,8 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showMapSelector, setShowMapSelector] = useState(false);
   const [additionalTickets, setAdditionalTickets] = useState<AdditionalTicket[]>([]);
+  const [showCustomSubcategory, setShowCustomSubcategory] = useState(false);
+  const [customSubcategoryName, setCustomSubcategoryName] = useState("");
 
   // Log das categorias disponíveis
   console.log("Categorias disponíveis no CreateEventModal:", categories);
@@ -331,7 +333,16 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                   <FormItem>
                     <FormLabel>Subcategoria</FormLabel>
                     <Select 
-                      onValueChange={(value) => field.onChange(parseInt(value))} 
+                      onValueChange={(value) => {
+                        if (value === "-1") {
+                          setShowCustomSubcategory(true);
+                          // Mantenha o valor atual do campo para validação
+                          field.onChange(parseInt(value));
+                        } else {
+                          setShowCustomSubcategory(false);
+                          field.onChange(parseInt(value));
+                        }
+                      }} 
                       defaultValue={field.value?.toString()}
                       disabled={!selectedCategory || subcategories.length === 0}
                     >
@@ -355,6 +366,14 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                             {subcategory.name}
                           </SelectItem>
                         ))}
+                        <SelectItem 
+                          key="outros" 
+                          value="-1"
+                          className="flex items-center text-primary font-medium"
+                        >
+                          <PlusCircle className="h-4 w-4 mr-2" />
+                          Outros (Digite sua própria subcategoria)
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
