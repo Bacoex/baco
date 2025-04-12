@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Calendar, MapPin, Map, Clock, Users, Tag, User, Share2, Heart, 
          MessageSquare, MessageSquareX, LockKeyhole, UserPlus, Pencil, Trash2,
-         CheckCircle, XCircle, Loader2, DollarSign } from "lucide-react";
+         CheckCircle, XCircle, Loader2, DollarSign, ExternalLink } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import DynamicMap from "./dynamic-map";
 import { ParticipantItem } from "./participant-item";
 import { EventChat } from "./event-chat";
 import { Textarea } from "@/components/ui/textarea";
@@ -663,33 +664,20 @@ export default function ViewEventModal({
                       )}
                     </div>
                     
-                    {/* Mini mapa estático - só exibido quando tiver localização e coordenadas */}
+                    {/* Mini mapa dinâmico - só exibido quando tiver localização e coordenadas */}
                     {event.location && event.location.length > 0 && (
-                      <div className="relative w-full h-[120px] rounded-md overflow-hidden bg-gray-100">
+                      <div className="w-full">
                         {(event.coordinates && event.coordinates.trim() !== "") ? (
                           <>
-                            <div className="absolute inset-0 flex items-center justify-center opacity-60">
-                              <MapPin className="h-12 w-12 text-primary" />
-                              <span className="ml-2 text-gray-700 font-medium">Localização: {event.location.substring(0, 30)}...</span>
-                            </div>
-                            <img 
-                              src={`https://maps.googleapis.com/maps/api/staticmap?center=${event.coordinates}&zoom=14&size=400x120&markers=color:red%7C${event.coordinates}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}`}
-                              alt="Localização do evento"
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                console.log("Erro ao carregar imagem do mapa estático");
-                                e.currentTarget.style.display = 'none';
-                                // Mostrar fallback quando a imagem falhar
-                                const parent = e.currentTarget.parentElement;
-                                if (parent) {
-                                  const fallback = parent.querySelector('.absolute');
-                                  if (fallback) fallback.classList.remove('opacity-60');
-                                }
-                              }}
-                            />
+                            <p className="text-sm mb-1 text-muted-foreground">
+                              <MapPin className="h-4 w-4 inline mr-1" />
+                              {event.location}
+                            </p>
+                            {/* Usamos o componente de mapa dinâmico */}
+                            <DynamicMap coordinates={event.coordinates} height="120px" title={event.location} />
                           </>
                         ) : (
-                          <div className="flex items-center justify-center h-full">
+                          <div className="flex items-center justify-center h-[120px] bg-gray-100 rounded-md">
                             <MapPin className="h-10 w-10 text-gray-400" />
                             <span className="ml-2 text-gray-500">Localização aproximada</span>
                           </div>
