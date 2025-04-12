@@ -238,31 +238,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (event.location) {
           console.log(`Processando localização: "${event.location}"`);
           
-          // Formato específico: "Alameda Jacu, 2 - Bauru, SP, 17037-260, Brazil"
           let city = "";
           
-          // Tentar encontrar o padrão "Rua, Número - Cidade, Estado, CEP, País"
-          const match = event.location.match(/\s+-\s+([^,]+),/);
-          if (match && match[1]) {
-            city = match[1].trim();
-            console.log(`Cidade extraída do formato "x - Cidade, y": "${city}"`);
-          } 
-          // Se não encontrar o padrão acima, tentar o formato padrão
+          // Primeiro, tentar extrair a partir do nome do evento que geralmente contém a cidade
+          const eventNameCity = extractCityFromEventName(event.name);
+          if (eventNameCity) {
+            city = eventNameCity;
+            console.log(`Cidade extraída do nome do evento: "${city}"`);
+          }
+          // Se não conseguir extrair do nome, tentar o formato de localização
           else {
-            const locationParts = event.location.split(',');
-            if (locationParts.length >= 2) {
-              // Tentar extrair a cidade da segunda parte
-              city = locationParts[1].trim();
-              console.log(`Cidade extraída da segunda parte: "${city}"`);
-            } else {
-              // Se não tiver o formato esperado, usar a localização completa
-              city = event.location.trim();
-              console.log(`Usando localização completa como cidade: "${city}"`);
+            // Verificar múltiplos formatos de localização possíveis
+            
+            // Formato 1: "Rua, Número - Cidade, Estado, CEP, País"
+            // Ex: "Alameda Jacu, 2 - Bauru, SP, 17037-260, Brazil"
+            const matchFormat1 = event.location.match(/\s+-\s+([^,-]+)(?:,|-)/);
+            if (matchFormat1 && matchFormat1[1]) {
+              city = matchFormat1[1].trim();
+              console.log(`Cidade extraída do formato 1: "${city}"`);
+            } 
+            // Formato 2: "Rua, Número, Cidade, Estado, CEP, País"
+            // Ex: "Rua Batista de Carvalho, 500, Bauru, SP, 17010-001, Brasil"
+            else if (event.location.split(',').length >= 3) {
+              const locationParts = event.location.split(',');
+              city = locationParts[2].trim();
+              console.log(`Cidade extraída do formato 2: "${city}"`);
+            }
+            // Formato 3: Verificar se contém "Rio de Janeiro" explicitamente
+            else if (event.location.includes("Rio de Janeiro")) {
+              city = "Rio de Janeiro";
+              console.log(`Cidade extraída por menção explícita: "${city}"`);
+            }
+            // Se nenhum formato funcionar, usar a segunda parte após a vírgula
+            else {
+              const locationParts = event.location.split(',');
+              if (locationParts.length >= 2) {
+                city = locationParts[1].trim();
+                console.log(`Cidade extraída da segunda parte por padrão: "${city}"`);
+              } else {
+                city = event.location.trim();
+                console.log(`Usando localização completa como cidade: "${city}"`);
+              }
             }
           }
           
-          // Incrementar contador para esta cidade
-          if (city) {
+          // Limpar a cidade (remover números e caracteres especiais)
+          city = city.replace(/^\d+\s*/, '').trim();
+          
+          // Se a cidade for apenas um número, ignorar
+          if (!/^\d+$/.test(city) && city) {
             cityCount.set(city, (cityCount.get(city) || 0) + 1);
           }
         }
@@ -285,6 +309,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao buscar cidades" });
     }
   });
+  
+  // Função auxiliar para extrair cidade do nome do evento
+  function extractCityFromEventName(eventName: string): string | null {
+    if (!eventName) return null;
+    
+    // Padrão comum: "Evento em [Cidade]"
+    const match = eventName.match(/em\s+([^,]+)($|,)/i);
+    if (match && match[1]) {
+      return match[1].trim();
+    }
+    
+    return null;
+  }
   
   app.get("/api/filters/subcategories", async (req, res) => {
     try {
