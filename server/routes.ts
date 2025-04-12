@@ -236,16 +236,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       events.forEach(event => {
         if (event.location) {
-          // Extrair apenas a cidade da localização (assumindo formato "Endereço, Cidade, Estado, CEP, País")
-          const locationParts = event.location.split(',');
+          console.log(`Processando localização: "${event.location}"`);
+          
+          // Formato específico: "Alameda Jacu, 2 - Bauru, SP, 17037-260, Brazil"
           let city = "";
           
-          if (locationParts.length >= 2) {
-            // Pegar parte que contém a cidade
-            city = locationParts[1].trim();
-          } else {
-            // Se não tiver o formato esperado, usar a localização completa
-            city = event.location.trim();
+          // Tentar encontrar o padrão "Rua, Número - Cidade, Estado, CEP, País"
+          const match = event.location.match(/\s+-\s+([^,]+),/);
+          if (match && match[1]) {
+            city = match[1].trim();
+            console.log(`Cidade extraída do formato "x - Cidade, y": "${city}"`);
+          } 
+          // Se não encontrar o padrão acima, tentar o formato padrão
+          else {
+            const locationParts = event.location.split(',');
+            if (locationParts.length >= 2) {
+              // Tentar extrair a cidade da segunda parte
+              city = locationParts[1].trim();
+              console.log(`Cidade extraída da segunda parte: "${city}"`);
+            } else {
+              // Se não tiver o formato esperado, usar a localização completa
+              city = event.location.trim();
+              console.log(`Usando localização completa como cidade: "${city}"`);
+            }
           }
           
           // Incrementar contador para esta cidade
@@ -260,6 +273,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name,
         count
       }));
+      
+      // Ordenar por nome da cidade
+      citiesWithCount.sort((a, b) => a.name.localeCompare(b.name));
+      
+      console.log("Cidades disponíveis para filtro:", citiesWithCount);
       
       res.json(citiesWithCount);
     } catch (error) {
