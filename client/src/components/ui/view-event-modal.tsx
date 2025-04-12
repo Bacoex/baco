@@ -729,12 +729,12 @@ export default function ViewEventModal({
                 
                 {/* Botão de participar/cancelar participação */}
                 {!isCreator && (
-                  <div className="w-full flex justify-end">
+                  <div className="w-full flex justify-end items-center">
                     {isParticipant ? (
                       <Button 
                         variant="destructive"
                         size="sm"
-                        className="min-w-[160px] ml-4" 
+                        className="w-[160px]" 
                         onClick={handleCancelParticipation}
                       >
                         Cancelar participação
@@ -742,7 +742,7 @@ export default function ViewEventModal({
                     ) : (
                       <Button 
                         size="sm"
-                        className="min-w-[160px] ml-4"
+                        className="w-[160px]"
                         onClick={handleParticipate}
                       >
                         {event.eventType === 'private_application' ? 'Experienciar' : 'Participar'}
@@ -754,11 +754,11 @@ export default function ViewEventModal({
                 {/* Botões de status para experienciar (quando não é criador mas solicitou experienciar) */}
                 {/* Experienciar pendente */}
                 {!isCreator && isParticipant && event.eventType === 'private_application' && participationStatus === 'pending' && (
-                  <div className="w-full flex justify-end">
+                  <div className="w-full flex justify-end items-center">
                     <Button 
                       disabled 
                       size="sm"
-                      className="bg-amber-500 hover:bg-amber-500 min-w-[160px] ml-4"
+                      className="bg-amber-500 hover:bg-amber-500 w-[160px]"
                     >
                       Experienciar Pendente
                     </Button>
@@ -767,18 +767,18 @@ export default function ViewEventModal({
                 
                 {/* Experienciar rejeitado */}
                 {!isCreator && isParticipant && event.eventType === 'private_application' && participationStatus === 'rejected' && (
-                  <div className="w-full flex flex-wrap justify-end gap-4">
+                  <div className="w-full flex justify-end items-center space-x-3">
                     <Button 
                       disabled 
                       variant="destructive" 
                       size="sm"
-                      className="opacity-60 min-w-[160px]"
+                      className="opacity-60 w-[160px]"
                     >
                       Experienciar Rejeitado
                     </Button>
                     <Button 
                       size="sm"
-                      className="min-w-[160px]"
+                      className="w-[160px]"
                       onClick={handleParticipate}
                     >
                       Experienciar Novamente
@@ -788,12 +788,12 @@ export default function ViewEventModal({
                 
                 {/* Participante já aprovado (mostra apenas indicação visual) */}
                 {!isCreator && isParticipant && participationStatus === 'approved' && (
-                  <div className="w-full flex justify-end">
+                  <div className="w-full flex justify-end items-center">
                     <Button 
                       disabled 
                       variant="outline" 
                       size="sm"
-                      className="bg-green-100 text-green-700 border-green-300 min-w-[160px] ml-4"
+                      className="bg-green-100 text-green-700 border-green-300 w-[160px]"
                     >
                       <span className="mr-2">✓</span> Você está participando
                     </Button>
@@ -802,12 +802,12 @@ export default function ViewEventModal({
                 
                 {/* Participante confirmado (mostra apenas indicação visual) */}
                 {!isCreator && isParticipant && participationStatus === 'confirmed' && (
-                  <div className="w-full flex justify-end">
+                  <div className="w-full flex justify-end items-center">
                     <Button 
                       disabled 
                       variant="outline" 
                       size="sm"
-                      className="bg-blue-100 text-blue-700 border-blue-300 min-w-[160px] ml-4"
+                      className="bg-blue-100 text-blue-700 border-blue-300 w-[160px]"
                     >
                       <span className="mr-2">✓</span> Participação confirmada
                     </Button>
@@ -816,11 +816,11 @@ export default function ViewEventModal({
                 
                 {/* Botões do criador do evento */}
                 {isCreator && (
-                  <div className="w-full flex flex-wrap justify-end gap-3">
+                  <div className="w-full flex justify-end items-center space-x-3">
                     <Button 
                       variant="secondary"
                       size="sm"
-                      className="min-w-[140px]"
+                      className="w-[140px]"
                       onClick={() => setIsEditEventModalOpen(true)}
                     >
                       <Pencil className="h-4 w-4 mr-2" />
@@ -829,7 +829,7 @@ export default function ViewEventModal({
                     <Button 
                       variant="outline" 
                       size="sm"
-                      className="min-w-[140px]"
+                      className="w-[140px]"
                       onClick={() => setIsManageCoOrganizersOpen(true)}
                     >
                       <UserPlus className="h-4 w-4 mr-2" />
@@ -838,7 +838,7 @@ export default function ViewEventModal({
                     <Button 
                       variant="destructive" 
                       size="sm"
-                      className="min-w-[140px]"
+                      className="w-[140px]"
                       onClick={() => setIsDeleteConfirmOpen(true)}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
