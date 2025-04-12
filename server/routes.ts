@@ -351,6 +351,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao buscar subcategorias" });
     }
   });
+  
+  /**
+   * Rota para obter apenas subcategorias ativas (que têm eventos)
+   */
+  app.get("/api/filters/subcategories/active", async (req, res) => {
+    try {
+      // Buscar todas as subcategorias
+      const subcategories = await storage.getSubcategories();
+      
+      // Buscar todos os eventos para contar ocorrências de cada subcategoria
+      const events = await storage.getEvents();
+      
+      // Contar ocorrências de cada subcategoria
+      const subCount = new Map<number, number>();
+      events.forEach(event => {
+        if (event.subcategoryId) {
+          subCount.set(event.subcategoryId, (subCount.get(event.subcategoryId) || 0) + 1);
+        }
+      });
+      
+      // Filtrar apenas subcategorias com pelo menos um evento
+      const activeSubcategories = subcategories
+        .map(sub => ({
+          ...sub,
+          count: subCount.get(sub.id) || 0
+        }))
+        .filter(sub => sub.count > 0);
+      
+      res.json(activeSubcategories);
+    } catch (error) {
+      console.error("Erro ao buscar subcategorias ativas para filtro:", error);
+      res.status(500).json({ message: "Erro ao buscar subcategorias ativas" });
+    }
+  });
 
   /**
    * Rota de Pesquisa
