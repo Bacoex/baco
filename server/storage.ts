@@ -292,7 +292,8 @@ export class MemStorage implements IStorage {
       { name: "Festa", slug: "party", color: "#ec4899" },
       { name: "Show", slug: "concert", color: "#10b981" },
       { name: "LGBT+", slug: "lgbt", color: "pride" },
-      { name: "Eventos 18+", slug: "adult", color: "#ef4444", ageRestriction: 18 }
+      { name: "Eventos 18+", slug: "adult", color: "#ef4444", ageRestriction: 18 },
+      { name: "Esporte", slug: "sports", color: "#2563eb" }
     ];
 
     console.log("Inicializando categorias...");
@@ -376,7 +377,17 @@ export class MemStorage implements IStorage {
       // Subcategorias para Eventos 18+
       { categorySlug: "adult", subcategory: { name: "Festa", slug: "adult-party", categoryId: 0 }},
       { categorySlug: "adult", subcategory: { name: "Balada", slug: "adult-club", categoryId: 0 }},
-      { categorySlug: "adult", subcategory: { name: "Show", slug: "adult-show", categoryId: 0 }}
+      { categorySlug: "adult", subcategory: { name: "Show", slug: "adult-show", categoryId: 0 }},
+      
+      // Subcategorias para Esporte
+      { categorySlug: "sports", subcategory: { name: "Futebol", slug: "soccer", categoryId: 0 }},
+      { categorySlug: "sports", subcategory: { name: "Vôlei", slug: "volleyball", categoryId: 0 }},
+      { categorySlug: "sports", subcategory: { name: "Basquete", slug: "basketball", categoryId: 0 }},
+      { categorySlug: "sports", subcategory: { name: "Corrida", slug: "running", categoryId: 0 }},
+      { categorySlug: "sports", subcategory: { name: "Ciclismo", slug: "cycling", categoryId: 0 }},
+      { categorySlug: "sports", subcategory: { name: "Natação", slug: "swimming", categoryId: 0 }},
+      { categorySlug: "sports", subcategory: { name: "Tênis", slug: "tennis", categoryId: 0 }},
+      { categorySlug: "sports", subcategory: { name: "Lutas", slug: "martial-arts", categoryId: 0 }}
     ];
 
     console.log("Inicializando subcategorias...");
