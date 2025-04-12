@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, X, Info, Ticket, Users, CalendarIcon, Clock } from "lucide-react";
+import { Loader2, MapPin, X, Info, Ticket, Users, CalendarIcon, Clock, PlusCircle } from "lucide-react";
 import { logCreateEventError, analyzeSelectNullError, analyzeApiCallError, ErrorComponent } from "@/lib/errorLogger";
 import {
   Form,
@@ -445,9 +445,20 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                               {subcategory.name}
                             </SelectItem>
                           ))}
-                          <SelectItem value="-1" className="text-primary font-medium border-t mt-2 pt-2" id="add-subcategory-item">
-                            + Adicionar outra subcategoria
+                          
+                          <div className="border-t my-2"></div>
+                          
+                          <SelectItem 
+                            value="-1" 
+                            className="text-primary font-semibold hover:bg-primary/10"
+                            id="add-subcategory-item"
+                          >
+                            <span className="flex items-center">
+                              <PlusCircle className="mr-2 h-4 w-4" />
+                              Adicionar outra subcategoria
+                            </span>
                           </SelectItem>
+                          
                           {/* Log do estado do dropdown para depuração */}
                           {console.log("Renderizando dropdown de subcategorias:", {
                             subcategorias: subcategories,
