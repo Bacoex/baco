@@ -435,7 +435,10 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                             <SelectValue placeholder={isLoadingSubcategories ? "Carregando..." : subcategories.length === 0 ? "Sem subcategorias disponíveis" : "Selecione uma subcategoria"} />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent onOpenChange={(open) => {
+                          console.log("Dropdown de subcategorias aberto:", open);
+                          setDropdownOpened(open);
+                        }}>
                           <SelectItem value="0">Nenhuma subcategoria</SelectItem>
                           {subcategories.map((subcategory) => (
                             <SelectItem key={subcategory.id} value={subcategory.id.toString()}>
@@ -451,6 +454,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                             isLoadingSubcategories,
                             isAddingSubcategory,
                             showCustomSubcategory,
+                            dropdownJaAberto: dropdownOpened,
                             disabled: isLoadingSubcategories || isAddingSubcategory
                           })}
                         </SelectContent>
