@@ -55,17 +55,23 @@ export default function CategoryFilter({
                 variant={selectedCategory === category.slug ? "default" : "outline"}
                 size="sm"
                 onClick={() => onSelectCategory(category.slug)}
-                className={cn(
-                  "rounded-full text-sm shadow-lg transform transition-all duration-300 hover:scale-105",
-                  category.slug === "lgbt" && selectedCategory === category.slug 
-                    ? "pride-gradient border-0" 
-                    : selectedCategory === category.slug && category.slug !== "lgbt" 
-                      ? "bg-primary hover:bg-primary/90 text-white border-0" 
-                      : "text-gray-300 hover:text-white bg-black/30 backdrop-blur-md"
-                )}
+                className={
+                  category.slug === "lgbt" && selectedCategory !== category.slug 
+                  ? cn("rounded-full text-sm shadow-lg transform transition-all duration-300 hover:scale-105 text-gray-300 hover:text-white bg-black/30 backdrop-blur-md lgbt-border-gradient")
+                  : cn(
+                      "rounded-full text-sm shadow-lg transform transition-all duration-300 hover:scale-105",
+                      category.slug === "lgbt" && selectedCategory === category.slug 
+                        ? "pride-gradient border-0" 
+                        : selectedCategory === category.slug && category.slug !== "lgbt" 
+                          ? "bg-primary hover:bg-primary/90 text-white border-0" 
+                          : "text-gray-300 hover:text-white bg-black/30 backdrop-blur-md"
+                    )
+                }
                 style={
                   selectedCategory !== category.slug
-                  ? { borderColor: category.slug === "lgbt" ? "#ec4899" : (category.color || 'rgba(55, 65, 81, 0.5)') }
+                  ? category.slug === "lgbt" 
+                    ? {} // Estilo aplicado via className
+                    : { borderColor: category.color || 'rgba(55, 65, 81, 0.5)' }
                   : category.slug === "lgbt" && category.color === "pride"
                     ? { 
                         background: "linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)",
