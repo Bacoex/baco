@@ -38,28 +38,22 @@ const getStatusText = (status: ParticipationStatus): string => {
 
 const StatusTriangle: React.FC<StatusTriangleProps> = ({ status, className = '' }) => {
   const color = getStatusColor(status);
-  const text = getStatusText(status);
   
   return (
-    <div className={`flex items-center ${className}`}>
-      <div className="mr-2 relative">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="transform rotate-180"
-        >
-          <path
-            d="M8 0L16 16H0L8 0Z"
-            fill={color}
-          />
-        </svg>
-      </div>
-      <span className="text-sm font-medium" style={{ color }}>
-        {text}
-      </span>
+    <div className={`${className}`}>
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 16 16"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="transform rotate-180"
+      >
+        <path
+          d="M8 0L16 16H0L8 0Z"
+          fill={color}
+        />
+      </svg>
     </div>
   );
 };
