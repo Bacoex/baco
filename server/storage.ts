@@ -1057,6 +1057,18 @@ export class MemStorage implements IStorage {
     );
   }
 
+  /**
+   * Busca notificações por tipo e ID da fonte
+   * @param sourceId ID da fonte (ex: participação, evento)
+   * @param type Tipo da notificação (ex: participant_request, participation_approved)
+   * @returns Array com notificações encontradas
+   */
+  async getNotificationsBySourceAndType(sourceId: number, type: string): Promise<Notification[]> {
+    return this.notifications.filter(
+      notification => notification.sourceId === sourceId && notification.type === type
+    );
+  }
+
   async markNotificationAsRead(recipientId: number): Promise<void> {
     const index = this.notificationRecipients.findIndex(r => r.id === recipientId);
     if (index !== -1) {
