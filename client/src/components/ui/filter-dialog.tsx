@@ -302,7 +302,7 @@ export function FilterDialog({ onFilterChange, categoryId }: FilterDialogProps) 
                 <AccordionItem value="city">
                   <AccordionTrigger>Cidade</AccordionTrigger>
                   <AccordionContent>
-                    <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                    <div className="space-y-4">
                       <div>
                         <Label htmlFor="city-search">Buscar cidade</Label>
                         <Input 
@@ -314,36 +314,38 @@ export function FilterDialog({ onFilterChange, categoryId }: FilterDialogProps) 
                         />
                       </div>
                       
-                      <div className="space-y-2">
-                        {filteredCities.length > 0 ? (
-                          filteredCities.map((city) => (
-                            <div key={city.name} className="flex items-center space-x-2">
-                              <Checkbox 
-                                id={`city-${city.name}`}
-                                checked={selectedCities.includes(city.name)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setSelectedCities(prev => [...prev, city.name]);
-                                  } else {
-                                    setSelectedCities(prev => prev.filter(c => c !== city.name));
-                                  }
-                                }}
-                              />
-                              <label 
-                                htmlFor={`city-${city.name}`}
-                                className="text-sm flex-1 cursor-pointer flex justify-between"
-                              >
-                                <span>{city.name}</span>
-                                <span className="text-muted-foreground">({city.count})</span>
-                              </label>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-muted-foreground text-sm">
-                            {citySearch ? "Nenhuma cidade encontrada" : "Carregando cidades..."}
-                          </p>
-                        )}
-                      </div>
+                      <ScrollArea className="h-60 pr-4">
+                        <div className="space-y-2">
+                          {filteredCities.length > 0 ? (
+                            filteredCities.map((city) => (
+                              <div key={city.name} className="flex items-center space-x-2">
+                                <Checkbox 
+                                  id={`city-${city.name}`}
+                                  checked={selectedCities.includes(city.name)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setSelectedCities(prev => [...prev, city.name]);
+                                    } else {
+                                      setSelectedCities(prev => prev.filter(c => c !== city.name));
+                                    }
+                                  }}
+                                />
+                                <label 
+                                  htmlFor={`city-${city.name}`}
+                                  className="text-sm flex-1 cursor-pointer flex justify-between"
+                                >
+                                  <span>{city.name}</span>
+                                  <span className="text-muted-foreground">({city.count})</span>
+                                </label>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-muted-foreground text-sm">
+                              {citySearch ? "Nenhuma cidade encontrada" : "Carregando cidades..."}
+                            </p>
+                          )}
+                        </div>
+                      </ScrollArea>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
@@ -352,7 +354,7 @@ export function FilterDialog({ onFilterChange, categoryId }: FilterDialogProps) 
                 <AccordionItem value="subcategory">
                   <AccordionTrigger>Subcategoria</AccordionTrigger>
                   <AccordionContent>
-                    <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                    <div className="space-y-4">
                       <div>
                         <Label htmlFor="subcategory-search">Buscar subcategoria</Label>
                         <Input 
@@ -364,38 +366,40 @@ export function FilterDialog({ onFilterChange, categoryId }: FilterDialogProps) 
                         />
                       </div>
                       
-                      <div className="space-y-2">
-                        {filteredSubcategories.length > 0 ? (
-                          filteredSubcategories.map((subcategory) => (
-                            <div key={subcategory.id} className="flex items-center space-x-2">
-                              <Checkbox 
-                                id={`subcategory-${subcategory.id}`}
-                                checked={selectedSubcategories.includes(subcategory.id)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setSelectedSubcategories(prev => [...prev, subcategory.id]);
-                                  } else {
-                                    setSelectedSubcategories(prev => 
-                                      prev.filter(id => id !== subcategory.id)
-                                    );
-                                  }
-                                }}
-                              />
-                              <label 
-                                htmlFor={`subcategory-${subcategory.id}`}
-                                className="text-sm flex-1 cursor-pointer flex justify-between"
-                              >
-                                <span>{subcategory.name}</span>
-                                <span className="text-muted-foreground">({subcategory.count})</span>
-                              </label>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-muted-foreground text-sm">
-                            {subcategorySearch ? "Nenhuma subcategoria encontrada" : "Carregando subcategorias..."}
-                          </p>
-                        )}
-                      </div>
+                      <ScrollArea className="h-60 pr-4">
+                        <div className="space-y-2">
+                          {filteredSubcategories.length > 0 ? (
+                            filteredSubcategories.map((subcategory) => (
+                              <div key={subcategory.id} className="flex items-center space-x-2">
+                                <Checkbox 
+                                  id={`subcategory-${subcategory.id}`}
+                                  checked={selectedSubcategories.includes(subcategory.id)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setSelectedSubcategories(prev => [...prev, subcategory.id]);
+                                    } else {
+                                      setSelectedSubcategories(prev => 
+                                        prev.filter(id => id !== subcategory.id)
+                                      );
+                                    }
+                                  }}
+                                />
+                                <label 
+                                  htmlFor={`subcategory-${subcategory.id}`}
+                                  className="text-sm flex-1 cursor-pointer flex justify-between"
+                                >
+                                  <span>{subcategory.name}</span>
+                                  <span className="text-muted-foreground">({subcategory.count})</span>
+                                </label>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-muted-foreground text-sm">
+                              {subcategorySearch ? "Nenhuma subcategoria encontrada" : "Carregando subcategorias..."}
+                            </p>
+                          )}
+                        </div>
+                      </ScrollArea>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
