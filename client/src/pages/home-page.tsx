@@ -14,6 +14,7 @@ import { EventCategory, Event } from "@shared/schema";
 import { getQueryFn, queryClient } from "@/lib/queryClient";
 import { FilterDialog, FilterOptions } from "@/components/ui/filter-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useToast } from "@/hooks/use-toast";
 
 /**
  * Componente da página inicial
@@ -123,6 +124,9 @@ export default function HomePage() {
   const closeCreateModal = () => setIsCreateModalOpen(false);
   const handleCategorySelect = (slug: string | null) => setSelectedCategory(slug);
   
+  // Hook de toast
+  const { toast } = useToast();
+  
   // Função para lidar com mudanças nos filtros
   const handleFilterChange = (filters: FilterOptions) => {
     setActiveFilters(filters);
@@ -171,6 +175,19 @@ export default function HomePage() {
                   ? `Eventos de ${(categories as EventCategory[]).find(c => c.slug === selectedCategory)?.name || selectedCategory}` 
                   : "Eventos em destaque"}
               </h2>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="ml-2"
+                onClick={() => {
+                  toast({
+                    title: "Teste de notificação",
+                    description: "Esta é uma notificação de teste para verificar a animação",
+                  });
+                }}
+              >
+                Testar Toast
+              </Button>
             </div>
             <div className="mx-auto w-24 h-0.5 bg-primary rounded-full mt-1"></div>
           </div>
