@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import DynamicMap from "./dynamic-map";
 import { ParticipantItem } from "./participant-item";
 import { EventChat } from "./event-chat";
+import StatusTriangle from "./status-triangle";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -800,17 +801,10 @@ export default function ViewEventModal({
                   </div>
                 )}
                 
-                {/* Participante confirmado (mostra apenas indicação visual) */}
+                {/* Participante confirmado (mostra apenas indicação visual com triângulo) */}
                 {!isCreator && isParticipant && participationStatus === 'confirmed' && (
                   <div className="w-full flex justify-end items-center">
-                    <Button 
-                      disabled 
-                      variant="outline" 
-                      size="sm"
-                      className="bg-blue-100 text-blue-700 border-blue-300 w-[160px]"
-                    >
-                      <span className="mr-2">✓</span> Participação confirmada
-                    </Button>
+                    <StatusTriangle status="confirmed" className="mr-2" />
                   </div>
                 )}
                 
