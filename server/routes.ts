@@ -550,51 +550,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
         events = await storage.getEvents();
       }
       
-      // Filtrar por cidade
+      // Filtrar por cidade (suporte a múltiplas cidades)
       if (req.query.city) {
-        const cityFilter = (req.query.city as string).toLowerCase();
-        console.log(`Aplicando filtro de cidade: "${cityFilter}"`);
+        const cityFilters = Array.isArray(req.query.city) 
+          ? req.query.city.map(city => city.toLowerCase())
+          : [(req.query.city as string).toLowerCase()];
+          
+        console.log(`Aplicando filtro de cidades: ${JSON.stringify(cityFilters)}`);
         
         events = events.filter(event => {
-          // Extrair cidade do nome do evento
-          let cityFromName = "";
-          if (event.name) {
-            const eventMatch = event.name.match(/em\s+([^,]+)($|,)/i);
-            if (eventMatch && eventMatch[1]) {
-              cityFromName = eventMatch[1].trim().toLowerCase();
+          // Verificar cada cidade do filtro
+          return cityFilters.some(cityFilter => {
+            // Extrair cidade do nome do evento (se contiver "em [Cidade]")
+            let cityFromName = "";
+            if (event.name) {
+              const eventMatch = event.name.match(/em\s+([^,]+)($|,)/i);
+              if (eventMatch && eventMatch[1]) {
+                cityFromName = eventMatch[1].trim().toLowerCase();
+              }
             }
-          }
-          
-          // Extrair cidade da localização
-          let cityFromLocation = "";
-          if (event.location) {
-            // Diferentes padrões para localização
-            if (event.location.toLowerCase().includes(cityFilter)) {
-              cityFromLocation = cityFilter;
+            
+            // Extrair cidade da localização
+            let cityFromLocation = "";
+            if (event.location) {
+              // Diferentes padrões para localização
+              if (event.location.toLowerCase().includes(cityFilter)) {
+                cityFromLocation = cityFilter;
+              }
             }
-          }
-          
-          // Verificar se alguma das cidades extraídas corresponde ao filtro
-          const matchesCity = cityFromName === cityFilter || cityFromLocation === cityFilter;
-          
-          if (matchesCity) {
-            console.log(`Evento "${event.name}" corresponde ao filtro de cidade "${cityFilter}"`);
-          }
-          
-          return matchesCity;
+            
+            // Verificar se alguma das cidades extraídas corresponde ao filtro
+            const matchesCity = cityFromName === cityFilter || cityFromLocation === cityFilter;
+            
+            if (matchesCity) {
+              console.log(`Evento "${event.name}" corresponde ao filtro de cidade "${cityFilter}"`);
+            }
+            
+            return matchesCity;
+          });
         });
       }
       
-      // Filtrar por subcategoria
+      // Filtrar por subcategoria (suporte a múltiplas subcategorias)
       if (req.query.subcategory) {
-        const subcategoryId = parseInt(req.query.subcategory as string);
-        if (!isNaN(subcategoryId)) {
-          console.log(`Aplicando filtro de subcategoria: ID=${subcategoryId}`);
+        const subcategoryFilters = Array.isArray(req.query.subcategory)
+          ? req.query.subcategory.map(sub => parseInt(sub as string)).filter(id => !isNaN(id))
+          : [parseInt(req.query.subcategory as string)].filter(id => !isNaN(id));
+          
+        if (subcategoryFilters.length > 0) {
+          console.log(`Aplicando filtro de subcategorias: ${JSON.stringify(subcategoryFilters)}`);
+          
           events = events.filter(event => {
-            const matches = event.subcategoryId === subcategoryId;
+            // Verificar se o evento tem uma subcategoria que está na lista de filtros
+            const matches = event.subcategoryId && subcategoryFilters.includes(event.subcategoryId);
+            
             if (matches) {
-              console.log(`Evento "${event.name}" corresponde ao filtro de subcategoria ID=${subcategoryId}`);
+              console.log(`Evento "${event.name}" corresponde ao filtro de subcategoria ID=${event.subcategoryId}`);
             }
+            
             return matches;
           });
         }

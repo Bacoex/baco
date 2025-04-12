@@ -83,14 +83,18 @@ export default function HomePage() {
           params.append("category", selectedCategory);
         }
         
-        // Adicionar cidade se filtrada
+        // Adicionar cidades se filtradas (múltiplas)
         if (activeFilters.cities.length > 0) {
-          params.append("city", activeFilters.cities[0]); // Por enquanto só podemos filtrar por uma cidade
+          activeFilters.cities.forEach(city => {
+            params.append("city", city);
+          });
         }
         
-        // Adicionar subcategoria se filtrada
+        // Adicionar subcategorias se filtradas (múltiplas)
         if (activeFilters.subcategories.length > 0) {
-          params.append("subcategory", activeFilters.subcategories[0].toString()); // Por enquanto só podemos filtrar por uma subcategoria
+          activeFilters.subcategories.forEach(subcategoryId => {
+            params.append("subcategory", subcategoryId.toString());
+          });
         }
         
         // Adicionar parâmetros à URL se existirem
