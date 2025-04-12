@@ -753,30 +753,17 @@ export default function ViewEventModal({
                 )}
                 
                 {/* Botões de status para experienciar (quando não é criador mas solicitou experienciar) */}
-                {/* Experienciar pendente */}
+                {/* Experienciar pendente (usa triângulo de status) */}
                 {!isCreator && isParticipant && event.eventType === 'private_application' && participationStatus === 'pending' && (
                   <div className="w-full flex justify-end items-center">
-                    <Button 
-                      disabled 
-                      size="sm"
-                      className="bg-amber-500 hover:bg-amber-500 w-[160px]"
-                    >
-                      Experienciar Pendente
-                    </Button>
+                    <StatusTriangle status="pending" className="mr-2" />
                   </div>
                 )}
                 
-                {/* Experienciar rejeitado */}
+                {/* Experienciar rejeitado (com triângulo de status) */}
                 {!isCreator && isParticipant && event.eventType === 'private_application' && participationStatus === 'rejected' && (
                   <div className="w-full flex justify-end items-center space-x-3">
-                    <Button 
-                      disabled 
-                      variant="destructive" 
-                      size="sm"
-                      className="opacity-60 w-[160px]"
-                    >
-                      Experienciar Rejeitado
-                    </Button>
+                    <StatusTriangle status="rejected" className="mr-2" />
                     <Button 
                       size="sm"
                       className="w-[160px]"
@@ -787,17 +774,10 @@ export default function ViewEventModal({
                   </div>
                 )}
                 
-                {/* Participante já aprovado (mostra apenas indicação visual) */}
+                {/* Participante já aprovado (mostra apenas indicação visual com triângulo) */}
                 {!isCreator && isParticipant && participationStatus === 'approved' && (
                   <div className="w-full flex justify-end items-center">
-                    <Button 
-                      disabled 
-                      variant="outline" 
-                      size="sm"
-                      className="bg-green-100 text-green-700 border-green-300 w-[160px]"
-                    >
-                      <span className="mr-2">✓</span> Você está participando
-                    </Button>
+                    <StatusTriangle status="approved" className="mr-2" />
                   </div>
                 )}
                 

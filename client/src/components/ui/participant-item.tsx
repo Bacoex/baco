@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 import { getUserDisplayName } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import StatusTriangle from "./status-triangle";
 
 export interface ParticipantItemProps {
   participant: {
@@ -77,12 +78,9 @@ export function ParticipantItem({
                   </div>
                   
                   <div className="text-sm">
-                    <Badge 
-                      variant="outline" 
-                      className={statusColors[participant.status] || ""}
-                    >
-                      {statusText[participant.status] || "Status Desconhecido"}
-                    </Badge>
+                    <StatusTriangle 
+                      status={participant.status as 'confirmed' | 'approved' | 'pending' | 'rejected'} 
+                    />
                   </div>
                 </div>
               </div>
