@@ -412,64 +412,84 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                       <FormDescription className="text-xs">
                         Opcional - Selecione uma subcategoria para classificar seu evento
                       </FormDescription>
-                      <Select 
-                        onValueChange={(value) => {
-                          const numValue = parseInt(value);
-                          
-                          // Se selecionou "Adicionar outra subcategoria"
-                          if (numValue === -1) {
-                            setShowCustomSubcategory(true);
-                            // Resetamos o valor do campo para que não seja enviado -1
-                            field.onChange(null);
-                          } else {
-                            // Convertemos para número ou null se for 0
-                            field.onChange(numValue === 0 ? null : numValue);
-                            setShowCustomSubcategory(false);
-                          }
-                        }}
-                        value={field.value !== null && field.value !== undefined ? field.value.toString() : "0"}
-                        disabled={isLoadingSubcategories || isAddingSubcategory}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder={isLoadingSubcategories ? "Carregando..." : subcategories.length === 0 ? "Sem subcategorias disponíveis" : "Selecione uma subcategoria"} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent onOpenChange={(open) => {
-                          console.log("Dropdown de subcategorias aberto:", open);
-                          setDropdownOpened(open);
-                        }}>
-                          <SelectItem value="0">Nenhuma subcategoria</SelectItem>
-                          {subcategories.map((subcategory) => (
-                            <SelectItem key={subcategory.id} value={subcategory.id.toString()}>
-                              {subcategory.name}
-                            </SelectItem>
-                          ))}
-                          
-                          <div className="border-t my-2"></div>
-                          
-                          <SelectItem 
-                            value="-1" 
-                            className="text-primary font-semibold hover:bg-primary/10"
-                            id="add-subcategory-item"
+                      <div className="space-y-2">
+                        <Select 
+                          onValueChange={(value) => {
+                            console.log("Valor selecionado no dropdown:", value);
+                            const numValue = parseInt(value);
+                            
+                            // Se selecionou "Adicionar outra subcategoria"
+                            if (numValue === -1) {
+                              console.log("Opção 'Adicionar outra subcategoria' selecionada");
+                              setShowCustomSubcategory(true);
+                              // Resetamos o valor do campo para que não seja enviado -1
+                              field.onChange(null);
+                            } else {
+                              // Convertemos para número ou null se for 0
+                              field.onChange(numValue === 0 ? null : numValue);
+                              setShowCustomSubcategory(false);
+                            }
+                          }}
+                          value={field.value !== null && field.value !== undefined ? field.value.toString() : "0"}
+                          disabled={isLoadingSubcategories || isAddingSubcategory}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={isLoadingSubcategories ? "Carregando..." : subcategories.length === 0 ? "Sem subcategorias disponíveis" : "Selecione uma subcategoria"} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent onOpenChange={(open) => {
+                            console.log("Dropdown de subcategorias aberto:", open);
+                            setDropdownOpened(open);
+                          }}>
+                            <SelectItem value="0">Nenhuma subcategoria</SelectItem>
+                            {subcategories.map((subcategory) => (
+                              <SelectItem key={subcategory.id} value={subcategory.id.toString()}>
+                                {subcategory.name}
+                              </SelectItem>
+                            ))}
+                            
+                            <div className="border-t my-2"></div>
+                            
+                            <div className="relative px-2 py-1.5">
+                              <SelectItem 
+                                value="-1" 
+                                className="text-primary font-semibold hover:bg-primary/10"
+                                id="add-subcategory-item"
+                              >
+                                <span className="flex items-center">
+                                  <PlusCircle className="mr-2 h-4 w-4" />
+                                  Adicionar outra subcategoria
+                                </span>
+                              </SelectItem>
+                            </div>
+                            
+                            {/* Log do estado do dropdown para depuração */}
+                            {console.log("Renderizando dropdown de subcategorias:", {
+                              subcategorias: subcategories,
+                              isLoadingSubcategories,
+                              isAddingSubcategory,
+                              showCustomSubcategory,
+                              dropdownJaAberto: dropdownOpened,
+                              disabled: isLoadingSubcategories || isAddingSubcategory
+                            })}
+                          </SelectContent>
+                        </Select>
+                        
+                        {/* Botão auxiliar para adicionar subcategoria (alternativa ao dropdown) */}
+                        <div className="mt-1 flex justify-end">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs h-6 hover:bg-primary/5"
+                            onClick={() => setShowCustomSubcategory(true)}
                           >
-                            <span className="flex items-center">
-                              <PlusCircle className="mr-2 h-4 w-4" />
-                              Adicionar outra subcategoria
-                            </span>
-                          </SelectItem>
-                          
-                          {/* Log do estado do dropdown para depuração */}
-                          {console.log("Renderizando dropdown de subcategorias:", {
-                            subcategorias: subcategories,
-                            isLoadingSubcategories,
-                            isAddingSubcategory,
-                            showCustomSubcategory,
-                            dropdownJaAberto: dropdownOpened,
-                            disabled: isLoadingSubcategories || isAddingSubcategory
-                          })}
-                        </SelectContent>
-                      </Select>
+                            <PlusCircle className="h-3 w-3 mr-1" />
+                            <span>Adicionar subcategoria</span>
+                          </Button>
+                        </div>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
