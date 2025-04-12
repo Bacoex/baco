@@ -439,7 +439,7 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                               <SelectValue placeholder={isLoadingSubcategories ? "Carregando..." : subcategories.length === 0 ? "Sem subcategorias disponíveis" : "Selecione uma subcategoria"} />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent onOpenChange={(open: boolean) => {
+                          <SelectContent onOpenChange={(open) => {
                             console.log("Dropdown de subcategorias aberto:", open);
                             setDropdownOpened(open);
                           }}>
@@ -459,22 +459,12 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
                                 className="text-primary font-semibold hover:bg-primary/10 bg-primary/5 p-2 rounded-md"
                                 id="add-subcategory-item"
                               >
-                                <span className="flex items-center">
+                                <div className="flex items-center">
                                   <PlusCircle className="mr-2 h-5 w-5 text-primary animate-pulse" />
                                   <span className="text-primary">Adicionar outra subcategoria</span>
-                                </span>
+                                </div>
                               </SelectItem>
                             </div>
-                            
-                            {/* Log do estado do dropdown para depuração */}
-                            {console.log("Renderizando dropdown de subcategorias:", {
-                              subcategorias: subcategories,
-                              isLoadingSubcategories,
-                              isAddingSubcategory,
-                              showCustomSubcategory,
-                              dropdownJaAberto: dropdownOpened,
-                              disabled: isLoadingSubcategories || isAddingSubcategory
-                            })}
                           </SelectContent>
                         </Select>
                         
@@ -724,9 +714,9 @@ export default function CreateEventModal({ isOpen, setIsOpen, categories, onSucc
               <div className="border rounded-md p-4 bg-gray-50">
                 <LocationMapSelector 
                   initialLocation={form.getValues("location")}
-                  onLocationSelect={(address: string, coordinates: string) => {
-                    console.log("Selecionou localização:", address, coordinates);
-                    form.setValue("location", address);
+                  onLocationSelect={(location, coordinates) => {
+                    console.log("Selecionou localização:", location, coordinates);
+                    form.setValue("location", location);
                     form.setValue("coordinates", coordinates);
                     setShowMapSelector(false);
                   }}
