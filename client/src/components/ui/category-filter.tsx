@@ -65,9 +65,7 @@ export default function CategoryFilter({
                 )}
                 style={
                   selectedCategory !== category.slug
-                  ? category.slug === "lgbt" 
-                    ? { borderColor: "#f48fb1" }
-                    : { borderColor: category.color || 'rgba(55, 65, 81, 0.5)' }
+                  ? { borderColor: category.slug === "lgbt" ? "#ec4899" : (category.color || 'rgba(55, 65, 81, 0.5)') }
                   : category.slug === "lgbt" && category.color === "pride"
                     ? { 
                         background: "linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)",
