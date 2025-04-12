@@ -67,7 +67,7 @@ export function FilterDialog({ onFilterChange, categoryId }: FilterDialogProps) 
   });
 
   // Buscar cidades disponíveis nos eventos
-  const { data: citiesData } = useQuery<City[]>({
+  const { data: citiesData, refetch: refetchCities } = useQuery<City[]>({
     queryKey: ["/api/filters/cities"],
     queryFn: async () => {
       try {
@@ -75,13 +75,16 @@ export function FilterDialog({ onFilterChange, categoryId }: FilterDialogProps) 
         if (!response.ok) {
           throw new Error("Erro ao buscar cidades");
         }
-        return await response.json();
+        const data = await response.json();
+        console.log("Dados de cidades carregados:", data);
+        return data;
       } catch (error) {
         console.error("Erro ao carregar cidades:", error);
         return [];
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    refetchOnWindowFocus: true,
+    staleTime: 1000, // Reduzindo para 1 segundo para garantir dados atualizados
   });
 
   // Buscar subcategorias ativas disponíveis (apenas aquelas que têm eventos)
@@ -202,8 +205,11 @@ export function FilterDialog({ onFilterChange, categoryId }: FilterDialogProps) 
         cities: selectedCities,
         subcategories: selectedSubcategories
       });
+    } else {
+      // Quando o diálogo for aberto, atualizar dados de cidades
+      refetchCities();
     }
-  }, [isOpen]);
+  }, [isOpen, refetchCities]);
 
   // Total de filtros ativos
   const totalActiveFilters = selectedCities.length + selectedSubcategories.length;

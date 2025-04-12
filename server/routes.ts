@@ -231,8 +231,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Buscar todos os eventos
       const events = await storage.getEvents();
       
+      console.log(`Total de eventos para extração de cidades: ${events.length}`);
+      
       // Extrair cidades únicas e contar ocorrências
       const cityCount = new Map<string, number>();
+      
+      // LISTA DE CIDADES MANUALMENTE DETECTADAS
+      // Mapeamento entre termos específicos encontrados na localização e o nome correto da cidade
+      const cityMappings: {[key: string]: string} = {
+        "Avaré": "Avaré",
+        "Bauru": "Bauru",
+        "São Paulo": "São Paulo",
+        "Sao Paulo": "São Paulo",
+        "Brazil": "ignorar", // Ignorar quando for apenas Brazil
+        "Rio de Janeiro": "Rio de Janeiro"
+      };
       
       events.forEach(event => {
         // Priorizar a extração do nome do evento pois é mais confiável
@@ -251,63 +264,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!city && event.location) {
           console.log(`Tentando extrair cidade da localização: "${event.location}"`);
           
-          // Caso específico para localização em formato brasileiro "Bauru, SP"
-          const spPattern = /([^,]+),\s*SP/i;
-          const spMatch = event.location.match(spPattern);
-          if (spMatch && spMatch[1]) {
-            city = spMatch[1].trim();
-            console.log(`Cidade extraída do padrão "[Cidade], SP": "${city}"`);
-          }
-          // Tentar o caso específico de "São Paulo"
-          else if (event.location.includes("São Paulo") || event.location.includes("Sao Paulo")) {
-            city = "São Paulo";
-            console.log(`Encontrado "São Paulo" na localização`);
-          }
-          // Tentar o caso específico de "Rio de Janeiro" que pode aparecer de várias formas
-          else if (event.location.includes("Rio de Janeiro")) {
-            city = "Rio de Janeiro";
-            console.log(`Encontrado "Rio de Janeiro" na localização`);
-          }
-          // Formato como "Avaré, State of São Paulo, Brazil"
-          else if (event.location.includes("State of")) {
-            const statePattern = /([^,]+),\s*State\s+of/i;
-            const stateMatch = event.location.match(statePattern);
-            if (stateMatch && stateMatch[1]) {
-              city = stateMatch[1].trim();
-              console.log(`Cidade extraída antes de "State of": "${city}"`);
-            }
-          }
-          // Especial para a cidade de Avaré
-          else if (event.location.includes("Avaré")) {
-            city = "Avaré";
-            console.log(`Encontrado "Avaré" na localização`);
-          }
-          // Formato como "Av. Atlântica, 1702 - Copacabana, Rio de Janeiro - RJ"
-          else if (event.location.includes(" - ")) {
-            const parts = event.location.split(" - ");
-            if (parts.length >= 2) {
-              // Pegar a primeira parte após o hífen que geralmente contém a cidade
-              const cityPart = parts[1].split(",")[0].trim();
-              if (cityPart) {
-                city = cityPart;
-                console.log(`Cidade extraída após hífen: "${city}"`);
+          // Verificar primeiro por cidades conhecidas no mapeamento
+          let foundMappedCity = false;
+          
+          for (const [searchTerm, mappedCity] of Object.entries(cityMappings)) {
+            if (event.location.includes(searchTerm)) {
+              // Se o valor mapeado for "ignorar", pular esse termo
+              if (mappedCity !== "ignorar") {
+                city = mappedCity;
+                console.log(`Cidade "${city}" encontrada diretamente no mapeamento`);
+                foundMappedCity = true;
+                break;
+              } else {
+                console.log(`Termo de localização ignorado: "${searchTerm}"`);
               }
             }
-          } 
-          // Formato como "Rua X, 123, Cidade, Estado, CEP"
-          else if (event.location.split(",").length >= 3) {
-            const cityPart = event.location.split(",")[2].trim();
-            if (cityPart) {
-              city = cityPart;
-              console.log(`Cidade extraída da terceira parte da localização: "${city}"`);
-            }
           }
-          // Caso padrão para outras estruturas
-          else if (event.location.split(",").length >= 2) {
-            const cityPart = event.location.split(",")[1].trim();
-            if (cityPart) {
-              city = cityPart;
-              console.log(`Cidade extraída da segunda parte da localização: "${city}"`);
+          
+          // Se não encontrou nos mapeamentos, usar algoritmos de extração
+          if (!foundMappedCity) {
+            // Caso específico para localização em formato brasileiro "Bauru, SP"
+            const spPattern = /([^,]+),\s*SP/i;
+            const spMatch = event.location.match(spPattern);
+            if (spMatch && spMatch[1]) {
+              city = spMatch[1].trim();
+              console.log(`Cidade extraída do padrão "[Cidade], SP": "${city}"`);
+            }
+            // Formato como "Avaré, State of São Paulo, Brazil"
+            else if (event.location.includes("State of")) {
+              const statePattern = /([^,]+),\s*State\s+of/i;
+              const stateMatch = event.location.match(statePattern);
+              if (stateMatch && stateMatch[1]) {
+                city = stateMatch[1].trim();
+                console.log(`Cidade extraída antes de "State of": "${city}"`);
+              }
+            }
+            // Formato como "Av. Atlântica, 1702 - Copacabana, Rio de Janeiro - RJ"
+            else if (event.location.includes(" - ")) {
+              const parts = event.location.split(" - ");
+              if (parts.length >= 2) {
+                // Pegar a primeira parte após o hífen que geralmente contém a cidade
+                const cityPart = parts[1].split(",")[0].trim();
+                if (cityPart) {
+                  city = cityPart;
+                  console.log(`Cidade extraída após hífen: "${city}"`);
+                }
+              }
+            } 
+            // Formato como "Rua X, 123, Cidade, Estado, CEP"
+            else if (event.location.split(",").length >= 3) {
+              const cityPart = event.location.split(",")[2].trim();
+              if (cityPart) {
+                city = cityPart;
+                console.log(`Cidade extraída da terceira parte da localização: "${city}"`);
+              }
+            }
+            // Caso padrão para outras estruturas
+            else if (event.location.split(",").length >= 2) {
+              const cityPart = event.location.split(",")[1].trim();
+              if (cityPart) {
+                city = cityPart;
+                console.log(`Cidade extraída da segunda parte da localização: "${city}"`);
+              }
             }
           }
         }
@@ -316,10 +334,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (city) {
           city = city.replace(/^\d+\s*/, '').trim();
           
-          // Se a cidade for apenas um número, ignorar
-          if (!/^\d+$/.test(city)) {
+          // Se a cidade for apenas um número ou termo de baixa relevância, ignorar
+          if (!/^\d+$/.test(city) && city !== "Brazil" && city !== "SP" && city.length > 2) {
             cityCount.set(city, (cityCount.get(city) || 0) + 1);
             console.log(`Cidade "${city}" registrada para contagem`);
+          } else {
+            console.log(`Cidade "${city}" ignorada por ser um termo inválido ou irrelevante`);
           }
         }
       });
