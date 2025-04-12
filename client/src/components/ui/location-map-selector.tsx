@@ -25,6 +25,9 @@ const mapOptions = {
   mapTypeControl: false,
 };
 
+// Definir as bibliotecas como constante para evitar recriação a cada renderização
+const libraries = ['places'];
+
 interface LocationMapSelectorProps {
   onLocationSelect: (location: string, coordinates: string) => void;
   initialLocation?: string;
@@ -43,7 +46,7 @@ export function LocationMapSelector({ onLocationSelect, initialLocation }: Locat
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-    libraries: ['places'],
+    libraries,
   });
 
   // Inicializar o geocoder quando a API estiver carregada
