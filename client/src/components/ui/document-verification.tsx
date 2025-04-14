@@ -330,7 +330,7 @@ export function DocumentVerification() {
 
   if (error) {
     return (
-      <Alert variant="destructive">
+      <Alert className="border-red-200 bg-red-50 text-red-800">
         <AlertTriangle className="h-4 w-4" />
         <AlertTitle>Erro ao carregar verificação</AlertTitle>
         <AlertDescription>
@@ -502,7 +502,7 @@ export function DocumentVerification() {
           </div>
 
           {verificationStatus?.status === 'rejected' && (
-            <Alert variant="destructive" className="mt-4">
+            <Alert className="mt-4 border-red-200 bg-red-50 text-red-800">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Verificação rejeitada</AlertTitle>
               <AlertDescription>
@@ -732,7 +732,7 @@ export function DocumentVerification() {
             </div>
 
             {verificationStatus?.status === 'rejected' && (
-              <Alert variant="destructive">
+              <Alert className="border-red-200 bg-red-50 text-red-800">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Verificação rejeitada</AlertTitle>
                 <AlertDescription>
