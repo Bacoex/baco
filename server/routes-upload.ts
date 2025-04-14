@@ -113,7 +113,7 @@ export function registerUploadRoutes(app: Express) {
       // Atualiza o usuário com a URL da imagem do documento
       await db.update(users)
         .set({ documentCpfImage: documentUrl })
-        .where(`id = ${userId}`);
+        .where(eq(users.id, userId));
       
       console.log(`Upload de documento CPF: ${req.file.filename}, usuário: ${userId}`);
       
@@ -156,7 +156,7 @@ export function registerUploadRoutes(app: Express) {
           documentReviewedBy: null,
           documentRejectionReason: null
         })
-        .where(`id = ${userId}`);
+        .where(eq(users.id, userId));
       
       console.log(`Upload de selfie com documento: ${req.file.filename}, usuário: ${userId}`);
       
@@ -191,7 +191,7 @@ export function registerUploadRoutes(app: Express) {
         documentReviewedAt: users.documentReviewedAt
       })
       .from(users)
-      .where(`id = ${userId}`);
+      .where(eq(users.id, userId));
 
       if (!userRecord) {
         return res.status(404).json({
@@ -250,7 +250,7 @@ export function registerUploadRoutes(app: Express) {
       // Atualiza o usuário com a nova URL da imagem de perfil
       await db.update(users)
         .set({ profileImage: imageUrl })
-        .where(`id = ${userId}`);
+        .where(eq(users.id, userId));
       
       console.log(`Upload de imagem de perfil: ${req.file.filename}, usuário: ${userId}`);
       

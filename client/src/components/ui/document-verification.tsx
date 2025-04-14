@@ -363,8 +363,8 @@ export function DocumentVerification() {
             </CardDescription>
           </div>
           <Badge 
-            variant={verificationStatus?.documentVerified ? "success" : "outline"}
-            className={`flex items-center gap-1 ${statusInfo.color}`}
+            variant="outline"
+            className={`flex items-center gap-1 ${statusInfo.color} ${verificationStatus?.documentVerified ? "bg-green-100 text-green-800" : ""}`}
           >
             {statusInfo.icon}
             {statusInfo.text}
@@ -512,7 +512,7 @@ export function DocumentVerification() {
           )}
 
           {verificationStatus?.status === 'pending' && (
-            <Alert variant="warning" className="mt-4 border-amber-200 text-amber-800">
+            <Alert className="mt-4 border-amber-200 text-amber-800 bg-amber-50/50">
               <Clock className="h-4 w-4" />
               <AlertTitle>Verificação em análise</AlertTitle>
               <AlertDescription>
@@ -522,7 +522,7 @@ export function DocumentVerification() {
           )}
 
           {verificationStatus?.documentVerified && (
-            <Alert variant="success" className="mt-4 border-green-200 text-green-800 bg-green-50">
+            <Alert className="mt-4 border-green-200 text-green-800 bg-green-50/50">
               <CheckCircle2 className="h-4 w-4" />
               <AlertTitle>Verificação completa</AlertTitle>
               <AlertDescription>
@@ -742,7 +742,7 @@ export function DocumentVerification() {
             )}
 
             {verificationStatus?.status === 'pending' && (
-              <Alert variant="warning" className="border-amber-200 text-amber-800">
+              <Alert className="border-amber-200 text-amber-800 bg-amber-50/50">
                 <Clock className="h-4 w-4" />
                 <AlertTitle>Em análise</AlertTitle>
                 <AlertDescription>
@@ -752,7 +752,7 @@ export function DocumentVerification() {
             )}
 
             {verificationStatus?.documentVerified && (
-              <Alert variant="success" className="border-green-200 text-green-800 bg-green-50">
+              <Alert className="border-green-200 text-green-800 bg-green-50/50">
                 <CheckCircle2 className="h-4 w-4" />
                 <AlertTitle>Verificação concluída</AlertTitle>
                 <AlertDescription>

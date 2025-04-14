@@ -478,8 +478,11 @@ export default function ProfilePage() {
         
         <main className="w-full md:w-2/3">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="w-full grid grid-cols-2">
+            <TabsList className="w-full grid grid-cols-3">
               <TabsTrigger value="profile">Perfil</TabsTrigger>
+              {isOwnProfile && (
+                <TabsTrigger value="verification">Verificação</TabsTrigger>
+              )}
               {isOwnProfile && (
                 <TabsTrigger value="settings">Configurações</TabsTrigger>
               )}
