@@ -333,7 +333,6 @@ function LoginForm({
 }) {
   const { loginMutation } = useAuth();
   const [rememberPassword, setRememberPassword] = useState(false);
-  const [isHappy, setIsHappy] = useState(false);
   
   // Estado para controlar se a senha está visível ou não
   const [showPassword, setShowPassword] = useState(false);
@@ -528,25 +527,7 @@ function LoginForm({
                 </label>
               </div>
               
-              {/* Checkbox "Sou feliz" */}
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="isHappy" 
-                  checked={isHappy}
-                  onCheckedChange={(checked) => {
-                    if (typeof checked === 'boolean') {
-                      setIsHappy(checked);
-                    }
-                  }}
-                  className="data-[state=checked]:bg-primary border-white/30"
-                />
-                <label
-                  htmlFor="isHappy"
-                  className="text-sm font-medium text-white/70 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center"
-                >
-                  Sou feliz
-                </label>
-              </div>
+
             </div>
             
             <Button 
