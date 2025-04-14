@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 
 // Interface para os dados de status da verificação
-interface VerificationStatus {
+export interface VerificationStatus {
   success: boolean;
   status: 'not_submitted' | 'pending' | 'verified' | 'rejected';
   documentVerified: boolean;
