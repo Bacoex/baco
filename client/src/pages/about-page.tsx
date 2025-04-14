@@ -136,10 +136,10 @@ export default function AboutPage() {
             </p>
           </section>
           
-          {/* Missão */}
+          {/* O Porquê do Baco */}
           <section>
             <h2 className="text-xl font-semibold mb-4 bg-gradient-to-r from-blue-500 to-blue-300 bg-clip-text text-transparent">
-              Nossa Missão
+              O Porquê do Baco
             </h2>
             <p className="text-white/80 leading-relaxed">
               Facilitar conexões genuínas entre pessoas através de eventos memoráveis, promovendo 

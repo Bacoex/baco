@@ -14,7 +14,6 @@ import { EventCategory, Event } from "@shared/schema";
 import { getQueryFn, queryClient } from "@/lib/queryClient";
 import { FilterDialog, FilterOptions } from "@/components/ui/filter-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useToast } from "@/hooks/use-toast";
 
 /**
  * Componente da página inicial
@@ -124,8 +123,7 @@ export default function HomePage() {
   const closeCreateModal = () => setIsCreateModalOpen(false);
   const handleCategorySelect = (slug: string | null) => setSelectedCategory(slug);
   
-  // Hook de toast
-  const { toast } = useToast();
+
   
   // Função para lidar com mudanças nos filtros
   const handleFilterChange = (filters: FilterOptions) => {
@@ -175,33 +173,6 @@ export default function HomePage() {
                   ? `Eventos de ${(categories as EventCategory[]).find(c => c.slug === selectedCategory)?.name || selectedCategory}` 
                   : "Eventos em destaque"}
               </h2>
-              <div className="flex space-x-2 ml-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    toast({
-                      title: "Notificação padrão",
-                      description: "Esta notificação deve desaparecer em 4 segundos",
-                    });
-                  }}
-                >
-                  Toast Normal
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  size="sm"
-                  onClick={() => {
-                    toast({
-                      title: "Erro detectado",
-                      description: "Esta notificação de erro deve desaparecer em 4 segundos",
-                      variant: "destructive"
-                    });
-                  }}
-                >
-                  Toast Erro
-                </Button>
-              </div>
             </div>
             <div className="mx-auto w-24 h-0.5 bg-primary rounded-full mt-1"></div>
           </div>
