@@ -786,6 +786,20 @@ export default function ProfilePage() {
               </Card>
             </TabsContent>
             
+            <TabsContent value="verification" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Verificação de Identidade</CardTitle>
+                  <CardDescription>
+                    Verifique sua identidade enviando seus documentos para garantir acesso completo à plataforma.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <DocumentVerification />
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
             <TabsContent value="settings" className="mt-6">
               <Card>
                 <CardHeader>
