@@ -250,14 +250,17 @@ export function DocumentVerification() {
   const calculateProgress = (): number => {
     if (!verificationStatus) return 0;
     
-    if (verificationStatus.documentVerified) return 100;
+    // Tipagem explícita para evitar erros de referência
+    const vs = verificationStatus as VerificationStatus;
+    
+    if (vs.documentVerified) return 100;
     
     let progress = 0;
-    if (verificationStatus.hasRg) progress += 30;
-    if (verificationStatus.hasCpf) progress += 30;
-    if (verificationStatus.hasSelfie) progress += 30;
+    if (vs.hasRg) progress += 30;
+    if (vs.hasCpf) progress += 30;
+    if (vs.hasSelfie) progress += 30;
     
-    if (verificationStatus.status === 'pending') {
+    if (vs.status === 'pending') {
       progress += 10; // Adiciona 10% quando está em revisão
     }
     
@@ -274,7 +277,10 @@ export function DocumentVerification() {
       };
     }
     
-    if (verificationStatus.documentVerified) {
+    // Tipagem explícita para evitar erros de referência
+    const vs = verificationStatus as VerificationStatus;
+    
+    if (vs.documentVerified) {
       return { 
         text: 'Verificação concluída', 
         icon: <CheckCircle2 className="h-5 w-5 text-green-500" />,
@@ -282,7 +288,7 @@ export function DocumentVerification() {
       };
     }
     
-    if (verificationStatus.status === 'rejected') {
+    if (vs.status === 'rejected') {
       return { 
         text: 'Documentos rejeitados', 
         icon: <XCircle className="h-5 w-5 text-destructive" />,
@@ -290,7 +296,7 @@ export function DocumentVerification() {
       };
     }
     
-    if (verificationStatus.status === 'pending') {
+    if (vs.status === 'pending') {
       return { 
         text: 'Em análise', 
         icon: <Clock className="h-5 w-5 text-amber-500" />,
@@ -300,9 +306,9 @@ export function DocumentVerification() {
     
     // not_submitted ou status inicial
     const count = [
-      verificationStatus.hasRg,
-      verificationStatus.hasCpf,
-      verificationStatus.hasSelfie
+      vs.hasRg,
+      vs.hasCpf,
+      vs.hasSelfie
     ].filter(Boolean).length;
     
     if (count === 0) {
