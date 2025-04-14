@@ -1696,12 +1696,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Para facilitar a depuração, vamos tratar esta verificação com mais robustez
       let participation = null;
-      let isParticipant = isCreator; // O criador sempre é participante
+      let isParticipant = Boolean(isCreator); // O criador sempre é participante, forçando boolean
       
       try {
         participation = await storage.getParticipation(eventId, userId);
         // Adicionar à verificação - participação tem que ser aprovada
-        isParticipant = isParticipant || (participation && participation.status === "approved");
+        // Garantir que isParticipant seja sempre boolean
+        isParticipant = Boolean(isParticipant || (participation && participation.status === "approved"));
       } catch (participationErr) {
         // Log informativo para ajudar na depuração
         console.log(`[INFO] Usuário ${userId} não tem participação no evento ${eventId}`);
@@ -1791,12 +1792,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Para facilitar a depuração, vamos tratar esta verificação com mais robustez
       let participation = null;
-      let isParticipant = isCreator; // O criador sempre é participante
+      let isParticipant = Boolean(isCreator); // O criador sempre é participante, forçando boolean
       
       try {
         participation = await storage.getParticipation(eventId, userId);
         // Adicionar à verificação - participação tem que ser aprovada
-        isParticipant = isParticipant || (participation && participation.status === "approved");
+        // Garantir que isParticipant seja sempre boolean
+        isParticipant = Boolean(isParticipant || (participation && participation.status === "approved"));
       } catch (participationErr) {
         // Log informativo para ajudar na depuração
         console.log(`[INFO] Usuário ${userId} não tem participação no evento ${eventId} para enviar mensagem`);
