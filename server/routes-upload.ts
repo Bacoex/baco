@@ -10,6 +10,7 @@ import {
 } from "./upload";
 import { db } from "./db";
 import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 // Middleware para verificar autenticação
 const ensureAuthenticated = (req: any, res: any, next: any) => {
@@ -76,7 +77,7 @@ export function registerUploadRoutes(app: Express) {
       // Atualiza o usuário com a URL da imagem do documento
       await db.update(users)
         .set({ documentRgImage: documentUrl })
-        .where(`id = ${userId}`);
+        .where(eq(users.id, userId));
       
       console.log(`Upload de documento RG: ${req.file.filename}, usuário: ${userId}`);
       

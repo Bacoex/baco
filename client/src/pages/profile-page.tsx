@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Phone, Instagram, MessageSquare, Lock, ExternalLink, Camera, X, Check, ChevronLeft, Home } from "lucide-react";
+import { Loader2, Mail, Phone, Instagram, MessageSquare, Lock, ExternalLink, Camera, X, Check, ChevronLeft, Home, FileCheck } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { updateUserProfileSchema, User } from "@shared/schema";
@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link, useParams } from "wouter";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DocumentVerification } from "@/components/ui/document-verification";
 
 const passwordChangeSchema = z.object({
   currentPassword: z.string().min(1, "A senha atual é obrigatória"),
