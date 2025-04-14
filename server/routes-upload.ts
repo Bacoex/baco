@@ -218,7 +218,7 @@ export function registerUploadRoutes(app: Express) {
       return res.status(200).json({
         success: true,
         status,
-        documentVerified: userRecord.documentVerified,
+        documentVerified: !!userRecord.documentVerified, // Garantir que seja um boolean
         hasRg: !!userRecord.documentRgImage,
         hasCpf: !!userRecord.documentCpfImage,
         hasSelfie: !!userRecord.documentSelfieImage,
