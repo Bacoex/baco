@@ -63,8 +63,14 @@ export function DocumentVerification() {
     queryKey: ['/api/document-verification/status'],
     refetchInterval: 60000, // Atualiza a cada minuto
     retry: 1,
-    enabled: !!user // Só executa se o usuário estiver logado
+    enabled: !!user, // Só executa se o usuário estiver logado
+    onError: (err) => {
+      console.error("Erro ao buscar status de verificação:", err);
+    }
   });
+  
+  // Log para debug
+  console.log("Status da verificação:", { verificationStatus, isLoading, error });
 
   // Mutação para upload de documento RG
   const uploadRGMutation = useMutation({
