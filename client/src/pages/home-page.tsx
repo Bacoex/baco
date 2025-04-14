@@ -175,19 +175,33 @@ export default function HomePage() {
                   ? `Eventos de ${(categories as EventCategory[]).find(c => c.slug === selectedCategory)?.name || selectedCategory}` 
                   : "Eventos em destaque"}
               </h2>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="ml-2"
-                onClick={() => {
-                  toast({
-                    title: "Teste de notificação",
-                    description: "Esta é uma notificação de teste para verificar a animação",
-                  });
-                }}
-              >
-                Testar Toast
-              </Button>
+              <div className="flex space-x-2 ml-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    toast({
+                      title: "Notificação padrão",
+                      description: "Esta notificação deve desaparecer em 4 segundos",
+                    });
+                  }}
+                >
+                  Toast Normal
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={() => {
+                    toast({
+                      title: "Erro detectado",
+                      description: "Esta notificação de erro deve desaparecer em 4 segundos",
+                      variant: "destructive"
+                    });
+                  }}
+                >
+                  Toast Erro
+                </Button>
+              </div>
             </div>
             <div className="mx-auto w-24 h-0.5 bg-primary rounded-full mt-1"></div>
           </div>
