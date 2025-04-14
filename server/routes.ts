@@ -51,12 +51,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
   
   // Registrar rotas de upload de arquivos
-  import('./routes-upload').then(module => {
-    module.registerUploadRoutes(app);
+  try {
+    registerUploadRoutes(app);
     console.log('Rotas de upload registradas');
-  }).catch(err => {
+  } catch (err) {
     console.error('Erro ao registrar rotas de upload:', err);
-  });
+  }
   
   // Rota para obter informações de um usuário específico
   app.get('/api/users/:id', async (req, res) => {

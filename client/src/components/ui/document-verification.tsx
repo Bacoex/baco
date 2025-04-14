@@ -59,18 +59,24 @@ export function DocumentVerification() {
   });
 
   // Consulta para obter o status atual da verificação
-  const { data: verificationStatus, isLoading, error, refetch } = useQuery<VerificationStatus>({
+  const { 
+    data: verificationStatus, 
+    isLoading, 
+    error, 
+    refetch 
+  } = useQuery<VerificationStatus>({
     queryKey: ['/api/document-verification/status'],
     refetchInterval: 60000, // Atualiza a cada minuto
     retry: 1,
-    enabled: !!user, // Só executa se o usuário estiver logado
-    onError: (err) => {
-      console.error("Erro ao buscar status de verificação:", err);
-    }
+    enabled: !!user // Só executa se o usuário estiver logado
   });
   
-  // Log para debug
-  console.log("Status da verificação:", { verificationStatus, isLoading, error });
+  // Log para debug - comente após resolver o problema
+  console.log("Status da verificação:", { 
+    verificationStatus, 
+    isLoading, 
+    error: error ? (error as Error).message : null 
+  });
 
   // Mutação para upload de documento RG
   const uploadRGMutation = useMutation({
