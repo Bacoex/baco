@@ -400,10 +400,81 @@ export function registerUploadRoutes(app: Express) {
     }
   });
 
+
   /**
-   * Rota para resetar o status de verificação de documentos (apenas administradores)
-   * Isso remove o status de rejeição e permite que o usuário tente novamente
+   * Rota para o usuário resetar seu próprio status de verificação quando rejeitado
+   * Isso permitirá enviar documentos novamente após correção dos problemas
    */
+  app.post('/api/document-verification/reset', ensureAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user.id;
+      
+      // Verificar status atual do usuário
+      const user = await db.query.users.findFirst({
+        where: eq(users.id, userId),
+        columns: {
+          documentVerified: true,
+          documentRejectionReason: true,
+        }
+      });
+      
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'Usuário não encontrado'
+        });
+      }
+      
+      // Se já está verificado, não permite resetar
+      if (user.documentVerified) {
+        return res.status(400).json({
+          success: false,
+          message: 'Não é possível resetar documentos já verificados'
+        });
+      }
+      
+      console.log(`Usuário ${userId} está resetando seu próprio status de verificação`);
+      
+      // Log da operação
+      logError(
+        ErrorType.DOCUMENT_VERIFICATION,
+        ErrorSeverity.INFO,
+        'UserDocReset',
+        `Usuário ${userId} está resetando seu próprio status de verificação`,
+        { userId, previousReason: user.documentRejectionReason }
+      );
+      
+      // Resetar o status de verificação
+      await db.update(users)
+        .set({
+          documentRejectionReason: null,
+          documentReviewedAt: null
+        })
+        .where(eq(users.id, userId));
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Status de verificação resetado com sucesso'
+      });
+    } catch (error) {
+      console.error('Erro ao resetar status de verificação:', error);
+      
+      // Log do erro
+      logError(
+        ErrorType.DOCUMENT_VERIFICATION,
+        ErrorSeverity.ERROR,
+        'UserDocReset',
+        `Erro ao resetar status de verificação do usuário`,
+        { error }
+      );
+      
+      return res.status(500).json({
+        success: false,
+        message: 'Erro ao resetar status de verificação'
+      });
+    }
+  });
+
   app.post('/api/document-verification/admin/reset', ensureAuthenticated, async (req: Request, res: Response) => {
     try {
       const adminId = (req as any).user.id;
