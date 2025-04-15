@@ -649,19 +649,19 @@ export function DocumentVerification() {
         <TabsContent value="review" className="p-4 space-y-4">
           <div className="space-y-4">
             <div className="bg-white rounded-lg p-4 border shadow-sm">
-              <h3 className="text-lg font-medium mb-2 text-foreground">Status da Verificação</h3>
+              <h3 className="text-lg font-medium mb-2 text-gray-800">Status da Verificação</h3>
               <div className="flex items-center gap-2">
                 <div className={statusInfo.color}>
                   {statusInfo.icon}
                 </div>
-                <span className="font-medium text-foreground">{statusInfo.text}</span>
+                <span className="font-medium text-gray-800">{statusInfo.text}</span>
               </div>
               
               <Separator className="my-4" />
               
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm text-foreground">Frente do documento:</span>
+                  <span className="text-sm text-gray-800">Frente do documento:</span>
                   <span className="font-medium">
                     {verificationStatus?.hasRg ? (
                       <span className="text-green-600 flex items-center">
@@ -678,7 +678,7 @@ export function DocumentVerification() {
                 </div>
                 
                 <div className="flex justify-between">
-                  <span className="text-sm text-foreground">Verso do documento:</span>
+                  <span className="text-sm text-gray-800">Verso do documento:</span>
                   <span className="font-medium">
                     {verificationStatus?.hasCpf ? (
                       <span className="text-green-600 flex items-center">
@@ -695,7 +695,7 @@ export function DocumentVerification() {
                 </div>
                 
                 <div className="flex justify-between">
-                  <span className="text-sm text-foreground">Selfie com Documento:</span>
+                  <span className="text-sm text-gray-800">Selfie com Documento:</span>
                   <span className="font-medium">
                     {verificationStatus?.hasSelfie ? (
                       <span className="text-green-600 flex items-center">
@@ -748,8 +748,8 @@ export function DocumentVerification() {
              !verificationStatus?.hasCpf ? (
               <Alert className="border text-foreground bg-background">
                 <Info className="h-4 w-4 text-blue-500" />
-                <AlertTitle className="font-semibold">Documentos pendentes</AlertTitle>
-                <AlertDescription>
+                <AlertTitle className="font-semibold text-black">Documentos pendentes</AlertTitle>
+                <AlertDescription className="text-gray-800">
                   Você ainda precisa enviar todos os documentos necessários para a verificação.
                 </AlertDescription>
               </Alert>
