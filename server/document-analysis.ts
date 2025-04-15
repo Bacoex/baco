@@ -13,6 +13,13 @@ interface ErrorWithMessage {
   message: string;
 }
 
+// Função auxiliar para tratar erros unknown
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return 'Erro desconhecido';
+}
+
 /**
  * Interface para resultado de análise de documento
  */
@@ -101,19 +108,20 @@ export async function analyzeDocument(
       await worker.terminate();
       throw error;
     }
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMsg = getErrorMessage(error);
     logError(
       ErrorType.EXTERNAL_API,
       ErrorSeverity.ERROR,
       'DocumentAnalysis',
-      `Erro ao analisar documento: ${error.message}`,
+      `Erro ao analisar documento: ${errorMsg}`,
       { documentType, error }
     );
     
     return {
       success: false,
       confidence: 0,
-      errorMessage: `Erro ao processar imagem: ${error.message}`
+      errorMessage: `Erro ao processar imagem: ${errorMsg}`
     };
   }
 }
@@ -162,12 +170,13 @@ export async function compareFaces(
       confidence: 0.75, // Confiança média por ser uma verificação básica
       matched: true
     };
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMsg = getErrorMessage(error);
     logError(
       ErrorType.EXTERNAL_API,
       ErrorSeverity.ERROR,
       'DocumentAnalysis',
-      `Erro ao comparar faces: ${error.message}`,
+      `Erro ao comparar faces: ${errorMsg}`,
       { error }
     );
     
@@ -175,7 +184,7 @@ export async function compareFaces(
       success: false,
       confidence: 0,
       matched: false,
-      errorMessage: `Erro ao processar imagens: ${error.message}`
+      errorMessage: `Erro ao processar imagens: ${errorMsg}`
     };
   }
 }
@@ -226,12 +235,13 @@ export async function addToModerationQueue(
     console.log(`Documentos do usuário ${userId} adicionados à fila de moderação manual`);
     
     return true;
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMsg = getErrorMessage(error);
     logError(
-      ErrorType.DATABASE_ERROR,
+      ErrorType.DATABASE,
       ErrorSeverity.ERROR,
       'DocumentAnalysis',
-      `Erro ao adicionar à fila de moderação: ${error.message}`,
+      `Erro ao adicionar à fila de moderação: ${errorMsg}`,
       { userId, error }
     );
     
@@ -295,18 +305,19 @@ export async function processDocumentSet(
       success: true,
       message: "Documentos processados com sucesso e adicionados à fila de revisão"
     };
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMsg = getErrorMessage(error);
     logError(
       ErrorType.EXTERNAL_API,
       ErrorSeverity.ERROR,
       'DocumentAnalysis',
-      `Erro ao processar conjunto de documentos: ${error.message}`,
+      `Erro ao processar conjunto de documentos: ${errorMsg}`,
       { userId, error }
     );
     
     return {
       success: false,
-      message: `Erro ao processar documentos: ${error.message}`
+      message: `Erro ao processar documentos: ${errorMsg}`
     };
   }
 }

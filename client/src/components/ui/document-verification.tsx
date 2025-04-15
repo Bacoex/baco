@@ -38,6 +38,12 @@ export interface VerificationStatus {
   reviewedAt?: string;
 }
 
+// Interface para o resultado da análise de documentos
+interface AnalysisResult {
+  success: boolean;
+  message: string;
+}
+
 export function DocumentVerification() {
   const { toast } = useToast();
   const { user } = useAuth();

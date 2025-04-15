@@ -12,6 +12,7 @@ import { db, pool } from "./db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import path from "path";
+import { processDocumentSet } from "./document-analysis";
 
 // Middleware para verificar autenticação
 const ensureAuthenticated = (req: any, res: any, next: any) => {
@@ -176,6 +177,93 @@ export function registerUploadRoutes(app: Express) {
       });
     }
   });
+  
+  // Rota para analisar os documentos enviados
+  app.post('/api/document-verification/analyze', ensureAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user.id;
+      
+      // Buscar informações do usuário para obter os documentos
+      const userResult = await db.select().from(users).where(eq(users.id, userId));
+      
+      if (!userResult.length) {
+        return res.status(404).json({
+          success: false,
+          message: 'Usuário não encontrado'
+        });
+      }
+      
+      const user = userResult[0];
+      
+      // Verificar se todos os documentos foram enviados
+      if (!user.documentRgImage || !user.documentCpfImage || !user.documentSelfieImage) {
+        return res.status(400).json({
+          success: false,
+          message: 'É necessário enviar todos os documentos antes de iniciar a análise'
+        });
+      }
+      
+      // Extrair caminhos dos arquivos a partir das URLs
+      const getFilePathFromUrl = (url: string) => {
+        const fileName = url.split('/').pop();
+        return path.join(process.cwd(), 'uploads', 'documents', fileName as string);
+      };
+      
+      const documentRgPath = getFilePathFromUrl(user.documentRgImage);
+      const documentCpfPath = getFilePathFromUrl(user.documentCpfImage);
+      const selfiePath = getFilePathFromUrl(user.documentSelfieImage);
+      
+      console.log('Iniciando análise de documentos para o usuário:', userId);
+      console.log('Caminhos dos arquivos:', {
+        documentRgPath,
+        documentCpfPath, 
+        selfiePath
+      });
+      
+      // Processamento dos documentos
+      const analysisResult = await processDocumentSet(
+        userId,
+        documentRgPath,
+        documentCpfPath,
+        selfiePath
+      );
+      
+      if (!analysisResult.success) {
+        // Se houver problema na análise, atualizamos o motivo da rejeição
+        await db.update(users)
+          .set({ 
+            documentRejectionReason: analysisResult.message,
+            documentReviewedAt: new Date()
+          })
+          .where(eq(users.id, userId));
+          
+        return res.status(400).json({
+          success: false,
+          message: analysisResult.message
+        });
+      }
+      
+      // Se a análise for bem-sucedida, atualizamos o status para aguardando revisão
+      // mas não marcamos como verificado ainda, pois isso depende de aprovação manual
+      await db.update(users)
+        .set({ 
+          documentRejectionReason: null,
+          documentReviewedAt: null
+        })
+        .where(eq(users.id, userId));
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Documentos analisados com sucesso e enviados para aprovação manual'
+      });
+    } catch (error) {
+      console.error('Erro ao analisar documentos:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Erro ao processar análise de documentos'
+      });
+    }
+  });
 
   // Rota para verificar o status da verificação de documentos
   app.get('/api/document-verification/status', ensureAuthenticated, async (req: Request, res: Response) => {
@@ -302,6 +390,138 @@ export function registerUploadRoutes(app: Express) {
       return res.status(500).json({ 
         success: false, 
         message: 'Erro ao verificar status de documentos'
+      });
+    }
+  });
+
+  // Rota para aprovação ou rejeição de documentos (apenas administradores)
+  app.post('/api/document-verification/admin/review', ensureAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const adminId = (req as any).user.id;
+      
+      // Verificar se o usuário é um administrador (ID 1 ou 2, ou campo isAdmin)
+      if (adminId !== 1 && adminId !== 2) {
+        return res.status(403).json({
+          success: false,
+          message: 'Apenas administradores podem revisar documentos'
+        });
+      }
+      
+      const { userId, approved, rejectionReason } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({
+          success: false,
+          message: 'ID do usuário é obrigatório'
+        });
+      }
+      
+      // Buscar usuário para verificar se documentos foram enviados
+      const userResult = await db.select().from(users).where(eq(users.id, userId));
+      
+      if (!userResult.length) {
+        return res.status(404).json({
+          success: false,
+          message: 'Usuário não encontrado'
+        });
+      }
+      
+      const user = userResult[0];
+      
+      // Verificar se todos os documentos foram enviados
+      if (!user.documentRgImage || !user.documentCpfImage || !user.documentSelfieImage) {
+        return res.status(400).json({
+          success: false,
+          message: 'O usuário não enviou todos os documentos necessários'
+        });
+      }
+      
+      // Aprovar ou rejeitar com base no parâmetro
+      if (approved) {
+        await db.update(users)
+          .set({ 
+            documentVerified: true,
+            documentReviewedAt: new Date(),
+            documentReviewedBy: adminId,
+            documentRejectionReason: null
+          })
+          .where(eq(users.id, userId));
+          
+        console.log(`Documentos do usuário ${userId} APROVADOS pelo admin ${adminId}`);
+        
+        return res.status(200).json({
+          success: true,
+          message: 'Documentos aprovados com sucesso'
+        });
+      } else {
+        // Verificar se o motivo da rejeição foi fornecido
+        if (!rejectionReason) {
+          return res.status(400).json({
+            success: false,
+            message: 'É necessário fornecer um motivo para rejeição'
+          });
+        }
+        
+        await db.update(users)
+          .set({ 
+            documentVerified: false,
+            documentReviewedAt: new Date(),
+            documentReviewedBy: adminId,
+            documentRejectionReason: rejectionReason
+          })
+          .where(eq(users.id, userId));
+          
+        console.log(`Documentos do usuário ${userId} REJEITADOS pelo admin ${adminId}: ${rejectionReason}`);
+        
+        return res.status(200).json({
+          success: true,
+          message: 'Documentos rejeitados com sucesso'
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao revisar documentos:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Erro ao processar revisão de documentos'
+      });
+    }
+  });
+
+  // Rota para listar usuários com documentos pendentes de revisão (apenas administradores)
+  app.get('/api/document-verification/admin/pending', ensureAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const adminId = (req as any).user.id;
+      
+      // Verificar se o usuário é um administrador (ID 1 ou 2, ou campo isAdmin)
+      if (adminId !== 1 && adminId !== 2) {
+        return res.status(403).json({
+          success: false,
+          message: 'Apenas administradores podem acessar esta funcionalidade'
+        });
+      }
+      
+      // Buscar usuários com documentos pendentes de revisão
+      const result = await pool.query(`
+        SELECT id, username, first_name, last_name, email, 
+               document_rg_image, document_cpf_image, document_selfie_image
+        FROM users 
+        WHERE document_rg_image IS NOT NULL 
+          AND document_cpf_image IS NOT NULL 
+          AND document_selfie_image IS NOT NULL
+          AND document_verified = false
+          AND document_rejection_reason IS NULL
+        ORDER BY id DESC
+      `);
+      
+      return res.status(200).json({
+        success: true,
+        pendingUsers: result.rows
+      });
+    } catch (error) {
+      console.error('Erro ao listar documentos pendentes:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Erro ao listar documentos pendentes de revisão'
       });
     }
   });
