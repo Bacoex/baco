@@ -45,7 +45,7 @@ export interface FaceComparisonResult {
 /**
  * Configurações para análise de documentos
  */
-const DOCUMENT_CONFIDENCE_THRESHOLD = 0.1; // Confiança mínima para extração de texto - reduzida ao mínimo para garantir aprovação automática
+const DOCUMENT_CONFIDENCE_THRESHOLD = 0.3; // Confiança mínima para extração de texto - ajustada para garantir que a imagem seja realmente um documento
 const FACE_CONFIDENCE_THRESHOLD = 0.8; // Confiança mínima para detecção facial
 
 /**
@@ -85,6 +85,10 @@ export async function analyzeDocument(
       let detectedDocType: 'rg' | 'cpf' | 'unknown' = 'unknown';
       const lowerText = data.text.toLowerCase();
       
+      // Verificar se o texto extraído é suficiente para caracterizar um documento
+      // Se não houver texto suficiente, provavelmente não é um documento válido
+      const hasMinimumText = data.text.length > 20; // Documentos geralmente têm mais de 20 caracteres
+      
       // Ampliado para reconhecer CNH como documento de identidade válido também
       if (lowerText.includes('identidade') || lowerText.includes('registro geral') || lowerText.includes('rg') || 
           lowerText.includes('cnh') || lowerText.includes('carteira nacional') || lowerText.includes('habilitação')) {
@@ -93,14 +97,24 @@ export async function analyzeDocument(
         detectedDocType = 'cpf';
       }
       
+      // Verificar palavras-chave para identificar um documento brasileiro válido
+      const brazilianDocumentKeywords = ['brasil', 'república', 'federativa', 'ministério', 'secretaria', 
+                                         'identidade', 'documento', 'registro', 'nascimento', 'filiação'];
+      
+      // Verificar se pelo menos uma palavra-chave de documento está presente
+      const hasDocumentKeyword = brazilianDocumentKeywords.some(keyword => lowerText.includes(keyword));
+      
       // Sempre defina um tipo de documento, mesmo se não conseguir detectar
       if (detectedDocType === 'unknown') {
         detectedDocType = documentType; // Usa o tipo informado como padrão
       }
       
+      // Validar se parece ser um documento genuíno
+      // Se não tiver texto suficiente ou nenhuma palavra-chave de documento, provável que não seja um documento
+      const looksLikeDocument = hasMinimumText && (hasDocumentKeyword || detectedDocType !== 'unknown');
+      
       // Validar se o tipo de documento detectado corresponde ao esperado
-      // Modificado para sempre retornar true - em vez disso, confiaremos na revisão manual posterior
-      const isCorrectType = true; // detectedDocType === 'unknown' || detectedDocType === documentType;
+      const isCorrectType = detectedDocType === 'unknown' || detectedDocType === documentType;
       
       await worker.terminate();
       
@@ -112,8 +126,19 @@ export async function analyzeDocument(
         errorMessage = 'Não foi possível identificar claramente o documento. Certifique-se que a imagem está nítida, bem iluminada e sem reflexos.';
       }
       
+      // Verificar se parece ser um documento válido
+      if (!looksLikeDocument) {
+        return {
+          success: false,
+          confidence,
+          detectedText: data.text,
+          documentType: 'unknown',
+          errorMessage: 'A imagem não parece ser um documento válido. Certifique-se de que é uma foto clara de um documento oficial.'
+        };
+      }
+    
       return {
-        success: success && isCorrectType,
+        success: success && isCorrectType && looksLikeDocument,
         confidence,
         detectedText: data.text,
         documentType: detectedDocType,
