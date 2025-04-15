@@ -183,23 +183,15 @@ export function registerUploadRoutes(app: Express) {
       const userId = (req as any).user.id;
       
       console.log(`Verificando status de documentos para o usuário ${userId}`);
-      console.log(`Dados da sessão do usuário:`, JSON.stringify((req as any).user));
       
-      // Verifica se existe um usuário com o ID da sessão
-      const checkUser = await db.select().from(users).where(eq(users.id, userId));
-      console.log(`Verificação do usuário no banco:`, JSON.stringify(checkUser));
+      // Versão simplificada da consulta para evitar problemas com colunas que podem não existir
+      // Verificando diretamente com uma consulta SQL simples que usa apenas colunas obrigatórias
+      const result = await pool.query(`
+        SELECT id, document_verified 
+        FROM users WHERE id = $1
+      `, [userId]);
       
-      // Busca o usuário para verificar o status da documentação
-      const [userRecord] = await db.select({
-        document_verified: users.documentVerified,
-        documentRgImage: users.documentRgImage,
-        documentCpfImage: users.documentCpfImage,
-        documentSelfieImage: users.documentSelfieImage,
-        documentRejectionReason: users.documentRejectionReason,
-        documentReviewedAt: users.documentReviewedAt
-      })
-      .from(users)
-      .where(eq(users.id, userId));
+      const userRecord = result.rows[0];
       
       console.log(`Resultado da consulta:`, JSON.stringify(userRecord || null));
 
@@ -214,13 +206,13 @@ export function registerUploadRoutes(app: Express) {
       // Determina o status com base nos campos
       let status = 'not_submitted';
       
-      const hasAllDocuments = userRecord.documentRgImage && 
-                              userRecord.documentCpfImage && 
-                              userRecord.documentSelfieImage;
+      const hasAllDocuments = userRecord.document_rg_image && 
+                              userRecord.document_cpf_image && 
+                              userRecord.document_selfie_image;
       
       if (userRecord.document_verified) {
         status = 'verified';
-      } else if (userRecord.documentRejectionReason) {
+      } else if (userRecord.document_rejection_reason) {
         status = 'rejected';
       } else if (hasAllDocuments) {
         status = 'pending';
