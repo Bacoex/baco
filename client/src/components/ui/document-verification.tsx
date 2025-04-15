@@ -276,6 +276,54 @@ export function DocumentVerification() {
       );
     }
   });
+  
+  // Mutação para resetar o status de verificação (quando rejeitado)
+  const resetVerificationMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/document-verification/reset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao resetar status de verificação');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Status resetado com sucesso',
+        description: 'Agora você pode enviar novos documentos e tentar novamente.'
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/document-verification/status'] });
+      setActiveTab('overview');
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erro ao resetar status',
+        description: error.message,
+        variant: 'destructive'
+      });
+      
+      // Registrar erro nos logs
+      logDocumentVerificationError(
+        'Reset',
+        'status',
+        error,
+        { userId: user?.id }
+      );
+    }
+  });
+  
+  // Função para resetar o status de verificação
+  const resetVerificationStatus = () => {
+    resetVerificationMutation.mutate();
+  };
 
   // Função para lidar com o upload de arquivo
   const handleFileUpload = (
@@ -352,8 +400,8 @@ export function DocumentVerification() {
     return progress;
   };
   
-  // Nova função para resetar o status de verificação (para administradores)
-  const resetVerificationStatus = async () => {
+  // Função para resetar o status de verificação para administradores (manter para compatibilidade)
+  const resetAdminVerificationStatus = async () => {
     try {
       const response = await apiRequest("POST", "/api/document-verification/admin/reset", {
         userId: user?.id
@@ -361,7 +409,7 @@ export function DocumentVerification() {
       
       if (response.ok) {
         toast({
-          title: "Status resetado",
+          title: "Status resetado (Admin)",
           description: "Os documentos podem ser enviados novamente",
         });
         
