@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { logDocumentVerificationError } from '@/lib/errorLogger';
+import { apiRequest } from '@/lib/queryClient';
 
 import { 
   Camera, 

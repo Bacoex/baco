@@ -13,6 +13,7 @@ import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import path from "path";
 import { processDocumentSet } from "./document-analysis";
+import { logError, ErrorType, ErrorSeverity } from "./errorMonitoring";
 
 // Middleware para verificar autenticação
 const ensureAuthenticated = (req: any, res: any, next: any) => {
