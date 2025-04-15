@@ -773,6 +773,24 @@ export function DocumentVerification() {
                 <span className="font-medium text-gray-800">{statusInfo.text}</span>
               </div>
               
+              {/* Exibir botão para resetar verificação (admin) ou tentar novamente (em caso de rejeição) */}
+              {verificationStatus?.status === 'rejected' && (
+                <div className="mt-3">
+                  <Button
+                    onClick={resetVerificationStatus}
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-amber-200 text-amber-700 hover:bg-amber-50"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Resetar e Tentar Novamente
+                  </Button>
+                  <p className="text-xs text-gray-500 mt-1 text-center">
+                    Esta ação permitirá uma nova análise dos documentos
+                  </p>
+                </div>
+              )}
+              
               {/* Botão para analisar documentos - aparece quando todos os documentos foram enviados */}
               {verificationStatus?.hasRg && 
                verificationStatus?.hasCpf && 
