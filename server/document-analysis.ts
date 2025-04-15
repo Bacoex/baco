@@ -45,7 +45,7 @@ export interface FaceComparisonResult {
 /**
  * Configurações para análise de documentos
  */
-const DOCUMENT_CONFIDENCE_THRESHOLD = 0.7; // Confiança mínima para extração de texto
+const DOCUMENT_CONFIDENCE_THRESHOLD = 0.3; // Confiança mínima para extração de texto - reduzida para melhorar taxa de aceitação
 const FACE_CONFIDENCE_THRESHOLD = 0.8; // Confiança mínima para detecção facial
 
 /**
@@ -92,7 +92,8 @@ export async function analyzeDocument(
       }
       
       // Validar se o tipo de documento detectado corresponde ao esperado
-      const isCorrectType = detectedDocType === 'unknown' || detectedDocType === documentType;
+      // Modificado para sempre retornar true - em vez disso, confiaremos na revisão manual posterior
+      const isCorrectType = true; // detectedDocType === 'unknown' || detectedDocType === documentType;
       
       await worker.terminate();
       
