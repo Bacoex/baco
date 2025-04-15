@@ -20,6 +20,7 @@ export enum ErrorComponent {
   NOTIFICATION_DUPLICATE = 'NotificacaoDuplicada',
   NOTIFICATION_PROCESSING = 'NotificationProcessing',
   SHARE_EVENT = 'ShareEvent',
+  DOCUMENT_VERIFICATION = 'DocumentVerification',
   GENERAL = 'General'
 }
 
@@ -518,6 +519,33 @@ export function generateFallbackShareData(
   );
   
   return fallbackData;
+}
+
+/**
+ * Registra erros específicos do processo de verificação de documentos
+ * @param operation Operação que estava sendo realizada (upload, análise, etc)
+ * @param documentType Tipo de documento (rg, cpf, selfie)
+ * @param error Objeto de erro opcional
+ * @param details Detalhes adicionais
+ */
+export function logDocumentVerificationError(
+  operation: string,
+  documentType: 'frente' | 'verso' | 'selfie' | 'análise' | 'geral',
+  error?: Error,
+  details?: any
+): void {
+  logError(`Erro no processo de verificação de documentos - ${operation} (${documentType})`, ErrorSeverity.ERROR, {
+    component: ErrorComponent.DOCUMENT_VERIFICATION,
+    context: 'Verificação de documentos',
+    error,
+    additionalData: {
+      operation,
+      documentType,
+      details,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent
+    }
+  });
 }
 
 // Função para recuperar estatísticas de erros

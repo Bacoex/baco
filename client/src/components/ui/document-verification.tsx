@@ -125,6 +125,14 @@ export function DocumentVerification() {
         description: error.message,
         variant: 'destructive'
       });
+      
+      // Registrar erro nos logs
+      logDocumentVerificationError(
+        'Upload',
+        'frente',
+        error,
+        { userId: user?.id }
+      );
     },
     onSettled: () => {
       setUploading(prev => ({ ...prev, rg: false }));
