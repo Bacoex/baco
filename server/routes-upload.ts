@@ -183,7 +183,7 @@ export function registerUploadRoutes(app: Express) {
       
       // Busca o usuário para verificar o status da documentação
       const [userRecord] = await db.select({
-        documentVerified: users.documentVerified,
+        document_verified: users.documentVerified,
         documentRgImage: users.documentRgImage,
         documentCpfImage: users.documentCpfImage,
         documentSelfieImage: users.documentSelfieImage,
@@ -207,7 +207,7 @@ export function registerUploadRoutes(app: Express) {
                               userRecord.documentCpfImage && 
                               userRecord.documentSelfieImage;
       
-      if (userRecord.documentVerified) {
+      if (userRecord.document_verified) {
         status = 'verified';
       } else if (userRecord.documentRejectionReason) {
         status = 'rejected';
@@ -218,7 +218,7 @@ export function registerUploadRoutes(app: Express) {
       return res.status(200).json({
         success: true,
         status,
-        documentVerified: !!userRecord.documentVerified, // Garantir que seja um boolean
+        documentVerified: !!userRecord.document_verified, // Garantir que seja um boolean
         hasRg: !!userRecord.documentRgImage,
         hasCpf: !!userRecord.documentCpfImage,
         hasSelfie: !!userRecord.documentSelfieImage,

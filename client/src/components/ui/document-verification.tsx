@@ -30,7 +30,7 @@ import {
 export interface VerificationStatus {
   success: boolean;
   status: 'not_submitted' | 'pending' | 'verified' | 'rejected';
-  documentVerified: boolean;
+  documentVerified: boolean; // Mantido para retrocompatibilidade
   hasRg: boolean;
   hasCpf: boolean;
   hasSelfie: boolean;
