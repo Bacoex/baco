@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { logDocumentVerificationError } from '@/lib/errorLogger';
 
 import { 
   Camera, 
@@ -171,6 +172,14 @@ export function DocumentVerification() {
         description: error.message,
         variant: 'destructive'
       });
+      
+      // Registrar erro nos logs
+      logDocumentVerificationError(
+        'Upload',
+        'verso',
+        error,
+        { userId: user?.id }
+      );
     },
     onSettled: () => {
       setUploading(prev => ({ ...prev, cpf: false }));
@@ -209,6 +218,14 @@ export function DocumentVerification() {
         description: error.message,
         variant: 'destructive'
       });
+      
+      // Registrar erro nos logs
+      logDocumentVerificationError(
+        'Upload',
+        'selfie',
+        error,
+        { userId: user?.id }
+      );
     },
     onSettled: () => {
       setUploading(prev => ({ ...prev, selfie: false }));
@@ -248,6 +265,14 @@ export function DocumentVerification() {
         description: error.message,
         variant: 'destructive'
       });
+      
+      // Registrar erro nos logs
+      logDocumentVerificationError(
+        'Análise',
+        'análise',
+        error,
+        { userId: user?.id }
+      );
     }
   });
 
