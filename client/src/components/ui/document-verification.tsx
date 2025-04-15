@@ -414,37 +414,22 @@ export function DocumentVerification() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-md flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
-                  Documento RG
+                  Frente do Documento
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex justify-between items-center">
-                  <div>
-                    {verificationStatus?.hasRg ? (
-                      <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
-                        <FileCheck className="h-3 w-3 mr-1" />
-                        Enviado
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-100">
-                        <FileX className="h-3 w-3 mr-1" />
-                        Pendente
-                      </Badge>
-                    )}
-                  </div>
-                  <Button 
-                    size="sm" 
-                    variant={verificationStatus?.hasRg ? "outline" : "default"}
-                    onClick={() => triggerFileInput('rg')}
-                    disabled={uploading.rg || verificationStatus?.documentVerified}
-                  >
-                    {uploading.rg ? (
-                      <RefreshCw className="h-4 w-4 animate-spin mr-1" />
-                    ) : (
-                      <Upload className="h-4 w-4 mr-1" />
-                    )}
-                    {verificationStatus?.hasRg ? 'Reenviar' : 'Enviar'}
-                  </Button>
+                <div>
+                  {verificationStatus?.hasRg ? (
+                    <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
+                      <FileCheck className="h-3 w-3 mr-1" />
+                      Enviado
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-100">
+                      <FileX className="h-3 w-3 mr-1" />
+                      Pendente
+                    </Badge>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -453,37 +438,22 @@ export function DocumentVerification() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-md flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
-                  Documento CPF
+                  Verso do Documento
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex justify-between items-center">
-                  <div>
-                    {verificationStatus?.hasCpf ? (
-                      <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
-                        <FileCheck className="h-3 w-3 mr-1" />
-                        Enviado
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-100">
-                        <FileX className="h-3 w-3 mr-1" />
-                        Pendente
-                      </Badge>
-                    )}
-                  </div>
-                  <Button 
-                    size="sm" 
-                    variant={verificationStatus?.hasCpf ? "outline" : "default"}
-                    onClick={() => triggerFileInput('cpf')}
-                    disabled={uploading.cpf || verificationStatus?.documentVerified}
-                  >
-                    {uploading.cpf ? (
-                      <RefreshCw className="h-4 w-4 animate-spin mr-1" />
-                    ) : (
-                      <Upload className="h-4 w-4 mr-1" />
-                    )}
-                    {verificationStatus?.hasCpf ? 'Reenviar' : 'Enviar'}
-                  </Button>
+                <div>
+                  {verificationStatus?.hasCpf ? (
+                    <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
+                      <FileCheck className="h-3 w-3 mr-1" />
+                      Enviado
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-100">
+                      <FileX className="h-3 w-3 mr-1" />
+                      Pendente
+                    </Badge>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -496,33 +466,18 @@ export function DocumentVerification() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex justify-between items-center">
-                  <div>
-                    {verificationStatus?.hasSelfie ? (
-                      <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
-                        <FileCheck className="h-3 w-3 mr-1" />
-                        Enviado
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-100">
-                        <FileX className="h-3 w-3 mr-1" />
-                        Pendente
-                      </Badge>
-                    )}
-                  </div>
-                  <Button 
-                    size="sm" 
-                    variant={verificationStatus?.hasSelfie ? "outline" : "default"}
-                    onClick={() => triggerFileInput('selfie')}
-                    disabled={uploading.selfie || verificationStatus?.documentVerified}
-                  >
-                    {uploading.selfie ? (
-                      <RefreshCw className="h-4 w-4 animate-spin mr-1" />
-                    ) : (
-                      <Camera className="h-4 w-4 mr-1" />
-                    )}
-                    {verificationStatus?.hasSelfie ? 'Reenviar' : 'Enviar'}
-                  </Button>
+                <div>
+                  {verificationStatus?.hasSelfie ? (
+                    <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
+                      <FileCheck className="h-3 w-3 mr-1" />
+                      Enviado
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-100">
+                      <FileX className="h-3 w-3 mr-1" />
+                      Pendente
+                    </Badge>
+                  )}
                 </div>
               </CardContent>
             </Card>
