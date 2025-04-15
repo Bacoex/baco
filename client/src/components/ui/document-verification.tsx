@@ -648,13 +648,25 @@ export function DocumentVerification() {
           </div>
 
           {verificationStatus?.status === 'rejected' && (
-            <Alert className="mt-4 border-red-200 bg-red-50 text-red-800">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Verificação rejeitada</AlertTitle>
-              <AlertDescription>
-                {verificationStatus.rejectionReason || 'Seus documentos foram rejeitados. Por favor, verifique e envie novamente.'}
-              </AlertDescription>
-            </Alert>
+            <div>
+              <Alert className="mt-4 border-red-200 bg-red-50 text-red-800">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Verificação rejeitada</AlertTitle>
+                <AlertDescription>
+                  {verificationStatus.rejectionReason || 'Seus documentos foram rejeitados. Por favor, verifique e envie novamente.'}
+                </AlertDescription>
+              </Alert>
+              
+              <Button
+                onClick={resetVerificationStatus}
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full border-amber-200 text-amber-700 hover:bg-amber-50"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Resetar e Tentar Novamente
+              </Button>
+            </div>
           )}
 
           {verificationStatus?.status === 'pending_review' && (

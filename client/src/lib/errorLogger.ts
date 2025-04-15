@@ -530,7 +530,7 @@ export function generateFallbackShareData(
  */
 export function logDocumentVerificationError(
   operation: string,
-  documentType: 'frente' | 'verso' | 'selfie' | 'análise' | 'geral' | 'admin',
+  documentType: 'frente' | 'verso' | 'selfie' | 'análise' | 'geral' | 'admin' | 'status',
   error?: Error,
   details?: any
 ): void {
