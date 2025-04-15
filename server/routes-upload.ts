@@ -11,6 +11,7 @@ import {
 import { db } from "./db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { Pool } from '@neondatabase/serverless';
 
 // Middleware para verificar autenticação
 const ensureAuthenticated = (req: any, res: any, next: any) => {
