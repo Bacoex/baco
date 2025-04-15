@@ -183,6 +183,11 @@ export function registerUploadRoutes(app: Express) {
       const userId = (req as any).user.id;
       
       console.log(`Verificando status de documentos para o usuário ${userId}`);
+      console.log(`Dados da sessão do usuário:`, JSON.stringify((req as any).user));
+      
+      // Verifica se existe um usuário com o ID da sessão
+      const checkUser = await db.select().from(users).where(eq(users.id, userId));
+      console.log(`Verificação do usuário no banco:`, JSON.stringify(checkUser));
       
       // Busca o usuário para verificar o status da documentação
       const [userRecord] = await db.select({
@@ -195,6 +200,8 @@ export function registerUploadRoutes(app: Express) {
       })
       .from(users)
       .where(eq(users.id, userId));
+      
+      console.log(`Resultado da consulta:`, JSON.stringify(userRecord || null));
 
       if (!userRecord) {
         console.log(`Usuário ${userId} não encontrado no banco de dados`);
