@@ -699,11 +699,10 @@ export function DocumentVerification() {
                 <span className="font-medium text-gray-800">{statusInfo.text}</span>
               </div>
               
-              {/* Botão para analisar documentos - aparece apenas quando todos os documentos foram enviados */}
+              {/* Botão para analisar documentos - aparece quando todos os documentos foram enviados */}
               {verificationStatus?.hasRg && 
                verificationStatus?.hasCpf && 
                verificationStatus?.hasSelfie && 
-               verificationStatus?.status !== 'pending_review' &&
                verificationStatus?.status !== 'verified' &&
                !verificationStatus?.documentVerified && (
                 <div className="mt-4">
@@ -720,12 +719,14 @@ export function DocumentVerification() {
                     ) : (
                       <>
                         <FileCheck className="h-4 w-4 mr-2" />
-                        Analisar Documentos
+                        {verificationStatus?.status === 'pending_review' ? 'Analisar Novamente' : 'Analisar Documentos'}
                       </>
                     )}
                   </Button>
                   <p className="text-xs text-gray-500 mt-2">
-                    A análise automática verificará seus documentos. Se tudo estiver correto, sua verificação será aprovada.
+                    {verificationStatus?.status === 'pending_review' 
+                      ? 'Seus documentos já estão em análise, mas você pode iniciar uma nova verificação automática se preferir.'
+                      : 'A análise automática verificará seus documentos. Se tudo estiver correto, sua verificação será aprovada.'}
                   </p>
                 </div>
               )}

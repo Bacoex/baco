@@ -264,8 +264,49 @@ export async function processDocumentSet(
   selfiePath: string
 ): Promise<{success: boolean, message: string}> {
   try {
+    // Registrar início da análise nos logs
+    logError(
+      ErrorType.DOCUMENT_VERIFICATION,
+      ErrorSeverity.INFO,
+      'DocumentAnalysis',
+      `Iniciando análise de documentos para usuário ID ${userId}`,
+      { 
+        userId,
+        paths: {
+          documentRgPath: path.basename(documentRgPath),
+          documentCpfPath: path.basename(documentCpfPath),
+          selfiePath: path.basename(selfiePath)
+        }
+      }
+    );
+    
     // 1. Analisar documento RG (frente)
+    logError(
+      ErrorType.DOCUMENT_VERIFICATION,
+      ErrorSeverity.INFO,
+      'DocumentAnalysis',
+      `Analisando frente do documento (RG) do usuário ${userId}`,
+      { userId, documentPath: path.basename(documentRgPath) }
+    );
+    
     const rgAnalysis = await analyzeDocument(documentRgPath, 'rg');
+    
+    // Registrar resultado da análise RG
+    logError(
+      ErrorType.DOCUMENT_VERIFICATION,
+      rgAnalysis.success ? ErrorSeverity.INFO : ErrorSeverity.WARNING,
+      'DocumentAnalysis',
+      `Resultado da análise da frente do documento: ${rgAnalysis.success ? 'Sucesso' : 'Falha'}`,
+      { 
+        userId,
+        success: rgAnalysis.success,
+        confidence: rgAnalysis.confidence,
+        documentType: rgAnalysis.documentType,
+        hasFace: rgAnalysis.hasFace,
+        errorMessage: rgAnalysis.errorMessage
+      }
+    );
+    
     if (!rgAnalysis.success) {
       return {
         success: false,
@@ -274,7 +315,31 @@ export async function processDocumentSet(
     }
     
     // 2. Analisar documento CPF (verso)
+    logError(
+      ErrorType.DOCUMENT_VERIFICATION,
+      ErrorSeverity.INFO,
+      'DocumentAnalysis',
+      `Analisando verso do documento (CPF) do usuário ${userId}`,
+      { userId, documentPath: path.basename(documentCpfPath) }
+    );
+    
     const cpfAnalysis = await analyzeDocument(documentCpfPath, 'cpf');
+    
+    // Registrar resultado da análise CPF
+    logError(
+      ErrorType.DOCUMENT_VERIFICATION,
+      cpfAnalysis.success ? ErrorSeverity.INFO : ErrorSeverity.WARNING,
+      'DocumentAnalysis',
+      `Resultado da análise do verso do documento: ${cpfAnalysis.success ? 'Sucesso' : 'Falha'}`,
+      { 
+        userId,
+        success: cpfAnalysis.success,
+        confidence: cpfAnalysis.confidence,
+        documentType: cpfAnalysis.documentType,
+        errorMessage: cpfAnalysis.errorMessage
+      }
+    );
+    
     if (!cpfAnalysis.success) {
       return {
         success: false,
@@ -283,7 +348,35 @@ export async function processDocumentSet(
     }
     
     // 3. Comparar faces (básico)
+    logError(
+      ErrorType.DOCUMENT_VERIFICATION,
+      ErrorSeverity.INFO,
+      'DocumentAnalysis',
+      `Comparando selfie com foto do documento para usuário ${userId}`,
+      { 
+        userId, 
+        selfie: path.basename(selfiePath),
+        documentImage: path.basename(documentRgPath)
+      }
+    );
+    
     const faceComparison = await compareFaces(selfiePath, documentRgPath);
+    
+    // Registrar resultado da comparação facial
+    logError(
+      ErrorType.DOCUMENT_VERIFICATION,
+      faceComparison.success ? ErrorSeverity.INFO : ErrorSeverity.WARNING,
+      'DocumentAnalysis',
+      `Resultado da comparação facial: ${faceComparison.success ? 'Sucesso' : 'Falha'}`,
+      { 
+        userId,
+        success: faceComparison.success,
+        confidence: faceComparison.confidence,
+        matched: faceComparison.matched,
+        errorMessage: faceComparison.errorMessage
+      }
+    );
+    
     if (!faceComparison.success) {
       return {
         success: false,
@@ -292,8 +385,25 @@ export async function processDocumentSet(
     }
     
     // 4. Adicionar à fila de moderação manual
+    logError(
+      ErrorType.DOCUMENT_VERIFICATION,
+      ErrorSeverity.INFO,
+      'DocumentAnalysis',
+      `Adicionando documentos do usuário ${userId} à fila de moderação`,
+      { userId }
+    );
+    
     const queueResult = await addToModerationQueue(userId, documentRgPath, documentCpfPath, selfiePath);
+    
     if (!queueResult) {
+      logError(
+        ErrorType.DOCUMENT_VERIFICATION,
+        ErrorSeverity.ERROR,
+        'DocumentAnalysis',
+        `Falha ao adicionar documentos à fila de moderação para usuário ${userId}`,
+        { userId }
+      );
+      
       return {
         success: false,
         message: "Erro ao adicionar documentos à fila de moderação"
@@ -301,6 +411,20 @@ export async function processDocumentSet(
     }
     
     // Sucesso - documentos prontos para revisão manual
+    logError(
+      ErrorType.DOCUMENT_VERIFICATION,
+      ErrorSeverity.INFO,
+      'DocumentAnalysis',
+      `Análise de documentos concluída com sucesso para usuário ${userId}`,
+      { 
+        userId,
+        status: 'pending_review',
+        rgConfidence: rgAnalysis.confidence,
+        cpfConfidence: cpfAnalysis.confidence,
+        faceConfidence: faceComparison.confidence
+      }
+    );
+    
     return {
       success: true,
       message: "Documentos processados com sucesso e adicionados à fila de revisão"
@@ -308,7 +432,7 @@ export async function processDocumentSet(
   } catch (error: unknown) {
     const errorMsg = getErrorMessage(error);
     logError(
-      ErrorType.EXTERNAL_API,
+      ErrorType.DOCUMENT_VERIFICATION,
       ErrorSeverity.ERROR,
       'DocumentAnalysis',
       `Erro ao processar conjunto de documentos: ${errorMsg}`,

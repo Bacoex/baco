@@ -25,7 +25,8 @@ export enum ErrorType {
   AUTHENTICATION = 'auth_error',
   VALIDATION = 'validation_error',
   NOTIFICATION_DUPLICATE = 'notification_duplicate',
-  EXTERNAL_API = 'external_api_error'
+  EXTERNAL_API = 'external_api_error',
+  DOCUMENT_VERIFICATION = 'document_verification'
 }
 
 /**
