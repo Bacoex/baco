@@ -96,13 +96,21 @@ export async function analyzeDocument(
       
       await worker.terminate();
       
+      let errorMessage: string | undefined;
+      
+      if (!isCorrectType) {
+        errorMessage = 'Tipo de documento não corresponde ao esperado';
+      } else if (!success) {
+        errorMessage = 'Não foi possível identificar claramente o documento. Certifique-se que a imagem está nítida, bem iluminada e sem reflexos.';
+      }
+      
       return {
         success: success && isCorrectType,
         confidence,
         detectedText: data.text,
         documentType: detectedDocType,
         hasFace: documentType === 'rg', // Normalmente apenas o RG tem foto
-        errorMessage: !isCorrectType ? 'Tipo de documento não corresponde ao esperado' : undefined
+        errorMessage
       };
     } catch (error) {
       await worker.terminate();

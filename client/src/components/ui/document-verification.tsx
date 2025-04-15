@@ -791,8 +791,26 @@ export function DocumentVerification() {
               <Alert className="border-red-200 bg-red-50 text-red-800">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Verificação rejeitada</AlertTitle>
-                <AlertDescription>
-                  {verificationStatus.rejectionReason || 'Seus documentos foram rejeitados. Por favor, verifique e envie novamente.'}
+                <AlertDescription className="space-y-3">
+                  <p className="font-medium">
+                    {verificationStatus.rejectionReason || 'Seus documentos foram rejeitados. Por favor, verifique e envie novamente.'}
+                  </p>
+                  
+                  <div className="bg-white/20 p-3 rounded-md border border-red-300 text-sm">
+                    <h4 className="font-semibold mb-2">O que fazer agora:</h4>
+                    <ol className="list-decimal pl-5 space-y-1">
+                      <li>Envie novamente o documento que apresentou problema</li>
+                      <li>Certifique-se que a imagem está nítida e bem iluminada</li>
+                      <li>Verifique se todas as informações estão visíveis e legíveis</li>
+                      <li>Evite reflexos, sombras ou dedos cobrindo partes importantes</li>
+                      <li>Após enviar novamente, clique em "Analisar Documentos"</li>
+                    </ol>
+                  </div>
+                  
+                  <p className="text-xs italic mt-2">
+                    Dica: Caso o problema persista, você pode entrar em contato com o suporte em 
+                    bacoexperiencias@gmail.com para obter assistência.
+                  </p>
                 </AlertDescription>
               </Alert>
             )}
