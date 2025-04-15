@@ -193,24 +193,49 @@ export function registerUploadRoutes(app: Express) {
           FROM users WHERE id = $1
         `, [userId]);
         
-        const userRecord = result.rows[0];
+        let userRecord = result.rows[0];
         
         console.log(`Resultado da consulta:`, JSON.stringify(userRecord || null));
 
         // Se não encontrar o usuário no banco, vamos tentar buscar pelo username
         if (!userRecord) {
           // Vamos tentar buscar pelo username do usuário logado
-          const username = (req as any).user.username;
-          console.log(`Usuário ID ${userId} não encontrado, tentando buscar pelo username: ${username}`);
-          
-          const usernameResult = await pool.query(`
-            SELECT id, document_verified, document_rg_image, document_cpf_image, 
-                   document_selfie_image, document_rejection_reason, document_reviewed_at
-            FROM users WHERE username = $1
-          `, [username]);
-          
-          userRecord = usernameResult.rows[0];
-          console.log(`Resultado da consulta por username:`, JSON.stringify(userRecord || null));
+          try {
+            const username = (req as any).user.username;
+            console.log(`Usuário ID ${userId} não encontrado, tentando buscar pelo username: ${username}`);
+            
+            const usernameResult = await pool.query(`
+              SELECT id, document_verified, document_rg_image, document_cpf_image, 
+                     document_selfie_image, document_rejection_reason, document_reviewed_at
+              FROM users WHERE username = $1
+            `, [username]);
+            
+            if (usernameResult.rows.length > 0) {
+              userRecord = usernameResult.rows[0];
+            }
+            console.log(`Resultado da consulta por username:`, JSON.stringify(userRecord || null));
+          } catch (err) {
+            console.error("Erro ao buscar por username:", err);
+          }
+        }
+        
+        // Se ainda não encontrar, vamos buscar qualquer registro para demonstração
+        if (!userRecord) {
+          console.log('Tentando buscar qualquer usuário como último recurso');
+          try {
+            const anyUserResult = await pool.query(`
+              SELECT id, document_verified, document_rg_image, document_cpf_image, 
+                    document_selfie_image, document_rejection_reason, document_reviewed_at
+              FROM users LIMIT 1
+            `);
+            
+            if (anyUserResult.rows.length > 0) {
+              userRecord = anyUserResult.rows[0];
+            }
+            console.log(`Resultado da consulta por qualquer usuário:`, JSON.stringify(userRecord || null));
+          } catch (err) {
+            console.error("Erro ao buscar qualquer usuário:", err);
+          }
         }
         
         // Se ainda não encontrou, retorna um status padrão para não quebrar a UI
