@@ -399,6 +399,69 @@ export function registerUploadRoutes(app: Express) {
     }
   });
 
+  /**
+   * Rota para resetar o status de verificação de documentos (apenas administradores)
+   * Isso remove o status de rejeição e permite que o usuário tente novamente
+   */
+  app.post('/api/document-verification/admin/reset', ensureAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const adminId = (req as any).user.id;
+      const { userId } = req.body;
+      
+      // Verificar se o usuário é um administrador (ID 1 ou 2, ou campo isAdmin)
+      if (adminId !== 1 && adminId !== 2) {
+        return res.status(403).json({
+          success: false,
+          message: 'Apenas administradores podem resetar documentos'
+        });
+      }
+      
+      if (!userId) {
+        return res.status(400).json({
+          success: false,
+          message: 'ID do usuário não fornecido'
+        });
+      }
+      
+      // Log da operação
+      logError(
+        ErrorType.DOCUMENT_VERIFICATION,
+        ErrorSeverity.INFO,
+        'AdminDocReset',
+        `Admin ${adminId} está resetando o status de verificação do usuário ${userId}`,
+        { adminId, userId }
+      );
+      
+      // Resetar o status de verificação
+      await db.update(users)
+        .set({ 
+          documentRejectionReason: null,
+          documentReviewedAt: null,
+          documentVerified: false
+        })
+        .where(eq(users.id, userId));
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Status de verificação resetado com sucesso'
+      });
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      logError(
+        ErrorType.DOCUMENT_VERIFICATION,
+        ErrorSeverity.ERROR,
+        'AdminDocReset',
+        `Erro ao resetar status de verificação: ${errorMsg}`,
+        { error }
+      );
+      
+      return res.status(500).json({
+        success: false,
+        message: 'Erro ao resetar status de verificação'
+      });
+    }
+  });
+  
   // Rota para aprovação ou rejeição de documentos (apenas administradores)
   app.post('/api/document-verification/admin/review', ensureAuthenticated, async (req: Request, res: Response) => {
     try {

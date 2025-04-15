@@ -350,6 +350,46 @@ export function DocumentVerification() {
     
     return progress;
   };
+  
+  // Nova função para resetar o status de verificação (para administradores)
+  const resetVerificationStatus = async () => {
+    try {
+      const response = await apiRequest("POST", "/api/document-verification/admin/reset", {
+        userId: user?.id
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "Status resetado",
+          description: "Os documentos podem ser enviados novamente",
+        });
+        
+        // Recarregar os dados do status
+        queryClient.invalidateQueries({ queryKey: ["/api/document-verification/status"] });
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Erro ao resetar",
+          description: error.message || "Ocorreu um erro ao resetar o status",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível completar a operação",
+        variant: "destructive"
+      });
+      
+      // Registrar erro nos logs
+      logDocumentVerificationError(
+        'ResetStatus',
+        'admin',
+        error instanceof Error ? error : new Error('Unknown error'),
+        { userId: user?.id }
+      );
+    }
+  };
 
   // Renderizar o status em texto
   const renderStatusText = (): { text: string; icon: React.ReactNode; color: string } => {
