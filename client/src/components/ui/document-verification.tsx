@@ -29,7 +29,7 @@ import {
 // Interface para os dados de status da verificação
 export interface VerificationStatus {
   success: boolean;
-  status: 'not_submitted' | 'pending' | 'verified' | 'rejected';
+  status: 'not_submitted' | 'pending_review' | 'verified' | 'rejected';
   documentVerified: boolean; // Mantido para retrocompatibilidade
   hasRg: boolean;
   hasCpf: boolean;
@@ -269,7 +269,7 @@ export function DocumentVerification() {
     if (vs.hasCpf) progress += 30;
     if (vs.hasSelfie) progress += 30;
     
-    if (vs.status === 'pending') {
+    if (vs.status === 'pending_review') {
       progress += 10; // Adiciona 10% quando está em revisão
     }
     
@@ -305,7 +305,7 @@ export function DocumentVerification() {
       };
     }
     
-    if (vs.status === 'pending') {
+    if (vs.status === 'pending_review') {
       return { 
         text: 'Em análise', 
         icon: <Clock className="h-5 w-5 text-amber-500" />,

@@ -61,8 +61,8 @@ export function registerUploadRoutes(app: Express) {
     }
   });
 
-  // Rota para upload de documento RG
-  app.post('/api/upload/document/rg', ensureAuthenticated, uploadDocument.single('document'), async (req: Request, res: Response) => {
+  // Rota para upload da frente do documento RG/CPF (ambos estão no mesmo documento no Brasil)
+  app.post('/api/upload/document/frente', ensureAuthenticated, uploadDocument.single('document'), async (req: Request, res: Response) => {
     try {
       if (!req.file) {
         return res.status(400).json({ 
@@ -74,22 +74,22 @@ export function registerUploadRoutes(app: Express) {
       const userId = (req as any).user.id;
       const documentUrl = getPublicDocumentUrl(req.file.filename);
       
-      // Atualiza o usuário com a URL da imagem do documento
+      // Atualiza o usuário com a URL da imagem da frente do documento
       await db.update(users)
         .set({ documentRgImage: documentUrl })
         .where(eq(users.id, userId));
       
-      console.log(`Upload de documento RG: ${req.file.filename}, usuário: ${userId}`);
+      console.log(`Upload da frente do documento RG/CPF: ${req.file.filename}, usuário: ${userId}`);
       
       return res.status(200).json({
         success: true,
-        message: 'Documento RG enviado com sucesso',
+        message: 'Frente do documento enviada com sucesso',
         documentUrl: documentUrl,
         filename: req.file.filename,
         size: req.file.size
       });
     } catch (error) {
-      console.error('Erro no upload de documento RG:', error);
+      console.error('Erro no upload da frente do documento:', error);
       return res.status(500).json({ 
         success: false, 
         message: 'Erro ao processar upload do documento'
@@ -97,8 +97,8 @@ export function registerUploadRoutes(app: Express) {
     }
   });
 
-  // Rota para upload de documento CPF
-  app.post('/api/upload/document/cpf', ensureAuthenticated, uploadDocument.single('document'), async (req: Request, res: Response) => {
+  // Rota para upload do verso do documento RG/CPF
+  app.post('/api/upload/document/verso', ensureAuthenticated, uploadDocument.single('document'), async (req: Request, res: Response) => {
     try {
       if (!req.file) {
         return res.status(400).json({ 
@@ -110,22 +110,22 @@ export function registerUploadRoutes(app: Express) {
       const userId = (req as any).user.id;
       const documentUrl = getPublicDocumentUrl(req.file.filename);
       
-      // Atualiza o usuário com a URL da imagem do documento
+      // Atualiza o usuário com a URL da imagem do verso do documento
       await db.update(users)
         .set({ documentCpfImage: documentUrl })
         .where(eq(users.id, userId));
       
-      console.log(`Upload de documento CPF: ${req.file.filename}, usuário: ${userId}`);
+      console.log(`Upload do verso do documento RG/CPF: ${req.file.filename}, usuário: ${userId}`);
       
       return res.status(200).json({
         success: true,
-        message: 'Documento CPF enviado com sucesso',
+        message: 'Verso do documento enviado com sucesso',
         documentUrl: documentUrl,
         filename: req.file.filename,
         size: req.file.size
       });
     } catch (error) {
-      console.error('Erro no upload de documento CPF:', error);
+      console.error('Erro no upload do verso do documento:', error);
       return res.status(500).json({ 
         success: false, 
         message: 'Erro ao processar upload do documento'
@@ -253,18 +253,34 @@ export function registerUploadRoutes(app: Express) {
           });
         }
         
-        // Usamos apenas o status "verified" ou "not_submitted" baseado na coluna document_verified
-        const status = userRecord.document_verified ? 'verified' : 'not_submitted';
+        // Determinar o status com base nos documentos enviados e na verificação
+        let status = 'not_submitted';
+        const hasRg = !!userRecord.document_rg_image;
+        const hasCpf = !!userRecord.document_cpf_image;
+        const hasSelfie = !!userRecord.document_selfie_image;
+        
+        // Se todos os documentos foram enviados mas não está verificado ainda
+        if (hasRg && hasCpf && hasSelfie && !userRecord.document_verified) {
+          status = 'pending_review';
+        } 
+        // Se foi rejeitado (tem motivo de rejeição)
+        else if (userRecord.document_rejection_reason) {
+          status = 'rejected';
+        }
+        // Se está verificado
+        else if (userRecord.document_verified) {
+          status = 'verified';
+        }
         
         return res.status(200).json({
           success: true,
           status,
           documentVerified: !!userRecord.document_verified, // Garantir que seja um boolean
-          hasRg: false,  // Valores padrão, já que não temos informações suficientes
-          hasCpf: false,
-          hasSelfie: false,
-          rejectionReason: null,
-          reviewedAt: null
+          hasRg: hasRg,
+          hasCpf: hasCpf,
+          hasSelfie: hasSelfie,
+          rejectionReason: userRecord.document_rejection_reason,
+          reviewedAt: userRecord.document_reviewed_at
         });
       } catch (innerError) {
         console.error('Erro na consulta SQL:', innerError);
