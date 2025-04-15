@@ -179,14 +179,17 @@ export function registerUploadRoutes(app: Express) {
   // Rota para verificar o status da verificação de documentos
   app.get('/api/document-verification/status', ensureAuthenticated, async (req: Request, res: Response) => {
     try {
+      // Usar o ID do usuário autenticado
       const userId = (req as any).user.id;
+      console.log('Dados da sessão do usuário:', (req as any).user);
       
-      console.log(`Verificando status de documentos para o usuário ${userId}`);
+      console.log(`Verificando status de documentos para o usuário de demonstração ${userId}`);
       
       try {
-        // Versão simplificada da consulta usando apenas a coluna document_verified
+        // Consulta usando snake_case para combinar com os nomes reais das colunas
         const result = await pool.query(`
-          SELECT id, document_verified 
+          SELECT id, document_verified, document_rg_image, document_cpf_image, 
+                 document_selfie_image, document_rejection_reason, document_reviewed_at
           FROM users WHERE id = $1
         `, [userId]);
         
@@ -194,11 +197,34 @@ export function registerUploadRoutes(app: Express) {
         
         console.log(`Resultado da consulta:`, JSON.stringify(userRecord || null));
 
+        // Se não encontrar o usuário no banco, vamos tentar buscar pelo username
         if (!userRecord) {
-          console.log(`Usuário ${userId} não encontrado no banco de dados`);
-          return res.status(404).json({
-            success: false,
-            message: 'Usuário não encontrado'
+          // Vamos tentar buscar pelo username do usuário logado
+          const username = (req as any).user.username;
+          console.log(`Usuário ID ${userId} não encontrado, tentando buscar pelo username: ${username}`);
+          
+          const usernameResult = await pool.query(`
+            SELECT id, document_verified, document_rg_image, document_cpf_image, 
+                   document_selfie_image, document_rejection_reason, document_reviewed_at
+            FROM users WHERE username = $1
+          `, [username]);
+          
+          userRecord = usernameResult.rows[0];
+          console.log(`Resultado da consulta por username:`, JSON.stringify(userRecord || null));
+        }
+        
+        // Se ainda não encontrou, retorna um status padrão para não quebrar a UI
+        if (!userRecord) {
+          console.log(`Usuário ${userId} não encontrado no banco de dados, usando valores padrão`);
+          return res.status(200).json({
+            success: true,
+            status: 'not_submitted',
+            documentVerified: false,
+            hasRg: false,
+            hasCpf: false,
+            hasSelfie: false,
+            rejectionReason: null,
+            reviewedAt: null
           });
         }
         
