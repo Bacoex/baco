@@ -4,3 +4,12 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+.env
+.env.*
+.cache
+.upm
+.local
+uploads/*
+*.log
+*.traineddata
+cookie.txt
