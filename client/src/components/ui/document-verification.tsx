@@ -206,6 +206,42 @@ export function DocumentVerification() {
       setUploading(prev => ({ ...prev, selfie: false }));
     }
   });
+  
+  // Mutação para análise automática de documentos
+  const analyzeDocumentsMutation = useMutation<AnalysisResult, Error>({
+    mutationFn: async () => {
+      const response = await fetch('/api/document-verification/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao analisar documentos');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'Análise de documentos concluída',
+        description: data.message || 'Seus documentos foram analisados com sucesso.'
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/document-verification/status'] });
+      // Mudar para a aba de revisão após a análise
+      setActiveTab('review');
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erro na análise de documentos',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
 
   // Função para lidar com o upload de arquivo
   const handleFileUpload = (
@@ -662,6 +698,37 @@ export function DocumentVerification() {
                 </div>
                 <span className="font-medium text-gray-800">{statusInfo.text}</span>
               </div>
+              
+              {/* Botão para analisar documentos - aparece apenas quando todos os documentos foram enviados */}
+              {verificationStatus?.hasRg && 
+               verificationStatus?.hasCpf && 
+               verificationStatus?.hasSelfie && 
+               verificationStatus?.status !== 'pending_review' &&
+               verificationStatus?.status !== 'verified' &&
+               !verificationStatus?.documentVerified && (
+                <div className="mt-4">
+                  <Button
+                    onClick={() => analyzeDocumentsMutation.mutate()}
+                    disabled={analyzeDocumentsMutation.isPending}
+                    className="w-full"
+                  >
+                    {analyzeDocumentsMutation.isPending ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Analisando documentos...
+                      </>
+                    ) : (
+                      <>
+                        <FileCheck className="h-4 w-4 mr-2" />
+                        Analisar Documentos
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-xs text-gray-500 mt-2">
+                    A análise automática verificará seus documentos. Se tudo estiver correto, sua verificação será aprovada.
+                  </p>
+                </div>
+              )}
               
               <Separator className="my-4" />
               
