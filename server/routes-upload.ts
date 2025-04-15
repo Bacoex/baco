@@ -11,6 +11,7 @@ import {
 import { db, pool } from "./db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import path from "path";
 
 // Middleware para verificar autenticação
 const ensureAuthenticated = (req: any, res: any, next: any) => {
