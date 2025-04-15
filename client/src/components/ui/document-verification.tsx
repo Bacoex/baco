@@ -66,6 +66,15 @@ export function DocumentVerification() {
     refetch 
   } = useQuery<VerificationStatus>({
     queryKey: ['/api/document-verification/status'],
+    queryFn: async () => {
+      const response = await fetch('/api/document-verification/status', {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Falha ao obter status de verificação');
+      }
+      return response.json();
+    },
     refetchInterval: 60000, // Atualiza a cada minuto
     retry: 1,
     enabled: !!user // Só executa se o usuário estiver logado
