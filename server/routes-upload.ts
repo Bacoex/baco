@@ -182,6 +182,8 @@ export function registerUploadRoutes(app: Express) {
     try {
       const userId = (req as any).user.id;
       
+      console.log(`Verificando status de documentos para o usuário ${userId}`);
+      
       // Busca o usuário para verificar o status da documentação
       const [userRecord] = await db.select({
         document_verified: users.documentVerified,
@@ -195,6 +197,7 @@ export function registerUploadRoutes(app: Express) {
       .where(eq(users.id, userId));
 
       if (!userRecord) {
+        console.log(`Usuário ${userId} não encontrado no banco de dados`);
         return res.status(404).json({
           success: false,
           message: 'Usuário não encontrado'
