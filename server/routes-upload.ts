@@ -183,8 +183,13 @@ export function registerUploadRoutes(app: Express) {
     try {
       const userId = (req as any).user.id;
       
-      // Buscar informações do usuário para obter os documentos
-      const userResult = await db.select().from(users).where(eq(users.id, userId));
+      // Buscar informações do usuário para obter os documentos (selecionando apenas as colunas necessárias)
+      const userResult = await db.select({
+        id: users.id,
+        documentRgImage: users.documentRgImage,
+        documentCpfImage: users.documentCpfImage,
+        documentSelfieImage: users.documentSelfieImage
+      }).from(users).where(eq(users.id, userId));
       
       if (!userResult.length) {
         return res.status(404).json({
