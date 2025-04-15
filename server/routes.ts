@@ -54,6 +54,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerUploadRoutes(app);
   console.log('Rotas de upload registradas');
   
+  // Rota de diagnóstico para verificar sessão
+  app.get('/api/debug/session', (req: any, res) => {
+    res.json({
+      isAuthenticated: req.isAuthenticated(),
+      session: req.session,
+      user: req.user || null,
+      sessionID: req.sessionID
+    });
+  });
+  
   // Rota para obter informações de um usuário específico
   app.get('/api/users/:id', async (req, res) => {
     try {
