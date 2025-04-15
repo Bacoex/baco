@@ -87,35 +87,35 @@ export function DocumentVerification() {
     error: error ? (error as Error).message : null 
   });
 
-  // Mutação para upload de documento RG
+  // Mutação para upload da frente do documento (RG/CPF são o mesmo no Brasil)
   const uploadRGMutation = useMutation({
     mutationFn: async (file: File) => {
       setUploading(prev => ({ ...prev, rg: true }));
       const formData = new FormData();
       formData.append('document', file);
       
-      const response = await fetch('/api/upload/document/rg', {
+      const response = await fetch('/api/upload/document/frente', {
         method: 'POST',
         body: formData
       });
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Erro ao fazer upload do RG');
+        throw new Error(errorData.message || 'Erro ao fazer upload da frente do documento');
       }
       
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: 'RG enviado com sucesso',
-        description: 'Seu documento foi enviado e está sendo processado.'
+        title: 'Frente do documento enviada com sucesso',
+        description: 'A frente do seu documento foi enviada e está sendo processada.'
       });
       queryClient.invalidateQueries({ queryKey: ['/api/document-verification/status'] });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erro ao enviar RG',
+        title: 'Erro ao enviar frente do documento',
         description: error.message,
         variant: 'destructive'
       });
@@ -125,35 +125,35 @@ export function DocumentVerification() {
     }
   });
 
-  // Mutação para upload de documento CPF
+  // Mutação para upload do verso do documento (RG/CPF são o mesmo no Brasil)
   const uploadCPFMutation = useMutation({
     mutationFn: async (file: File) => {
       setUploading(prev => ({ ...prev, cpf: true }));
       const formData = new FormData();
       formData.append('document', file);
       
-      const response = await fetch('/api/upload/document/cpf', {
+      const response = await fetch('/api/upload/document/verso', {
         method: 'POST',
         body: formData
       });
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Erro ao fazer upload do CPF');
+        throw new Error(errorData.message || 'Erro ao fazer upload do verso do documento');
       }
       
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: 'CPF enviado com sucesso',
-        description: 'Seu documento foi enviado e está sendo processado.'
+        title: 'Verso do documento enviado com sucesso',
+        description: 'O verso do seu documento foi enviado e está sendo processado.'
       });
       queryClient.invalidateQueries({ queryKey: ['/api/document-verification/status'] });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erro ao enviar CPF',
+        title: 'Erro ao enviar verso do documento',
         description: error.message,
         variant: 'destructive'
       });
@@ -538,7 +538,7 @@ export function DocumentVerification() {
             </Alert>
           )}
 
-          {verificationStatus?.status === 'pending' && (
+          {verificationStatus?.status === 'pending_review' && (
             <Alert className="mt-4 border-amber-200 text-amber-800 bg-amber-50/50">
               <Clock className="h-4 w-4" />
               <AlertTitle>Verificação em análise</AlertTitle>
@@ -565,10 +565,10 @@ export function DocumentVerification() {
             <div className="rounded-lg border p-4">
               <h3 className="text-lg font-medium mb-2 flex items-center">
                 <CreditCard className="h-5 w-5 mr-2" />
-                Enviar RG
+                Enviar Frente do Documento
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Tire uma foto nítida do seu RG, garantindo que todas as informações estejam visíveis.
+                Tire uma foto nítida da frente do seu documento (RG/CPF), garantindo que todas as informações estejam visíveis.
               </p>
               <div className="flex justify-end">
                 <input 
@@ -591,7 +591,7 @@ export function DocumentVerification() {
                   ) : (
                     <>
                       <Upload className="h-4 w-4 mr-2" />
-                      {verificationStatus?.hasRg ? 'Reenviar RG' : 'Enviar RG'}
+                      {verificationStatus?.hasRg ? 'Reenviar Frente' : 'Enviar Frente'}
                     </>
                   )}
                 </Button>
@@ -599,7 +599,7 @@ export function DocumentVerification() {
               {verificationStatus?.hasRg && (
                 <Badge variant="outline" className="mt-2 bg-green-100 text-green-800">
                   <FileCheck className="h-3 w-3 mr-1" />
-                  RG enviado com sucesso
+                  Frente do documento enviada
                 </Badge>
               )}
             </div>
@@ -607,10 +607,10 @@ export function DocumentVerification() {
             <div className="rounded-lg border p-4">
               <h3 className="text-lg font-medium mb-2 flex items-center">
                 <CreditCard className="h-5 w-5 mr-2" />
-                Enviar CPF
+                Enviar Verso do Documento
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Envie uma foto do seu CPF em boas condições, com todos os números e seu nome visíveis.
+                Tire uma foto nítida do verso do seu documento (RG/CPF), garantindo que todas as informações estejam visíveis.
               </p>
               <div className="flex justify-end">
                 <input 
@@ -633,7 +633,7 @@ export function DocumentVerification() {
                   ) : (
                     <>
                       <Upload className="h-4 w-4 mr-2" />
-                      {verificationStatus?.hasCpf ? 'Reenviar CPF' : 'Enviar CPF'}
+                      {verificationStatus?.hasCpf ? 'Reenviar Verso' : 'Enviar Verso'}
                     </>
                   )}
                 </Button>
@@ -641,7 +641,7 @@ export function DocumentVerification() {
               {verificationStatus?.hasCpf && (
                 <Badge variant="outline" className="mt-2 bg-green-100 text-green-800">
                   <FileCheck className="h-3 w-3 mr-1" />
-                  CPF enviado com sucesso
+                  Verso do documento enviado
                 </Badge>
               )}
             </div>
@@ -706,7 +706,7 @@ export function DocumentVerification() {
               
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm">RG:</span>
+                  <span className="text-sm">Frente do documento:</span>
                   <span className="font-medium">
                     {verificationStatus?.hasRg ? (
                       <span className="text-green-600 flex items-center">
@@ -723,7 +723,7 @@ export function DocumentVerification() {
                 </div>
                 
                 <div className="flex justify-between">
-                  <span className="text-sm">CPF:</span>
+                  <span className="text-sm">Verso do documento:</span>
                   <span className="font-medium">
                     {verificationStatus?.hasCpf ? (
                       <span className="text-green-600 flex items-center">
@@ -768,7 +768,7 @@ export function DocumentVerification() {
               </Alert>
             )}
 
-            {verificationStatus?.status === 'pending' && (
+            {verificationStatus?.status === 'pending_review' && (
               <Alert className="border-amber-200 text-amber-800 bg-amber-50/50">
                 <Clock className="h-4 w-4" />
                 <AlertTitle>Em análise</AlertTitle>
