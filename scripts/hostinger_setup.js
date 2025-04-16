@@ -5,84 +5,82 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { exec } = require('child_process');
 
-// Configurações
-const APP_DIR = process.cwd();
-const UPLOADS_DIR = path.join(APP_DIR, 'uploads');
-const ENV_FILE = path.join(APP_DIR, '.env');
-
-console.log('=== Configuração do Baco na Hostinger ===');
-
-// 1. Verificar se estamos no diretório correto
-console.log('Verificando diretório da aplicação...');
-if (!fs.existsSync(path.join(APP_DIR, 'package.json')) || !fs.existsSync(path.join(APP_DIR, 'dist'))) {
-  console.error('ERRO: Não encontrou os arquivos package.json e pasta dist!');
-  console.error('Certifique-se de executar este script no diretório raiz da aplicação');
-  process.exit(1);
+// Função para executar comandos shell
+function runCommand(command) {
+  return new Promise((resolve, reject) => {
+    console.log(`Executando: ${command}`);
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Erro ao executar comando: ${error.message}`);
+        return reject(error);
+      }
+      if (stderr) {
+        console.log(`stderr: ${stderr}`);
+      }
+      console.log(`stdout: ${stdout}`);
+      resolve(stdout);
+    });
+  });
 }
 
-// 2. Verificar se o arquivo .env existe
-console.log('Verificando arquivo .env...');
-if (!fs.existsSync(ENV_FILE)) {
-  console.error('ERRO: Arquivo .env não encontrado!');
-  console.error('Certifique-se de que o arquivo .env foi enviado junto com a aplicação');
-  process.exit(1);
-}
-
-// 3. Criar diretório uploads se não existir
-console.log('Configurando diretório de uploads...');
-if (!fs.existsSync(UPLOADS_DIR)) {
+// Função principal
+async function setupApplication() {
   try {
-    fs.mkdirSync(UPLOADS_DIR);
-    console.log('Diretório uploads criado com sucesso');
+    console.log('Iniciando configuração do ambiente Baco na Hostinger...');
+    
+    // Verificar se estamos no ambiente correto
+    if (!fs.existsSync(path.join(process.cwd(), 'dist', 'index.js'))) {
+      throw new Error('Arquivo dist/index.js não encontrado. Certifique-se de estar no diretório raiz do projeto.');
+    }
+    
+    // Verificar arquivo .env
+    if (!fs.existsSync(path.join(process.cwd(), '.env'))) {
+      console.log('Arquivo .env não encontrado. Criando arquivo padrão...');
+      const envContent = `NODE_ENV=production
+DATABASE_URL=${process.env.DATABASE_URL || 'postgresql://seu_usuario:sua_senha@seu_host:5432/seu_banco'}
+SESSION_SECRET=${process.env.SESSION_SECRET || Math.random().toString(36).substring(2, 15)}
+VITE_GOOGLE_MAPS_API_KEY=${process.env.VITE_GOOGLE_MAPS_API_KEY || 'sua_chave_google_maps'}`;
+      
+      fs.writeFileSync(path.join(process.cwd(), '.env'), envContent);
+      console.log('Arquivo .env criado. Por favor, atualize com suas configurações reais.');
+    }
+    
+    // Criar pastas necessárias
+    const directories = ['uploads', 'uploads/profile', 'uploads/events', 'uploads/documents'];
+    directories.forEach(dir => {
+      const dirPath = path.join(process.cwd(), dir);
+      if (!fs.existsSync(dirPath)) {
+        console.log(`Criando diretório: ${dir}`);
+        fs.mkdirSync(dirPath, { recursive: true });
+      }
+    });
+    
+    // Configurar permissões
+    console.log('Configurando permissões dos diretórios...');
+    await runCommand('chmod -R 755 dist');
+    await runCommand('chmod -R 777 uploads');
+    
+    // Verificar dependências do node
+    console.log('Verificando dependências...');
+    if (!fs.existsSync(path.join(process.cwd(), 'node_modules'))) {
+      console.log('Instalando dependências...');
+      await runCommand('npm install --production');
+    }
+    
+    console.log('\nConfiguração concluída com sucesso!');
+    console.log('\nPróximos passos:');
+    console.log('1. No painel da Hostinger, configure o Node.js para usar o arquivo principal: dist/index.js');
+    console.log('2. Configure o comando de inicialização: node dist/index.js');
+    console.log('3. Reinicie a aplicação Node.js pelo painel da Hostinger');
+    console.log('\nSua aplicação Baco estará disponível em https://bacoexperiencias.com');
+    
   } catch (error) {
-    console.error('ERRO ao criar diretório uploads:', error.message);
+    console.error('Erro durante a configuração:', error);
     process.exit(1);
   }
 }
 
-// 4. Definir permissões do diretório uploads
-try {
-  fs.chmodSync(UPLOADS_DIR, 0o755);
-  console.log('Permissões do diretório uploads configuradas');
-} catch (error) {
-  console.error('ERRO ao configurar permissões do diretório uploads:', error.message);
-}
-
-// 5. Instalar dependências de produção
-console.log('Instalando dependências de produção...');
-try {
-  execSync('npm install --production', { stdio: 'inherit' });
-  console.log('Dependências instaladas com sucesso');
-} catch (error) {
-  console.error('ERRO ao instalar dependências:', error.message);
-  process.exit(1);
-}
-
-// 6. Verificar conexão com banco de dados
-console.log('Verificando conexão com banco de dados...');
-try {
-  require('dotenv').config();
-  
-  if (!process.env.DATABASE_URL) {
-    console.error('ERRO: Variável DATABASE_URL não encontrada no arquivo .env');
-    process.exit(1);
-  }
-  
-  console.log('String de conexão com banco de dados encontrada');
-  // Aqui poderia ter um teste real de conexão, mas isso 
-  // seria feito automaticamente quando a aplicação iniciar
-} catch (error) {
-  console.error('ERRO ao verificar conexão com banco de dados:', error.message);
-}
-
-// 7. Criar arquivo de status
-const statusFile = path.join(APP_DIR, 'setup_complete.txt');
-const timestamp = new Date().toISOString();
-fs.writeFileSync(statusFile, `Configuração concluída em: ${timestamp}\n`);
-
-console.log('=== Configuração concluída com sucesso! ===');
-console.log('Agora você pode iniciar a aplicação através do painel da Hostinger');
-console.log('Defina o arquivo principal como: dist/index.js');
-console.log('Defina o comando de inicialização como: node dist/index.js');
+// Executar a função principal
+setupApplication();

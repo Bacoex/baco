@@ -1,88 +1,89 @@
 #!/bin/bash
-# Script de deploy automatizado para bacoexperiencias.com na Hostinger
 
-# Configurações - Edite estas variáveis
-HOSTINGER_USER="seu-usuario-ftp"
-HOSTINGER_PASSWORD="sua-senha-ftp"
-HOSTINGER_HOST="ftp.bacoexperiencias.com"
-REMOTE_PATH="/public_html"
-APP_NAME="baco"
+# Script para deploy manual do Baco para a Hostinger
+# Uso: ./deploy.sh [usuário_ftp] [senha_ftp]
+
+# Verificar parâmetros
+if [ "$#" -lt 2 ]; then
+    echo "Uso: ./deploy.sh [usuário_ftp] [senha_ftp]"
+    exit 1
+fi
+
+FTP_USER=$1
+FTP_PASS=$2
+FTP_HOST="ftp.bacoexperiencias.com"
+REMOTE_DIR="/public_html"
 
 # Cores para output
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
 RED='\033[0;31m'
+YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${YELLOW}Iniciando deploy do projeto $APP_NAME para bacoexperiencias.com...${NC}"
+echo -e "${YELLOW}Iniciando deploy do Baco para Hostinger...${NC}"
 
-# 1. Build da aplicação
-echo -e "${YELLOW}Fazendo build da aplicação...${NC}"
+# Criar diretório temporário para o deploy
+echo -e "${YELLOW}Criando diretório temporário...${NC}"
+DEPLOY_DIR="deploy_temp"
+rm -rf $DEPLOY_DIR
+mkdir -p $DEPLOY_DIR
+
+# Construir o projeto
+echo -e "${YELLOW}Construindo o projeto...${NC}"
 npm run build
-
 if [ $? -ne 0 ]; then
-  echo -e "${RED}Erro durante o build! Abortando.${NC}"
-  exit 1
+    echo -e "${RED}Falha ao construir o projeto.${NC}"
+    exit 1
 fi
 
-# 2. Criando arquivo .env.production
-echo -e "${YELLOW}Criando arquivo .env.production...${NC}"
-cat > .env.production << EOF
-DATABASE_URL=${DATABASE_URL}
-VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY}
-SESSION_SECRET=baco_session_secret_production
-NODE_ENV=production
-EOF
-
-# 3. Criando pasta de deploy temporária
+# Copiar arquivos necessários
 echo -e "${YELLOW}Preparando arquivos para deploy...${NC}"
-mkdir -p deploy_temp
-cp -r dist deploy_temp/
-cp package.json deploy_temp/
-cp .env.production deploy_temp/.env
-mkdir -p deploy_temp/uploads
+cp -r dist package.json package-lock.json .env $DEPLOY_DIR/
+mkdir -p $DEPLOY_DIR/uploads
+cp scripts/hostinger_setup.js $DEPLOY_DIR/
 
-# 4. Gerando arquivo de deploy.txt com timestamp
-TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-echo "Deploy realizado em: $TIMESTAMP" > deploy_temp/deploy.txt
-echo "Versão: 1.0.0" >> deploy_temp/deploy.txt
-
-# 5. Compactando para deploy
-echo -e "${YELLOW}Compactando arquivos para deploy...${NC}"
-cd deploy_temp
-zip -r ../baco-deploy.zip .
-cd ..
-
-# 6. Configurando script FTP automatizado
-echo -e "${YELLOW}Preparando para enviar arquivos via FTP...${NC}"
-cat > ftp_commands.txt << EOF
-open $HOSTINGER_HOST
-user $HOSTINGER_USER $HOSTINGER_PASSWORD
-cd $REMOTE_PATH
-binary
-hash
-put baco-deploy.zip
+# Criar script FTP
+echo -e "${YELLOW}Criando script FTP...${NC}"
+FTP_SCRIPT="ftp_commands.txt"
+cat > $FTP_SCRIPT << EOF
+open $FTP_HOST
+user $FTP_USER $FTP_PASS
+mkdir $REMOTE_DIR/dist
+mkdir $REMOTE_DIR/uploads
+mkdir $REMOTE_DIR/uploads/profile
+mkdir $REMOTE_DIR/uploads/events
+mkdir $REMOTE_DIR/uploads/documents
+lcd $DEPLOY_DIR
+cd $REMOTE_DIR
+put package.json
+put package-lock.json
+put .env
+put hostinger_setup.js
+cd $REMOTE_DIR/dist
+lcd dist
+mput *
 bye
 EOF
 
-# 7. Enviando para o servidor via FTP
+# Upload via FTP
 echo -e "${YELLOW}Enviando arquivos para o servidor...${NC}"
-ftp -inv < ftp_commands.txt
-
+lftp -f $FTP_SCRIPT
 if [ $? -ne 0 ]; then
-  echo -e "${RED}Falha ao enviar arquivos para o servidor! Verifique suas credenciais FTP.${NC}"
-  rm -rf deploy_temp ftp_commands.txt baco-deploy.zip
-  exit 1
+    echo -e "${RED}Falha ao enviar arquivos via FTP.${NC}"
+    exit 1
 fi
 
-# 8. Limpeza local
+# Limpar arquivos temporários
 echo -e "${YELLOW}Limpando arquivos temporários...${NC}"
-rm -rf deploy_temp ftp_commands.txt baco-deploy.zip .env.production
+rm -f $FTP_SCRIPT
+rm -rf $DEPLOY_DIR
 
-echo -e "${GREEN}Arquivos enviados com sucesso!${NC}"
-echo -e "${YELLOW}IMPORTANTE: Você precisa extrair o arquivo zip no painel de controle da Hostinger.${NC}"
-echo -e "${YELLOW}1. Acesse o Gerenciador de Arquivos da Hostinger${NC}"
-echo -e "${YELLOW}2. Navegue até /public_html${NC}"
-echo -e "${YELLOW}3. Extraia o arquivo baco-deploy.zip${NC}"
-echo -e "${YELLOW}4. Configure o Node.js no painel da Hostinger, apontando para dist/index.js${NC}"
-echo -e "${GREEN}Acesse seu site em: https://bacoexperiencias.com${NC}"
+echo -e "${GREEN}Deploy concluído com sucesso!${NC}"
+echo -e "${YELLOW}Próximos passos:${NC}"
+echo -e "1. No painel da Hostinger, configure o Node.js para usar o arquivo principal: ${GREEN}dist/index.js${NC}"
+echo -e "2. Configure o comando de inicialização: ${GREEN}node dist/index.js${NC}"
+echo -e "3. Execute o script de configuração: ${GREEN}node hostinger_setup.js${NC}"
+echo -e "4. Reinicie a aplicação Node.js pelo painel da Hostinger"
+echo -e "${GREEN}Sua aplicação Baco estará disponível em https://bacoexperiencias.com${NC}"
+
+exit 0

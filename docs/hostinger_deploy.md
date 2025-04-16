@@ -1,215 +1,144 @@
-# Guia de Deploy - Hostinger
+# Documentação de Deploy na Hostinger
 
-Este guia cobre o processo de deployment da aplicação Baco na plataforma Hostinger.
+## Informações Gerais
 
-## Pré-requisitos
+**Domínio:** bacoexperiencias.com
+**Hospedagem:** Hostinger (Plano com suporte Node.js)
+**Banco de Dados:** PostgreSQL (Neon.tech)
 
-1. Conta na Hostinger com hospedagem que suporte Node.js (VPS ou plano específico para Node.js)
-2. Acesso SSH à hospedagem
-3. Domínio configurado
-4. Banco de dados PostgreSQL (recomendamos manter o Neon.tech)
+## Requisitos do Servidor
 
-## Arquivos necessários para produção
+- Node.js 20.x ou superior
+- Suporte a Node.js no plano de hospedagem
+- Certificado SSL/TLS para HTTPS
+- Capacidade de executar WebSockets (para chat)
 
-1. Diretório `/dist` (gerado pelo comando `npm run build`)
-2. Arquivo `package.json`
-3. Arquivo `.env` com as variáveis de ambiente
-4. Diretório `/uploads` (para armazenamento de imagens)
+## Métodos de Deploy
 
-## Processo de Deploy
+### 1. Deploy Automatizado (GitHub Actions)
 
-### 1. Preparação no ambiente de desenvolvimento
+O deploy automatizado através do GitHub Actions é o método recomendado para manter o site atualizado.
 
-1. Certifique-se de que todas as dependências estão instaladas:
-   ```
-   npm install
-   ```
+#### Configuração Inicial (apenas uma vez):
 
-2. Crie um arquivo `.env.production` com as variáveis de ambiente para produção:
-   ```
-   DATABASE_URL=postgresql://neondb_owner:senha@ep-soft-morning-a5hmg64m.us-east-2.aws.neon.tech/neondb?sslmode=require
-   VITE_GOOGLE_MAPS_API_KEY=AIzaSyDOQ05pP30yBlS5u-PC9X_gCTOcZQegNVk
-   SESSION_SECRET=uma_chave_secreta_muito_segura
-   NODE_ENV=production
-   ```
+1. No repositório GitHub (https://github.com/Bacoex/baco), acesse **Settings > Secrets and variables > Actions**
+2. Adicione os seguintes secrets:
+   - `HOSTINGER_USERNAME`: Seu nome de usuário FTP da Hostinger
+   - `HOSTINGER_PASSWORD`: Sua senha FTP da Hostinger
+   - `HOSTINGER_SERVER`: Geralmente `ftp.bacoexperiencias.com`
+   - `DATABASE_URL`: URL completa de conexão com o banco PostgreSQL
+   - `SESSION_SECRET`: Chave aleatória para criptografia de sessões
+   - `VITE_GOOGLE_MAPS_API_KEY`: Sua chave da API do Google Maps
 
-3. Faça o build da aplicação:
-   ```
-   npm run build
-   ```
+#### Como funciona:
 
-4. Compacte os arquivos necessários para upload:
-   ```
-   tar -czvf baco-deploy.tar.gz dist package.json .env.production
-   ```
+- Cada push na branch `main` do repositório iniciará o workflow de deploy
+- O código é construído automaticamente
+- Os arquivos são enviados via FTP para a Hostinger
+- A aplicação é reiniciada automaticamente
 
-### 2. Configuração no servidor Hostinger
+#### Verificando status:
 
-1. Acesse o servidor via SSH:
-   ```
-   ssh username@seu-dominio.com
-   ```
+- Verifique o status do deploy na aba "Actions" do repositório
+- Veja os logs na seção "Node.js" do painel da Hostinger
 
-2. Navegue até o diretório raiz da aplicação:
-   ```
-   cd ~/seu-dominio.com/
-   ```
+### 2. Deploy Manual
 
-3. Faça upload do arquivo compactado usando SFTP ou SCP
-   ```
-   scp baco-deploy.tar.gz username@seu-dominio.com:~/seu-dominio.com/
-   ```
+Se for necessário fazer um deploy manual, use o script fornecido:
 
-4. Descompacte os arquivos:
-   ```
-   tar -xzvf baco-deploy.tar.gz
-   ```
-
-5. Renomeie o arquivo de ambiente:
-   ```
-   mv .env.production .env
-   ```
-
-6. Instale as dependências de produção:
-   ```
-   npm install --production
-   ```
-
-7. Crie o diretório de uploads se não existir:
-   ```
-   mkdir -p uploads
-   chmod 755 uploads
-   ```
-
-### 3. Configuração do servidor Node.js na Hostinger
-
-Para cada provedor de hospedagem, o método pode variar ligeiramente. Aqui estão os métodos mais comuns:
-
-#### Usando PM2 (recomendado):
-
-1. Instale o PM2 globalmente:
-   ```
-   npm install -g pm2
-   ```
-
-2. Inicie a aplicação com PM2:
-   ```
-   pm2 start dist/index.js --name baco
-   ```
-
-3. Configure o PM2 para iniciar automaticamente:
-   ```
-   pm2 startup
-   pm2 save
-   ```
-
-#### Usando o Painel da Hostinger (se disponível):
-
-1. Acesse o painel de controle da Hostinger
-2. Navegue até a seção Node.js
-3. Configure o arquivo principal como `dist/index.js`
-4. Defina o comando de inicialização como `node dist/index.js`
-
-### 4. Configurando o Nginx (se estiver usando VPS)
-
-Se você estiver usando um VPS da Hostinger, você provavelmente precisará configurar um proxy reverso Nginx:
-
-1. Instale o Nginx:
-   ```
-   sudo apt update
-   sudo apt install nginx
-   ```
-
-2. Crie um arquivo de configuração para o site:
-   ```
-   sudo nano /etc/nginx/sites-available/baco
-   ```
-
-3. Adicione a seguinte configuração:
-   ```nginx
-   server {
-       listen 80;
-       server_name seu-dominio.com www.seu-dominio.com;
-
-       location / {
-           proxy_pass http://localhost:5000;  # A porta que seu app Node está rodando
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection 'upgrade';
-           proxy_set_header Host $host;
-           proxy_cache_bypass $http_upgrade;
-       }
-
-       location /uploads {
-           alias /home/username/seu-dominio.com/uploads;
-       }
-   }
-   ```
-
-4. Ative o site:
-   ```
-   sudo ln -s /etc/nginx/sites-available/baco /etc/nginx/sites-enabled/
-   ```
-
-5. Teste e reinicie o Nginx:
-   ```
-   sudo nginx -t
-   sudo systemctl restart nginx
-   ```
-
-### 5. Configurando HTTPS com Let's Encrypt
-
-1. Instale o Certbot:
-   ```
-   sudo apt install certbot python3-certbot-nginx
-   ```
-
-2. Obtenha um certificado:
-   ```
-   sudo certbot --nginx -d seu-dominio.com -d www.seu-dominio.com
-   ```
-
-3. Siga as instruções na tela para completar o processo.
-
-## Processo de Atualização
-
-Para atualizar o aplicativo com novas versões:
-
-1. Gere um novo build no ambiente de desenvolvimento
-2. Compacte os arquivos atualizados
-3. Faça upload para o servidor
-4. Descompacte substituindo os arquivos antigos
-5. Reinicie o serviço:
-   ```
-   pm2 restart baco
-   ```
-
-## Troubleshooting
-
-### Problema: A aplicação não inicia
-- Verifique os logs com `pm2 logs baco`
-- Verifique se todas as variáveis de ambiente estão corretas
-- Certifique-se de que a conexão com o banco de dados está funcionando
-
-### Problema: Erro de conexão com o banco de dados
-- Verifique se a string de conexão DATABASE_URL está correta
-- Confirme se o IP do servidor está na lista de permissões do Neon.tech
-
-### Problema: Imagens não são exibidas
-- Verifique as permissões do diretório `/uploads`
-- Confirme se o Nginx está configurado corretamente para servir arquivos estáticos
-
-## Monitoramento
-
-Para monitorar a saúde da aplicação:
-
-```
-pm2 status
-pm2 monit
+```bash
+# No diretório raiz do projeto
+./scripts/deploy.sh [usuário_ftp] [senha_ftp]
 ```
 
-Para verificar os logs:
+O script irá:
+1. Construir o projeto
+2. Preparar os arquivos para deploy
+3. Enviar os arquivos via FTP para a Hostinger
+
+#### Pós-deploy manual:
+
+1. Acesse o painel da Hostinger
+2. Na seção Node.js, configure:
+   - Arquivo principal: `dist/index.js`
+   - Comando de inicialização: `node dist/index.js`
+3. Execute o script de configuração via SSH:
+   ```
+   cd /public_html
+   node hostinger_setup.js
+   ```
+4. Reinicie a aplicação Node.js
+
+## Estrutura de Arquivos no Servidor
 
 ```
-pm2 logs baco
+public_html/
+├── dist/            # Código compilado
+├── node_modules/    # Dependências
+├── uploads/         # Arquivos enviados pelos usuários
+│   ├── profile/     # Fotos de perfil
+│   ├── events/      # Imagens de eventos
+│   └── documents/   # Documentos para verificação
+├── .env             # Variáveis de ambiente
+├── package.json     # Dependências do projeto
+└── hostinger_setup.js # Script de configuração
 ```
+
+## Manutenção
+
+### Banco de Dados
+
+O banco de dados PostgreSQL está hospedado no serviço Neon.tech. Certifique-se de:
+
+- Manter backups regulares do banco de dados
+- Verificar se o IP do servidor da Hostinger está na lista de permissões do Neon.tech
+- Monitorar o uso de armazenamento e performance
+
+### Monitoramento
+
+- Verifique regularmente os logs da aplicação no painel da Hostinger
+- Configure alertas para notificar sobre problemas no servidor
+- Monitore o uso de CPU e memória
+
+### Atualizações
+
+- Atualize regularmente as dependências do projeto
+- Teste novas versões em ambiente de desenvolvimento antes do deploy
+- Mantenha um registro das atualizações realizadas
+
+### Segurança
+
+- Verifique regularmente as vulnerabilidades nas dependências
+- Mantenha a configuração do firewall atualizada
+- Faça backups regulares de todo o ambiente
+
+## Resolução de Problemas
+
+### Problemas comuns e soluções:
+
+1. **Aplicação não inicia:**
+   - Verifique os logs no painel da Hostinger
+   - Confirme se o arquivo principal está configurado corretamente
+   - Verifique se as variáveis de ambiente estão presentes
+
+2. **Erro de conexão com banco de dados:**
+   - Verifique se a URL do banco de dados está correta
+   - Confirme se o IP do servidor está na lista de permissões do Neon.tech
+   - Teste a conexão com o banco de dados manualmente
+
+3. **Uploads não funcionam:**
+   - Verifique as permissões do diretório `uploads`
+   - Confirme se os subdiretórios foram criados corretamente
+   - Verifique os logs de erro para mais detalhes
+
+4. **Problemas com o chat:**
+   - Confirme se WebSockets estão habilitados na Hostinger
+   - Verifique se não há bloqueio de portas para WebSockets
+   - Revise os logs do servidor para erros específicos
+
+## Contatos de Suporte
+
+- **Suporte Baco:** bacoexperiencias@gmail.com
+- **Desenvolvedor:** Kevin Matheus Barbosa
+- **Suporte Hostinger:** suporte@hostinger.com.br
+- **Suporte Neon.tech:** support@neon.tech
